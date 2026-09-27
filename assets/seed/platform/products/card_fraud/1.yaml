@@ -1,0 +1,33 @@
+# Platform-owned product definition. Synthetic demo configuration only.
+product_id: card_fraud
+version: 1
+owner_scope: platform
+runtime_profile: authorization
+routing:
+  event_types: [AUTH_REQUEST]
+  channels: [ECOMMERCE, POS]
+execution:
+  total_deadline_ms: 100
+  required_features:
+    - pan_txn_count_1h@1
+    - pan_amount_sum_24h@1
+    - merchant_txn_count_1h@1
+    - merchant_amount_sum_1h@1
+  signals:
+    fraud:
+      contract: fraud.authorization_probability
+      accepted_contracts: ["1.1.0"]
+      binding: fraud-primary@3
+      timeout_ms: 40
+      required: true
+  ruleset: card_fraud_policy@5
+  missing_required_signal: REVIEW
+  aggregation: fraud_action_precedence@1
+thresholds:
+  review_probability: 0.70
+  decline_probability: 0.90
+  velocity_decline_count: 12
+action_policy: card_auth_actions@2
+rollout:
+  mode: LIVE
+  cohort: champion

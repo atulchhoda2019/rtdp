@@ -1,0 +1,321 @@
+# RTDP local stack — real infrastructure, no stubs.
+# Kafka-compatible broker, Postgres, Redis (Tier 1+2), MinIO artifacts,
+# Flink JobManager/TaskManager, Prometheus/Grafana/OTel.
+name: rtdp
+
+x-common-env: &common-env
+  RTDP_ENV: work
+  RTDP_KAFKA_BROKERS: kafka:9092
+  RTDP_POSTGRES_DSN: postgres://rtdp:rtdp@postgres:5432/rtdp?sslmode=disable
+  RTDP_REDIS_ADDR: redis:6379
+  RTDP_S3_ENDPOINT: http://objectstore:9090
+  RTDP_S3_REGION: us-east-1
+  RTDP_S3_ACCESS_KEY: minioadmin
+  RTDP_S3_SECRET_KEY: minioadmin
+  RTDP_S3_BUCKET_ARTIFACTS: rtdp-artifacts
+  OTEL_EXPORTER_OTLP_ENDPOINT: otel-collector:4317
+
+services:
+  # ---------- infrastructure ----------
+  kafka:
+    image: apache/kafka:3.9.1
+    hostname: kafka
+    ports:
+      - "9092:9092"
+      - "29092:29092"   # EXTERNAL listener: host-side clients (gates, loadgen)
+    environment:
+      KAFKA_NODE_ID: 1
+      KAFKA_PROCESS_ROLES: broker,controller
+      KAFKA_LISTENERS: PLAINTEXT://kafka:9092,CONTROLLER://kafka:9093,EXTERNAL://0.0.0.0:29092
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092,EXTERNAL://localhost:29092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: CONTROLLER:PLAINTEXT,PLAINTEXT:PLAINTEXT,EXTERNAL:PLAINTEXT
+      KAFKA_CONTROLLER_QUORUM_VOTERS: 1@kafka:9093
+      KAFKA_CONTROLLER_LISTENER_NAMES: CONTROLLER
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_REPLICATION_FACTOR: 1
+      KAFKA_TRANSACTION_STATE_LOG_MIN_ISR: 1
+      KAFKA_TRANSACTION_MAX_TIMEOUT_MS: "3600000"
+      KAFKA_GROUP_INITIAL_REBALANCE_DELAY_MS: 0
+      KAFKA_AUTO_CREATE_TOPICS_ENABLE: "false"
+    healthcheck:
+      test: ["CMD", "/opt/kafka/bin/kafka-topics.sh", "--bootstrap-server", "kafka:9092", "--list"]
+      interval: 5s
+      timeout: 5s
+      retries: 30
+    volumes:
+      - kafka-data:/var/lib/kafka/data
+
+  postgres:
+    image: postgres:16.6
+    environment:
+      POSTGRES_USER: rtdp
+      POSTGRES_PASSWORD: rtdp
+      POSTGRES_DB: rtdp
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U rtdp"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./services/control-plane/migrations:/docker-entrypoint-initdb.d:ro
+
+  redis:
+    image: redis:7.4.2
+    command: ["redis-server", "--appendonly", "yes"]
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - redis-data:/data
+
+  # MinIO removed its free images in 2025; adobe/s3mock provides the same
+  # S3 API surface for the local stack (documented substitution).
+  objectstore:
+    image: adobe/s3mock:4.9.1
+    environment:
+      initialBuckets: rtdp-artifacts,rtdp-bundles,rtdp-checkpoints,rtdp-validation
+      debugHttp: "false"
+    ports:
+      - "9099:9090"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q -O /dev/null http://localhost:9090/ || exit 1"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - minio-data:/root
+
+  minio-init:
+    image: amazon/aws-cli:2.27.35
+    depends_on:
+      objectstore:
+        condition: service_healthy
+    environment:
+      AWS_ACCESS_KEY_ID: minioadmin
+      AWS_SECRET_ACCESS_KEY: minioadmin
+      AWS_DEFAULT_REGION: us-east-1
+    entrypoint: >
+      /bin/sh -c "
+      for b in rtdp-artifacts rtdp-bundles rtdp-checkpoints rtdp-validation; do
+        aws --endpoint-url http://objectstore:9090 s3 mb s3://$$b 2>/dev/null || true;
+      done;
+      aws --endpoint-url http://objectstore:9090 s3api put-bucket-versioning --bucket rtdp-artifacts --versioning-configuration Status=Enabled;
+      aws --endpoint-url http://objectstore:9090 s3api put-bucket-versioning --bucket rtdp-bundles --versioning-configuration Status=Enabled
+      "
+
+  flink-jobmanager:
+    build:
+      context: ./deploy/docker/flink
+      dockerfile: Dockerfile
+    command: ["jobmanager"]
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
+      - |
+        FLINK_PROPERTIES=
+        checkpointing.interval: 1000
+        checkpointing.timeout: 30000
+        state.checkpoints.dir: s3://rtdp-checkpoints/checkpoints
+        state.savepoints.dir: s3://rtdp-checkpoints/savepoints
+        s3.endpoint: http://objectstore:9090
+        s3.path-style-access: true
+        s3.access-key: minioadmin
+        s3.secret-key: minioadmin
+    ports:
+      - "8081:8081"
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8081/overview || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  flink-taskmanager:
+    build:
+      context: ./deploy/docker/flink
+      dockerfile: Dockerfile
+    command: ["taskmanager"]
+    depends_on:
+      flink-jobmanager:
+        condition: service_healthy
+    environment:
+      - JOB_MANAGER_RPC_ADDRESS=flink-jobmanager
+      - |
+        FLINK_PROPERTIES=
+        taskmanager.numberOfTaskSlots: 4
+        s3.endpoint: http://objectstore:9090
+        s3.path-style-access: true
+        s3.access-key: minioadmin
+        s3.secret-key: minioadmin
+
+  # ---------- observability ----------
+  otel-collector:
+    image: otel/opentelemetry-collector-contrib:0.161.0
+    command: ["--config=/etc/otel-collector-config.yaml"]
+    volumes:
+      - ./observability/otel-collector-config.yaml:/etc/otel-collector-config.yaml:ro
+    ports:
+      - "4317:4317"
+      - "4318:4318"
+
+  prometheus:
+    image: prom/prometheus:v2.55.1
+    command:
+      - --config.file=/etc/prometheus/prometheus.yml
+      - --storage.tsdb.retention.time=2h
+    volumes:
+      - ./observability/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    ports:
+      - "9090:9090"
+
+  grafana:
+    image: grafana/grafana:11.4.0
+    environment:
+      GF_AUTH_ANONYMOUS_ENABLED: "true"
+      GF_AUTH_ANONYMOUS_ORG_ROLE: Admin
+      GF_AUTH_DISABLE_LOGIN_FORM: "true"
+    volumes:
+      - ./observability/grafana-datasources.yaml:/etc/grafana/provisioning/datasources/datasources.yaml:ro
+      - ./observability/grafana-dashboards:/etc/grafana/provisioning/dashboards:ro
+    ports:
+      - "3000:3000"
+    depends_on:
+      - prometheus
+
+  # ---------- RTDP services (built locally) ----------
+  inference-service:
+    build:
+      context: .
+      dockerfile: services/inference-service/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_INFERENCE_PORT: "50051"
+      RTDP_INFERENCE_WORKERS: "16"
+    depends_on:
+      minio-init:
+        condition: service_completed_successfully
+    ports:
+      - "50051:50051"
+
+  feature-service:
+    build:
+      context: .
+      dockerfile: services/feature-service/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_FEATURE_PORT: "50052"
+    depends_on:
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+
+  rules-service:
+    build:
+      context: .
+      dockerfile: services/rules-service/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_RULES_PORT: "50053"
+
+  signal-resolver:
+    build:
+      context: .
+      dockerfile: services/signal-resolver/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_RESOLVER_PORT: "50054"
+      RTDP_INFERENCE_ADDR: inference-service:50051
+    depends_on:
+      - inference-service
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: services/orchestrator/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_TXN_POOL: "64"
+      RTDP_ORCHESTRATOR_PORT: "50055"
+      RTDP_FEATURE_ADDR: feature-service:50052
+      RTDP_RESOLVER_ADDR: signal-resolver:50054
+      RTDP_RULES_ADDR: rules-service:50053
+      RTDP_BUNDLE_DIR: /app/build/bundles
+    volumes:
+      - ./build:/app/build:ro
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+      feature-service:
+        condition: service_started
+      signal-resolver:
+        condition: service_started
+      rules-service:
+        condition: service_started
+
+  ingress:
+    build:
+      context: .
+      dockerfile: services/ingress/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_INGRESS_PORT: "8080"
+      RTDP_ORCHESTRATOR_ADDR: orchestrator:50055
+    depends_on:
+      - orchestrator
+      - kafka
+    ports:
+      - "8080:8080"
+
+  action-dispatcher:
+    build:
+      context: .
+      dockerfile: services/action-dispatcher/Dockerfile
+    environment:
+      <<: *common-env
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+  feature-materializer:
+    build:
+      context: .
+      dockerfile: services/feature-materializer/Dockerfile
+    environment:
+      <<: *common-env
+    depends_on:
+      kafka:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+
+  projector:
+    build:
+      context: .
+      dockerfile: services/projector/Dockerfile
+    environment:
+      <<: *common-env
+    depends_on:
+      kafka:
+        condition: service_healthy
+      postgres:
+        condition: service_healthy
+
+volumes:
+  kafka-data:
+  postgres-data:
+  redis-data:
+  minio-data:
+  flink-checkpoints:

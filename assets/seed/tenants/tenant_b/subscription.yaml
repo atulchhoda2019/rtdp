@@ -1,0 +1,13 @@
+tenant_id: tenant_b
+display_name: "Synthetic Tenant B"
+subscriptions:
+  - subscription_id: sub_b_cardfraud
+    product: card_fraud@1
+    revision: 2
+    status: ACTIVE
+overlays:
+  - overlay_id: ovl_b_decline
+    version: 1
+    # Tenant B's stricter decline threshold (worked example in design.md).
+    overrides:
+      thresholds.decline_probability: 0.85

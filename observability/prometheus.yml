@@ -1,0 +1,19 @@
+global:
+  scrape_interval: 5s
+
+scrape_configs:
+  - job_name: otel-collector
+    static_configs:
+      - targets: ["otel-collector:8889"]
+
+  - job_name: rtdp-services
+    metrics_path: /metrics
+    static_configs:
+      - targets:
+          - orchestrator:9090
+          - feature-service:9090
+          - signal-resolver:9090
+          - rules-service:9090
+          - action-dispatcher:9090
+          - feature-materializer:9090
+          - ingress:8080

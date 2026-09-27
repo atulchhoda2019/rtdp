@@ -1,0 +1,192 @@
+syntax = "proto3";
+
+package rtdp.v1;
+
+import "google/protobuf/timestamp.proto";
+import "rtdp/v1/decision.proto";
+import "rtdp/v1/envelope.proto";
+
+option go_package = "github.com/rtdp/rtdp/gen/go/rtdp/v1;rtdpv1";
+option java_multiple_files = true;
+option java_package = "com.rtdp.proto.v1";
+option java_outer_classname = "ServicesProtos";
+
+// Inference is the synchronous model-scoring boundary (SignalProvider impl).
+service InferenceService {
+  rpc Score(ScoreRequest) returns (ScoreResponse);
+  rpc Warm(WarmRequest) returns (WarmResponse);
+}
+
+message ScoreRequest {
+  string tenant_id = 1;
+  string environment = 2;
+  Mode mode = 3;
+  string transaction_id = 4;
+  int64 transaction_revision = 5;
+  string decision_context_id = 6;
+  string binding_id = 7;
+  int64 binding_version = 8;
+  string model_id = 9;
+  string model_version = 10;
+  string model_digest = 11;
+  string preprocessing_digest = 12;
+  string input_snapshot_digest = 13;
+  // Ordered input vector matching the model's input schema.
+  repeated string feature_names = 14;
+  repeated TypedValue feature_values = 15;
+  google.protobuf.Timestamp event_time = 16;
+  int64 deadline_ms = 17; // remaining budget
+  string traceparent = 18;
+}
+
+message ScoreResponse {
+  SignalEnvelope envelope = 1;
+}
+
+message WarmRequest {
+  string model_id = 1;
+  string model_version = 2;
+  string model_digest = 3;
+  string artifact_uri = 4; // s3:// or file:// for local dev
+  string input_schema_digest = 5;
+  string preprocessing_digest = 6;
+  string output_contract = 7;
+  string contract_version = 8;
+}
+
+message WarmResponse {
+  bool ready = 1;
+  string model_digest = 2;
+  string error = 3;
+}
+
+// Feature serving (Tier 1 atomic updates, Tier 2 versioned reads).
+service FeatureService {
+  rpc ResolveFeatures(ResolveFeaturesRequest) returns (ResolveFeaturesResponse);
+}
+
+message FeatureRef {
+  string name = 1;
+  int64 version = 2;
+  string tier = 3; // "tier1" | "tier2"
+}
+
+message ResolveFeaturesRequest {
+  string tenant_id = 1;
+  string environment = 2;
+  Mode mode = 3;
+  string transaction_id = 4;
+  int64 transaction_revision = 5;
+  string tokenized_pan = 6;
+  string merchant_id = 7;
+  string currency = 8;
+  double amount = 9;
+  google.protobuf.Timestamp event_time = 10;
+  repeated FeatureRef required_features = 11;
+}
+
+message ResolveFeaturesResponse {
+  map<string, TypedValue> features = 1;
+  repeated string missing_features = 2;
+  string snapshot_digest = 3;
+}
+
+// Signal resolution boundary: provider abstraction + envelope validation.
+service SignalResolver {
+  rpc ResolveSignals(ResolveSignalsRequest) returns (ResolveSignalsResponse);
+}
+
+// One pinned signal requirement from the bundle. The resolver validates the
+// returned envelope against this exact spec — no "latest" resolution.
+message SignalSpec {
+  string alias = 1;
+  string contract = 2;
+  repeated string accepted_contracts = 3;
+  string contract_digest = 4;
+  string binding = 5;           // id@version
+  string binding_digest = 6;
+  int64 timeout_ms = 7;
+  bool required = 8;
+  string provider = 9;          // e.g. grpc_inference
+  string endpoint_ref = 10;     // resolves via approved endpoint catalog
+  string model = 11;            // id@version
+  string model_digest = 12;
+  string input_schema_digest = 13;
+  string preprocessing_digest = 14;
+  int64 maximum_age_ms = 15;
+}
+
+message ResolveSignalsRequest {
+  string tenant_id = 1;
+  string environment = 2;
+  Mode mode = 3;
+  string transaction_id = 4;
+  int64 transaction_revision = 5;
+  string decision_context_id = 6;
+  google.protobuf.Timestamp event_time = 7;
+  int64 deadline_ms = 8;
+  repeated SignalSpec specs = 9;
+  // Ordered feature vector for provider input construction.
+  repeated string feature_names = 10;
+  repeated TypedValue feature_values = 11;
+  string input_snapshot_digest = 12;
+  string traceparent = 13;
+}
+
+message ResolvedSignal {
+  string alias = 1;
+  SignalEnvelope envelope = 2;
+  bool ok = 3;                  // envelope validated + status OK
+  string reject_code = 4;
+}
+
+message ResolveSignalsResponse {
+  repeated ResolvedSignal signals = 1;
+}
+
+// Declarative CEL rules evaluation against canonical inputs.
+service RulesService {
+  rpc EvaluateRules(EvaluateRulesRequest) returns (EvaluateRulesResponse);
+}
+
+message EvaluateRulesRequest {
+  string ruleset_digest = 1;
+  bytes ruleset_spec_json = 2; // must sha256-match ruleset_digest
+  map<string, TypedValue> features = 3;
+  // alias -> values map for signals that validated OK.
+  map<string, ValueMap> signals = 4;
+  repeated string present_signal_aliases = 5;
+  map<string, TypedValue> cfg = 6;
+  map<string, TypedValue> input = 7;
+  int64 execution_budget_ms = 8;
+}
+
+message FiredRule {
+  string rule_id = 1;
+  string decision = 2;
+  string reason = 3;
+}
+
+message EvaluateRulesResponse {
+  repeated FiredRule fired = 1;
+  repeated string skipped_rule_ids = 2;
+  string decision = 3;          // aggregated product outcome
+  repeated string reason_codes = 4;
+  bool defaulted = 5;
+}
+
+// Orchestration entry point for the decision path.
+service Orchestrator {
+  rpc Decide(AuthenticatedTransaction) returns (DecisionResult);
+  rpc GetDecisionStatus(GetDecisionStatusRequest) returns (GetDecisionStatusResponse);
+}
+
+message GetDecisionStatusRequest {
+  string tenant_id = 1;
+  string request_id = 2; // stable request identity from ingress
+}
+
+message GetDecisionStatusResponse {
+  DecisionResult decision = 1;
+  bool found = 2;
+}

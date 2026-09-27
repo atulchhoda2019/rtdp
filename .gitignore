@@ -1,0 +1,49 @@
+# Build outputs
+bin/
+dist/
+build/
+out/
+target/
+dependency-reduced-pom.xml
+*.o
+*.so
+
+# Generated code
+**/gen/
+proto/**/gen/
+
+# Dependencies
+node_modules/
+vendor/
+__pycache__/
+*.pyc
+*.egg-info/
+.venv/
+venv/
+
+# Env / secrets
+.env
+.env.*
+*.pem
+*.key
+secrets/
+
+# IDE / OS
+.DS_Store
+.idea/
+.vscode/
+*.swp
+
+# Terraform
+**/.terraform/
+*.tfstate
+*.tfstate.*
+*.tfvars
+!*.tfvars.example
+.terraform.lock.hcl
+
+# Test/evidence artifacts (large)
+tmp/
+*.log
+!docs/validation/*.log
+coverage/

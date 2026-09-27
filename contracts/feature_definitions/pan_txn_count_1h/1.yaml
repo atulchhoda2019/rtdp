@@ -1,0 +1,15 @@
+feature_name: pan_txn_count_1h
+version: 1
+tier: tier1
+description: "Count of authorizations on this card in the trailing 60 minutes (processing time)."
+entity: tokenized_pan
+value_type: int64
+computation:
+  kind: sync_counter
+  window: PT1H
+  bucket: minute
+  dedup_horizon: PT24H
+scope: [tenant, environment, mode, tokenized_pan]
+staleness_policy:
+  # Tier 1 is synchronous; a failed update means the feature is absent, not stale.
+  max_age: PT0S

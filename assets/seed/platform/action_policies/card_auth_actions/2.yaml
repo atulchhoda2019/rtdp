@@ -1,0 +1,17 @@
+action_policy_id: card_auth_actions
+version: 2
+owner_scope: platform
+allowed_actions: [AUTH_RESPONSE, CREATE_REVIEW_CASE]
+adapters:
+  AUTH_RESPONSE: local_auth_simulator@1
+  CREATE_REVIEW_CASE: local_case_adapter@1
+authoritative_decision_domain: card_authorization
+intent_ttl_ms:
+  AUTH_RESPONSE: 100
+  CREATE_REVIEW_CASE: 300000
+retries:
+  CREATE_REVIEW_CASE:
+    maximum_attempts: 3
+    strategy: bounded_exponential
+on_unknown_outcome: RECONCILE
+live_effects_allowed: false

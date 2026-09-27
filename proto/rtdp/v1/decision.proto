@@ -1,0 +1,118 @@
+syntax = "proto3";
+
+package rtdp.v1;
+
+import "google/protobuf/timestamp.proto";
+import "rtdp/v1/envelope.proto";
+
+option go_package = "github.com/rtdp/rtdp/gen/go/rtdp/v1;rtdpv1";
+option java_multiple_files = true;
+option java_package = "com.rtdp.proto.v1";
+option java_outer_classname = "DecisionProtos";
+
+// AuthenticatedTransaction is the trusted ingress payload. tenant_id is set
+// from verified caller identity before this message reaches the orchestrator;
+// downstream services must not re-derive it from untrusted fields.
+message AuthenticatedTransaction {
+  string request_id = 1;
+  string tenant_id = 2; // bound at ingress from authenticated identity
+  string environment = 3;
+  Mode mode = 4;
+  string transaction_id = 5;
+  int64 transaction_revision = 6;
+  string event_type = 7;  // e.g. AUTH_REQUEST
+  string channel = 8;     // e.g. ECOMMERCE
+  string region = 9;
+  string tokenized_pan = 10;
+  string merchant_id = 11;
+  string currency = 12;
+  double amount = 13;
+  google.protobuf.Timestamp event_time = 14;
+  map<string, TypedValue> attributes = 15;
+  string traceparent = 16;
+}
+
+// SelectedProduct is the product-selection fact for a request.
+message SelectedProduct {
+  string product_id = 1;
+  string subscription_revision = 2;
+  string effective_config_digest = 3;
+  string bundle_id = 4;
+  repeated string selection_reasons = 5;
+}
+
+// ActionIntent is a permitted desired effect — not yet an executed action.
+message ActionIntent {
+  string action_type = 1;
+  string idempotency_key = 2;
+  map<string, TypedValue> payload = 3;
+  string adapter_ref = 4;
+  int64 ttl_ms = 5;
+}
+
+// DecisionResult records what policy decided for one transaction revision.
+message DecisionResult {
+  string decision_id = 1;
+  int64 decision_generation = 2;
+  string tenant_id = 3;
+  string environment = 4;
+  Mode mode = 5;
+  string transaction_id = 6;
+  int64 transaction_revision = 7;
+  Decision outcome = 8;
+  repeated string reason_codes = 9;
+  repeated SelectedProduct products = 10;
+  string bundle_digest = 11;
+  int64 manifest_epoch = 12;
+  string input_snapshot_digest = 13;
+  repeated SignalEnvelope signals = 14;
+  repeated ActionIntent action_intents = 15;
+  google.protobuf.Timestamp decided_at = 16;
+  string traceparent = 17;
+}
+
+// ActionCommand is the durable form consumed by the action dispatcher.
+message ActionCommand {
+  string command_id = 1;
+  string tenant_id = 2;
+  string environment = 3;
+  Mode mode = 4;
+  string decision_id = 5;
+  int64 decision_generation = 6;
+  string action_type = 7;
+  string idempotency_key = 8;
+  string adapter_ref = 9;
+  map<string, TypedValue> payload = 10;
+  int64 intent_ttl_ms = 11;
+  google.protobuf.Timestamp created_at = 12;
+}
+
+// FeatureContribution is the canonical per-event input to streaming features.
+// One contribution per accepted event regardless of product fan-out.
+message FeatureContribution {
+  string contribution_id = 1;
+  string tenant_id = 2;
+  string environment = 3;
+  Mode mode = 4;
+  string transaction_id = 5;
+  int64 transaction_revision = 6;
+  string tokenized_pan = 7;
+  string merchant_id = 8;
+  string currency = 9;
+  double amount = 10;
+  google.protobuf.Timestamp event_time = 11;
+}
+
+// FeatureUpdate is an absolute tile value emitted by streaming computation.
+message FeatureUpdate {
+  string tenant_id = 1;
+  Mode mode = 2;
+  string feature_name = 3;
+  int64 feature_version = 4;
+  string entity_id = 5;   // merchant or tokenized entity
+  string currency = 6;
+  google.protobuf.Timestamp tile_start = 7;
+  google.protobuf.Timestamp tile_end = 8;
+  double value = 9;
+  string feature_definition_digest = 10;
+}

@@ -1,0 +1,108 @@
+{
+  "run_at": "2026-09-27T04:12:59Z",
+  "gates": {
+    "g1_e2e_path": {
+      "status": "pass",
+      "seconds": 0.4,
+      "evidence": {
+        "unauthorized_status": 401,
+        "tenant_a": {
+          "action_intents": 1,
+          "bundle_digest": "sha256:1a71f97e92320b4f20271092f664b542b6a2437ac23d58e50cf430c0a4232d58",
+          "decision_id": "5744f4fa-0a40-43e3-ba64-b7c3e5b83b00",
+          "manifest_epoch": 1790482310,
+          "outcome": "DECISION_APPROVE",
+          "reason_codes": null
+        },
+        "tenant_b": {
+          "action_intents": 1,
+          "bundle_digest": "sha256:3fba15f8884f2993d9cef6fc0974cc98dd1495f39433c2f775aee0778d881995",
+          "decision_id": "8f6b095b-a210-4c4f-929c-1e7a1a6742c6",
+          "manifest_epoch": 1790482310,
+          "outcome": "DECISION_APPROVE",
+          "reason_codes": null
+        },
+        "idempotent_retry": true,
+        "conflict_rejected": 502
+      }
+    },
+    "g2_tenant_isolation": {
+      "status": "pass",
+      "seconds": 0.1,
+      "evidence": {
+        "spoofed_payload_tenant": "tenant_b",
+        "effective_bundle_digest": "sha256:1a71f97e92320b4f20271092f664b542b6a2437ac23d58e50cf430c0a4232d58",
+        "decision_fact_tenant": "tenant_a",
+        "dedup_key": "rtdp:dedup:{tenant_a:LIVE}:txn_g2spoof_1790482380241:1"
+      }
+    },
+    "g3_config_only": {
+      "status": "pass",
+      "seconds": 1.9,
+      "evidence": {
+        "before": {
+          "action_intents": 1,
+          "bundle_digest": "sha256:3fba15f8884f2993d9cef6fc0974cc98dd1495f39433c2f775aee0778d881995",
+          "decision_id": "b6f11fd3-2fda-46cc-80cc-d12f522910b2",
+          "manifest_epoch": 1790482310,
+          "outcome": "DECISION_APPROVE",
+          "reason_codes": null
+        },
+        "after": {
+          "action_intents": 1,
+          "bundle_digest": "sha256:ce228047e7a96bba32c963a27c6373dd524f10cc441e2264e8fd0e85a7302bc8",
+          "decision_id": "b9e29e9a-83b8-4340-816a-5eb8d5afb6f7",
+          "manifest_epoch": 1790482381,
+          "outcome": "DECISION_DECLINE",
+          "reason_codes": [
+            "MODEL_HIGH_RISK"
+          ]
+        },
+        "new_bundle_digest": "sha256:ce228047e7a96bba32c963a27c6373dd524f10cc441e2264e8fd0e85a7302bc8",
+        "images_unchanged": true,
+        "schema_hash": "sha256:33a56e1f62d43352b0bc81fc4b14af1717d8df1c6fd22fa37d71f60bc12857ab"
+      }
+    },
+    "g4_semantic_incompat": {
+      "status": "pass",
+      "seconds": 0.0,
+      "evidence": {
+        "compiler_error": "SEMANTIC_INCOMPATIBLE: binding fraud-primary@3 emits fraud.authorization_probability@9.9.9, ruleset accepts fraud.authorization_probability@['1.1.0'] [card_fraud]",
+        "missing_contract_error": "SEMANTIC_INCOMPATIBLE: binding fraud-primary@3 emits no.such.contract@1.0.0, ruleset accepts fraud.authorization_probability@['1.1.0'] [card_fraud]"
+      }
+    },
+    "g5_stream_recovery": {
+      "status": "pass",
+      "seconds": 35.8,
+      "evidence": {
+        "job_id": "1c59cf6b87b081a47ea92621d797935d",
+        "merchant": "mch_rec_1790482382",
+        "tile": "rtdp:t2:{tenant_a:LIVE}:merchant_txn_count_1h@1:mch_rec_1790482382:USD:29841372",
+        "tile_count": 3
+      }
+    },
+    "g6_model_parity": {
+      "status": "pass",
+      "seconds": 1.4,
+      "evidence": {
+        "n_samples": 256,
+        "max_abs_delta": 1.6653345369377348e-16,
+        "features": [
+          "pan_txn_count_1h",
+          "pan_amount_sum_24h",
+          "merchant_txn_count_1h",
+          "merchant_amount_sum_1h"
+        ]
+      }
+    },
+    "g7_action_ambiguity": {
+      "status": "pass",
+      "seconds": 3.1,
+      "evidence": {
+        "idempotency_key": "gate-amb-1790482419484",
+        "final_state": "UNKNOWN",
+        "provider_reference": "timeoutsim:6cbbc942f29e7"
+      }
+    }
+  }
+}

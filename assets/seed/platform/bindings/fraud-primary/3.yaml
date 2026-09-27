@@ -1,0 +1,13 @@
+binding_id: fraud-primary
+version: 3
+owner_scope: platform
+provider: grpc_inference
+endpoint_ref: inference-local
+model: fraud_logistic@2
+input_schema_digest: sha256:428474e3b18bb9c65a4bd47055dc011dab080d00e5fb8171a3df78373ee3c0a7
+preprocessing_digest: sha256:16f815d56f2ab7b35ae4c44d306f26ee56a3a5bfa8c5f210b970d59050fc6af7
+output_contract: fraud.authorization_probability@1.1.0
+maximum_age_ms: 50
+required_quality:
+  allow_stale_required_features: false
+model_digest: sha256:00d9bf2be82198577846f4ea66081f9f4b6cd0464a1203e56f64ddae1e7f95e5

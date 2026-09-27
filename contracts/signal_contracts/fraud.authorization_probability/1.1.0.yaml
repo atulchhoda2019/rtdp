@@ -1,0 +1,21 @@
+signal_name: fraud.authorization_probability
+version: 1.1.0
+value_schema:
+  probability:
+    type: float64
+    required: true
+    minimum: 0.0
+    maximum: 1.0
+semantics:
+  meaning: probability_that_this_authorization_is_fraudulent
+  population: synthetic_card_authorizations_v1
+  target_label: synthetic_fraud_label_v1
+  label_observation_horizon: P30D
+  unit: probability
+  higher_means: more_risk
+  calibration_contract: synthetic_calibration_v1
+scope: transaction_revision
+allowed_statuses: [OK, UNAVAILABLE, INVALID_INPUT, TIMED_OUT]
+compatibility:
+  additive_optional_values: allowed_after_validation
+  semantic_change: new_major_required

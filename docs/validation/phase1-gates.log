@@ -1,0 +1,15 @@
+== G1 e2e decision path ==
+  tenant_a -> DECISION_APPROVE | tenant_b -> DECISION_APPROVE | digests differ | idempotent | conflict rejected
+== G2 tenant isolation ==
+  payload spoof ignored; decision_fact tenant_a; dedup key tenant-scoped
+== G3 config-only change ==
+  DECISION_APPROVE -> DECISION_DECLINE on threshold flip; image digests + schema hash identical
+== G4 semantic incompatibility rejection ==
+  rejected: SEMANTIC_INCOMPATIBLE: binding fraud-primary@3 emits fraud.authorization_probability@9.9.9, ruleset accepts fraud.authorization_probability@['1.1.0'] [card_fraud]
+  rejected: SEMANTIC_INCOMPATIBLE: binding fraud-primary@3 emits no.such.contract@1.0.0, ruleset accepts fraud.authorization_probability@['1.1.0'] [card_fraud]
+== G5 stream recovery ==
+  job 1c59cf6b87b0 recovered; tile count == 3 exactly
+== G6 model parity ==
+  256 probes, max |dp| = 1.665e-16
+== G7 action ambiguity ==
+  gate-amb-1790482419484 -> UNKNOWN (ref timeoutsim:6cbbc942f29e7), never ACKNOWLEDGED

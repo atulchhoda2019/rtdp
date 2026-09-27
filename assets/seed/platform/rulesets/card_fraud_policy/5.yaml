@@ -1,0 +1,24 @@
+ruleset_id: card_fraud_policy
+version: 5
+owner_scope: platform
+requires:
+  - signal: fraud.authorization_probability
+    contract: "1.1.0"
+    alias: fraud
+    optional: false
+evaluation: all_match
+rules:
+  - id: velocity_block
+    when: "features.pan_txn_count_1h > cfg.velocity_decline_count"
+    outcome: {decision: DECLINE, reason: VELOCITY_LIMIT}
+    requires_signals: []
+  - id: model_decline
+    when: "signals.fraud.probability >= cfg.decline_probability"
+    outcome: {decision: DECLINE, reason: MODEL_HIGH_RISK}
+    requires_signals: [fraud]
+  - id: model_review
+    when: "signals.fraud.probability >= cfg.review_probability && signals.fraud.probability < cfg.decline_probability"
+    outcome: {decision: REVIEW, reason: MODEL_REVIEW_BAND}
+    requires_signals: [fraud]
+default_outcome: APPROVE
+missing_required_signal_outcome: REVIEW

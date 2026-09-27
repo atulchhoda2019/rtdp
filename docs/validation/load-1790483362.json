@@ -1,0 +1,28 @@
+{
+  "tps_target": 100,
+  "duration_s": 60.0,
+  "requests_completed": 4448,
+  "unique_decisions": 4448,
+  "duplicates": 0,
+  "errors": 256,
+  "error_sample": [
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ready"
+  ],
+  "latency_ms": {
+    "p50": 29.45045800152002,
+    "p95": 45.80645900568925,
+    "p99": 92.83345899893902,
+    "p99_99": 113.27937500027474
+  },
+  "hardware": "local-colima",
+  "timestamp": "2026-09-27T04:29:22Z"
+}

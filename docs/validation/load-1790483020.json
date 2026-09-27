@@ -1,0 +1,28 @@
+{
+  "tps_target": 100,
+  "duration_s": 45.0,
+  "requests_completed": 370,
+  "unique_decisions": 370,
+  "duplicates": 0,
+  "errors": 4110,
+  "error_sample": [
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction",
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction",
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction",
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction",
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction",
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction",
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction",
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction",
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction",
+    "HTTP 502: rpc error: code = Unknown desc = durable commit: begin txn: invalid attempt to begin a transaction while already in a transaction"
+  ],
+  "latency_ms": {
+    "p50": 31.29087499837624,
+    "p95": 52.82720799732488,
+    "p99": 58.60450000182027,
+    "p99_99": 60.75708299613325
+  },
+  "hardware": "local-colima",
+  "timestamp": "2026-09-27T04:23:40Z"
+}

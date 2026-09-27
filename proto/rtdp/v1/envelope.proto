@@ -1,0 +1,102 @@
+syntax = "proto3";
+
+package rtdp.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/rtdp/rtdp/gen/go/rtdp/v1;rtdpv1";
+option java_multiple_files = true;
+option java_package = "com.rtdp.proto.v1";
+
+// Execution mode isolates live traffic from evaluation.
+enum Mode {
+  MODE_UNSPECIFIED = 0;
+  MODE_LIVE = 1;
+  MODE_SHADOW = 2;
+  MODE_REPLAY = 3;
+}
+
+// Decision outcomes returned to callers.
+enum Decision {
+  DECISION_UNSPECIFIED = 0;
+  DECISION_APPROVE = 1;
+  DECISION_DECLINE = 2;
+  DECISION_REVIEW = 3;
+  DECISION_NOT_APPLICABLE = 4;
+}
+
+// Signal processing status; UNAVAILABLE/INVALID/TIMED_OUT are terminal
+// states the rules layer treats via declared fallbacks.
+enum SignalStatus {
+  SIGNAL_STATUS_UNSPECIFIED = 0;
+  SIGNAL_STATUS_OK = 1;
+  SIGNAL_STATUS_UNAVAILABLE = 2;
+  SIGNAL_STATUS_INVALID_INPUT = 3;
+  SIGNAL_STATUS_TIMED_OUT = 4;
+}
+
+// TypedValue is the extensibility point for registered payload values.
+// A oneof guarantees numbers and missing values are never silently coerced.
+message TypedValue {
+  oneof kind {
+    string string_value = 1;
+    double double_value = 2;
+    int64 int_value = 3;
+    bool bool_value = 4;
+    bytes bytes_value = 5;
+    StringList string_list = 6;
+    DoubleList double_list = 7;
+  }
+}
+
+message StringList {
+  repeated string values = 1;
+}
+
+message DoubleList {
+  repeated double values = 1;
+}
+
+// ValueMap wraps a typed payload map so it can be nested inside a map field
+// (proto maps cannot nest directly).
+message ValueMap {
+  map<string, TypedValue> values = 1;
+}
+
+// SignalQuality reports degradation the producer observed while computing.
+message SignalQuality {
+  repeated string defaulted_features = 1;
+  repeated string stale_features = 2;
+}
+
+// SignalEnvelope is the stable transport contract between model providers
+// and the signal resolver. Identity/version/time fields are stable; values
+// are a registered typed payload validated against the semantic contract.
+message SignalEnvelope {
+  string envelope_version = 1;
+  string signal_event_id = 2;
+  string tenant_id = 3;
+  string environment = 4;
+  Mode mode = 5;
+  string transaction_id = 6;
+  int64 transaction_revision = 7;
+  string decision_context_id = 8;
+  string signal_name = 9;
+  string contract_version = 10;
+  string contract_digest = 11;
+  string binding_id = 12;
+  int64 binding_version = 13;
+  string producer_id = 14;
+  string model_id = 15;
+  string model_version = 16;
+  string model_digest = 17;
+  string preprocessing_digest = 18;
+  string input_snapshot_digest = 19;
+  google.protobuf.Timestamp event_time = 20;
+  google.protobuf.Timestamp computed_at = 21;
+  google.protobuf.Timestamp expires_at = 22;
+  SignalStatus status = 23;
+  map<string, TypedValue> values = 24;
+  SignalQuality quality = 25;
+  string traceparent = 26;
+}

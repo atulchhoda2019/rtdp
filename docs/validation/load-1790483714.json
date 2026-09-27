@@ -1,0 +1,17 @@
+{
+  "tps_target": 200,
+  "duration_s": 60.0,
+  "requests_completed": 11952,
+  "unique_decisions": 11952,
+  "duplicates": 0,
+  "errors": 0,
+  "error_sample": [],
+  "latency_ms": {
+    "p50": 32.00012500019511,
+    "p95": 51.37300000205869,
+    "p99": 61.67650000134017,
+    "p99_99": 108.1074159956188
+  },
+  "hardware": "local-colima",
+  "timestamp": "2026-09-27T04:35:14Z"
+}

@@ -1,0 +1,144 @@
+# Workload IAM roles bound to K8s service accounts via EKS Pod Identity.
+# Per-service, least-privilege, boundary-attached. No IAM users anywhere.
+#
+# ADR-011: the inference/model identities get READ-ONLY artifact access and
+# zero write/activation/dispatch permissions — enforced here, not by policy docs.
+variable "tags" {
+  type = map(string)
+}
+variable "cluster_name" {
+  type = string
+}
+variable "msk_cluster_arn" {
+  type = string
+}
+variable "bucket_arns" {
+  type = map(string)
+}
+variable "kms_data_key_arn" {
+  type = string
+}
+variable "kms_artifacts_key_arn" {
+  type = string
+}
+variable "permission_boundary_arn" {
+  type = string
+}
+locals {
+  # service_account -> which capabilities it needs
+  services = {
+    ingress              = ["kafka-write-events"]
+    orchestrator         = ["kafka-txn", "s3-bundles-read", "pg-connect"]
+    feature-service      = ["kafka-read-features", "valkey", "pg-connect"]
+    signal-resolver      = ["kafka-none", "pg-connect"]
+    rules-service        = ["s3-bundles-read", "pg-connect"]
+    inference-service    = ["s3-artifacts-read"] # ADR-011: read-only, nothing else
+    feature-materializer = ["kafka-read-features", "valkey"]
+    action-dispatcher    = ["kafka-txn", "pg-connect"]
+    projector            = ["kafka-read-decisions", "pg-connect"]
+    event-api            = ["pg-connect", "kafka-read-decisions"]
+  }
+}
+
+data "aws_iam_policy_document" "pod_assume" {
+  statement {
+    actions = ["sts:AssumeRole", "sts:TagSession"]
+    principals {
+      type        = "Service"
+      identifiers = ["pods.eks.amazonaws.com"]
+    }
+  }
+}
+
+resource "aws_iam_role" "svc" {
+  for_each             = local.services
+  name                 = "rtdp-${each.key}"
+  assume_role_policy   = data.aws_iam_policy_document.pod_assume.json
+  permissions_boundary = var.permission_boundary_arn
+  tags = merge(var.tags, {
+  service = each.key })
+}
+
+resource "aws_eks_pod_identity_association" "svc" {
+  for_each        = local.services
+  cluster_name    = var.cluster_name
+  namespace       = "rtdp"
+  service_account = each.key
+  role_arn        = aws_iam_role.svc[each.key].arn
+}
+# --- capability policies ---
+resource "aws_iam_role_policy" "kafka" {
+  for_each = { for s, caps in local.services : s => caps
+    if length([for c in caps : c if can(regex("^kafka-", c)) && c != "kafka-none"]) > 0
+  }
+  name = "rtdp-kafka"
+  role = aws_iam_role.svc[each.key].id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = concat(
+      [{
+        Effect   = "Allow"
+        Action   = ["kafka-cluster:Connect", "kafka-cluster:DescribeCluster"]
+        Resource = [var.msk_cluster_arn]
+      }],
+      contains(each.value, "kafka-txn") ? [{
+        Effect = "Allow"
+        Action = ["kafka-cluster:ReadData", "kafka-cluster:WriteData", "kafka-cluster:DescribeTopic",
+          "kafka-cluster:CreateTopic", "kafka-cluster:AlterGroup", "kafka-cluster:DescribeGroup",
+          "kafka-cluster:DescribeTransactionId", "kafka-cluster:WriteTransactionId",
+        "kafka-cluster:WriteDataIdempotently"]
+        Resource = ["${var.msk_cluster_arn}/*"]
+      }] : [],
+      contains(each.value, "kafka-write-events") ? [{
+        Effect   = "Allow"
+        Action   = ["kafka-cluster:WriteData", "kafka-cluster:DescribeTopic", "kafka-cluster:WriteDataIdempotently"]
+        Resource = ["${var.msk_cluster_arn}/topic/rtdp/events/*"]
+      }] : [],
+      contains(each.value, "kafka-read-features") ? [{
+        Effect = "Allow"
+        Action = ["kafka-cluster:ReadData", "kafka-cluster:DescribeTopic",
+        "kafka-cluster:AlterGroup", "kafka-cluster:DescribeGroup"]
+        Resource = ["${var.msk_cluster_arn}/topic/rtdp/features/*", "${var.msk_cluster_arn}/group/rtdp/*"]
+      }] : [],
+      contains(each.value, "kafka-read-decisions") ? [{
+        Effect = "Allow"
+        Action = ["kafka-cluster:ReadData", "kafka-cluster:DescribeTopic",
+        "kafka-cluster:AlterGroup", "kafka-cluster:DescribeGroup"]
+        Resource = ["${var.msk_cluster_arn}/topic/rtdp/decisions/*", "${var.msk_cluster_arn}/group/rtdp/*"]
+      }] : []
+    )
+  })
+}
+
+resource "aws_iam_role_policy" "s3" {
+  for_each = { for s, caps in local.services : s => caps if length(setintersection(caps,
+  ["s3-bundles-read", "s3-artifacts-read"])) > 0 }
+  name = "rtdp-s3"
+  role = aws_iam_role.svc[each.key].id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      for cap in each.value : {
+        Effect   = "Allow"
+        Action   = ["s3:GetObject", "s3:GetObjectVersion", "s3:ListBucket"]
+        Resource = cap == "s3-bundles-read" ? [var.bucket_arns.bundles, "${var.bucket_arns.bundles}/*"] : [var.bucket_arns.artifacts, "${var.bucket_arns.artifacts}/*"]
+      } if can(regex("^s3-", cap))
+    ]
+  })
+}
+
+resource "aws_iam_role_policy" "kms" {
+  for_each = local.services
+  name     = "rtdp-kms"
+  role     = aws_iam_role.svc[each.key].id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["kms:Decrypt", "kms:DescribeKey"]
+      Resource = [var.kms_data_key_arn, var.kms_artifacts_key_arn]
+    }]
+  })
+}
+
+output "role_arns" { value = { for k, v in aws_iam_role.svc : k => v.arn } }

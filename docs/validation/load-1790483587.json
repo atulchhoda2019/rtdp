@@ -1,0 +1,28 @@
+{
+  "tps_target": 100,
+  "duration_s": 30.0,
+  "requests_completed": 2960,
+  "unique_decisions": 2960,
+  "duplicates": 0,
+  "errors": 48,
+  "error_sample": [
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = stream terminated by RST_STREAM with error code: CANCEL",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded"
+  ],
+  "latency_ms": {
+    "p50": 31.30829200381413,
+    "p95": 72.03124999796273,
+    "p99": 128.5280829979456,
+    "p99_99": 150.17612499650568
+  },
+  "hardware": "local-colima",
+  "timestamp": "2026-09-27T04:33:07Z"
+}

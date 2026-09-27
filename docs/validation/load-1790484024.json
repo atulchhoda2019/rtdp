@@ -1,0 +1,28 @@
+{
+  "tps_target": 500,
+  "duration_s": 300.0,
+  "requests_completed": 120182,
+  "unique_decisions": 120182,
+  "duplicates": 0,
+  "errors": 11789,
+  "error_sample": [
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = durable commit: context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = rules: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = rules: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = rules: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = rules: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = rules: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = rules: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = signals: rpc error: code = DeadlineExceeded desc = context deadline exceeded"
+  ],
+  "latency_ms": {
+    "p50": 29.885166994063184,
+    "p95": 181.59837500570575,
+    "p99": 297.16287500195904,
+    "p99_99": 2389.6678750024876
+  },
+  "hardware": "local-colima",
+  "timestamp": "2026-09-27T04:40:24Z"
+}

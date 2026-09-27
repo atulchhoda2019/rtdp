@@ -1,0 +1,28 @@
+{
+  "tps_target": 500,
+  "duration_s": 300.0,
+  "requests_completed": 17623,
+  "unique_decisions": 17623,
+  "duplicates": 0,
+  "errors": 123838,
+  "error_sample": [
+    "HTTP Error 502: Bad Gateway",
+    "HTTP Error 502: Bad Gateway",
+    "HTTP Error 502: Bad Gateway",
+    "HTTP Error 502: Bad Gateway",
+    "HTTP Error 502: Bad Gateway",
+    "HTTP Error 502: Bad Gateway",
+    "HTTP Error 502: Bad Gateway",
+    "HTTP Error 502: Bad Gateway",
+    "HTTP Error 502: Bad Gateway",
+    "HTTP Error 502: Bad Gateway"
+  ],
+  "latency_ms": {
+    "p50": 12.720625003566965,
+    "p95": 39.32312500546686,
+    "p99": 78.08066600409802,
+    "p99_99": 764.6887920054724
+  },
+  "hardware": "local-colima",
+  "timestamp": "2026-09-27T04:22:06Z"
+}

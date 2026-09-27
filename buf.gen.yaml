@@ -1,0 +1,16 @@
+version: v2
+inputs:
+  - directory: proto
+plugins:
+  - remote: buf.build/protocolbuffers/go:v1.36.10
+    out: gen/go
+    opt: paths=source_relative
+  - remote: buf.build/grpc/go:v1.5.1
+    out: gen/go
+    opt: paths=source_relative
+  - remote: buf.build/protocolbuffers/python:v33.1
+    out: gen/python
+  - remote: buf.build/grpc/python:v1.75.1
+    out: gen/python
+  - remote: buf.build/protocolbuffers/java:v33.1
+    out: streaming/flink-features/src/main/java

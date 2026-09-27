@@ -1,0 +1,28 @@
+{
+  "tps_target": 400,
+  "duration_s": 90.0,
+  "requests_completed": 31322,
+  "unique_decisions": 31322,
+  "duplicates": 0,
+  "errors": 1710,
+  "error_sample": [
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become ",
+    "HTTP 502: rpc error: code = DeadlineExceeded desc = features: rpc error: code = DeadlineExceeded desc = context deadline exceeded while waiting for connections to become "
+  ],
+  "latency_ms": {
+    "p50": 14.687999995658174,
+    "p95": 190.8821250035544,
+    "p99": 488.63066700141644,
+    "p99_99": 1030.0607079989277
+  },
+  "hardware": "local-colima",
+  "timestamp": "2026-09-27T04:42:42Z"
+}

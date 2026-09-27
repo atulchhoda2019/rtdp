@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtdp-control-plane"
+version = "0.1.0"
+description = "RTDP contract registry, bundle compiler, and control-plane API"
+requires-python = ">=3.11"
+dependencies = [
+  "pyyaml>=6.0.2",
+  "protobuf>=5.29,<6",
+  "grpcio>=1.68,<2",
+  "psycopg[binary]>=3.2,<4",
+  "boto3>=1.35,<2",
+  "fastapi>=0.115,<1",
+  "uvicorn>=0.32,<1",
+]
+
+[project.scripts]
+rtdp-compile = "rtdp_contracts.compiler:main"
+rtdp-contracts = "rtdp_contracts.validate:main"
+
+[tool.setuptools.packages.find]
+include = ["rtdp_contracts*"]
