@@ -37,7 +37,7 @@ Insert after "Reassessment and kill switches" (end of "Real-time action executio
 ````markdown
 ## Declarative state flows and model-assisted authoring
 
-Some products need multi-step state beyond a single decision: review-case lifecycle, step-up authentication, hold-and-release, and reassessment. Model these as declarative state-flow assets compiled into the runtime bundle, the same way rulesets are. Do not implement them as product-specific code branches, and do not let a live model call choose the next state.
+Some products need multi-step state beyond a single decision: investigation-case lifecycle, supplemental-evidence requests, payout hold-and-release, and reassessment. Model these as declarative state-flow assets compiled into the runtime bundle, the same way rulesets are. Do not implement them as product-specific code branches, and do not let a live model call choose the next state.
 
 A language model may help author, test, and operate these flows. It may not execute them. The flow engine that applies transitions is deterministic, pinned to a bundle digest, and replayable.
 

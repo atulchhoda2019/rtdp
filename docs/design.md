@@ -1,7 +1,7 @@
-# RTDP: Configurable Fraud and Risk Decisioning
+# RTDP: Configurable Insurance Claim Decisioning
 Detailed system design • Version 2.1 • September 27, 2026 • Implementation target: Devin
 Version 2.1 adds declarative state flows and bounded language-model roles (ADR-011, ADR-012). All other v2.0 content is unchanged.
-RTDP is a configurable, multi-tenant platform for turning transaction events and model-generated risk signals into explainable decisions and authorized real-time actions. Its governing requirement is independent evolution: routine model, ruleset, threshold, and product-binding changes must deploy through validated configuration without changing application code or datastore schemas.
+RTDP is a configurable, multi-tenant platform for turning insurance claim transactions and model-generated risk signals into explainable decisions and authorized real-time actions. Its governing requirement is independent evolution: routine model, ruleset, threshold, and product-binding changes must deploy through validated configuration without changing application code or datastore schemas.
 This document supersedes design.md v1.1. It retains real Flink streaming and separate AI inference in the MVP, introduces a stable signal boundary, and specifies tenant-aware catalog, product selection, governance, and action execution. rtdp-architecture.excalidraw contains the corresponding views; root AGENTS.md is the coding-agent contract.
 All examples use synthetic tenants, transactions, models, and thresholds. This is a proposed reference implementation, not a description of an existing production deployment, an assertion of compliance, or a measured performance result. Do not upload the original source PDF or business-specific material to a third party without authorization.
 ## Reading guide
@@ -427,7 +427,7 @@ An inline claim response can be time-critical while case creation and notificati
 | Inline response | Return APPROVE / DECLINE / REVIEW to caller | Local claim-response simulator |
 | Asynchronous workflow | Open an SIU investigation case | Local durable case adapter |
 | Notification | Emit investigation alert | Local notification sink |
-| High-impact state change | Block account, modify limit | Disabled unless explicitly designed and authorized |
+| High-impact state change | Suspend coverage, cancel policy | Disabled unless explicitly designed and authorized |
 
 Rule authors select registered action types. They cannot supply raw provider URLs, credentials, arbitrary SQL, or unbounded action payloads.
 Choose one enforcement route per action. An upstream system reading egress and an action adapter consuming commands must not both independently issue the same claim-response effect; configure which integration owns enforcement and use the same stable action identity for retries/status. In the local demonstration, egress exposes the decision while only the simulator adapter records the synthetic effect.
@@ -471,7 +471,7 @@ Cancellation after dispatch is best effort and cannot erase an effect. A lease a
 Final decisions are immutable facts. A reassessment creates a new generation linked to the earlier decision; an explicit policy determines whether any new action is authorized or compensation is required.
 Replay, shadow, and dry-run modes prohibit live dispatch at both the orchestrator and adapter boundaries. Tenant/environment/global kill switches can block new intents or dispatch while allowing read-only diagnosis. Check current emergency authorization at dispatch in addition to the policy pinned at decision time.
 ## Declarative state flows and model-assisted authoring
-Some products need multi-step state beyond a single decision: review-case lifecycle, step-up authentication, hold-and-release, and reassessment. Model these as declarative state-flow assets compiled into the runtime bundle, the same way rulesets are. Do not implement them as product-specific code branches, and do not let a live model call choose the next state.
+Some products need multi-step state beyond a single decision: investigation-case lifecycle, supplemental-evidence requests, payout hold-and-release, and reassessment. Model these as declarative state-flow assets compiled into the runtime bundle, the same way rulesets are. Do not implement them as product-specific code branches, and do not let a live model call choose the next state.
 A language model may help author, test, and operate these flows. It may not execute them. The flow engine that applies transitions is deterministic, pinned to a bundle digest, and replayable.
 ### State-flow asset
 A state flow declares states, transitions, guards, timers, and the registered action types each transition may emit. Guards are CEL expressions evaluated under the same sandbox and cost limits as rules. The example below is synthetic.
@@ -892,7 +892,7 @@ Store commands, hardware, versions, image/model/manifest digests, migration hist
 **Aggregation:** Which product is authoritative for which action domain and how conflicts must resolve.
 **Signal sources:** Whether the first integration calls models, receives pre-scored events, waits for streamed signals, or uses a combination.
 **Model meaning:** Real label definition, horizon, calibration expectations, population, and acceptable quality drift.
-**Action authority:** Who actually enforces approval/decline, supports step-up, creates cases, blocks accounts, or changes limits.
+**Action authority:** Who actually enforces approve/review/decline, requests supplemental evidence, opens SIU cases, suspends coverage, or cancels policies.
 **Failure policies:** Per-tenant/product behavior for unavailable data/models, delayed publication, and unknown action outcome.
 **Operational requirements:** Load, residency, retention, recovery objectives, isolation level, and supported platforms.
 Until these are supplied, implement the marked synthetic defaults, not invented business facts. Changes affecting live authority, data sharing, or fail-open/fail-closed semantics require explicit decisions rather than an agent silently choosing the simplest option.
