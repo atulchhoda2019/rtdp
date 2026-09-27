@@ -43,6 +43,7 @@ private static final long serialVersionUID = 0L;
         com.google.protobuf.LazyStringArrayList.emptyList();
     featureValues_ = java.util.Collections.emptyList();
     traceparent_ = "";
+    contractDigest_ = "";
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
@@ -663,6 +664,55 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int CONTRACT_DIGEST_FIELD_NUMBER = 19;
+  @SuppressWarnings("serial")
+  private volatile java.lang.Object contractDigest_ = "";
+  /**
+   * <pre>
+   * Contract document digest pinned by the caller; the signal name and
+   * version are taken from the warmed model's declared output contract.
+   * </pre>
+   *
+   * <code>string contract_digest = 19 [json_name = "contractDigest"];</code>
+   * @return The contractDigest.
+   */
+  @java.lang.Override
+  public java.lang.String getContractDigest() {
+    java.lang.Object ref = contractDigest_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      contractDigest_ = s;
+      return s;
+    }
+  }
+  /**
+   * <pre>
+   * Contract document digest pinned by the caller; the signal name and
+   * version are taken from the warmed model's declared output contract.
+   * </pre>
+   *
+   * <code>string contract_digest = 19 [json_name = "contractDigest"];</code>
+   * @return The bytes for contractDigest.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString
+      getContractDigestBytes() {
+    java.lang.Object ref = contractDigest_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      contractDigest_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -730,6 +780,9 @@ private static final long serialVersionUID = 0L;
     }
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(traceparent_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 18, traceparent_);
+    }
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(contractDigest_)) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 19, contractDigest_);
     }
     getUnknownFields().writeTo(output);
   }
@@ -805,6 +858,9 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(traceparent_)) {
       size += com.google.protobuf.GeneratedMessage.computeStringSize(18, traceparent_);
     }
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(contractDigest_)) {
+      size += com.google.protobuf.GeneratedMessage.computeStringSize(19, contractDigest_);
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -858,6 +914,8 @@ private static final long serialVersionUID = 0L;
         != other.getDeadlineMs()) return false;
     if (!getTraceparent()
         .equals(other.getTraceparent())) return false;
+    if (!getContractDigest()
+        .equals(other.getContractDigest())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -914,6 +972,8 @@ private static final long serialVersionUID = 0L;
         getDeadlineMs());
     hash = (37 * hash) + TRACEPARENT_FIELD_NUMBER;
     hash = (53 * hash) + getTraceparent().hashCode();
+    hash = (37 * hash) + CONTRACT_DIGEST_FIELD_NUMBER;
+    hash = (53 * hash) + getContractDigest().hashCode();
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -1081,6 +1141,7 @@ private static final long serialVersionUID = 0L;
       }
       deadlineMs_ = 0L;
       traceparent_ = "";
+      contractDigest_ = "";
       return this;
     }
 
@@ -1182,6 +1243,9 @@ private static final long serialVersionUID = 0L;
       }
       if (((from_bitField0_ & 0x00020000) != 0)) {
         result.traceparent_ = traceparent_;
+      }
+      if (((from_bitField0_ & 0x00040000) != 0)) {
+        result.contractDigest_ = contractDigest_;
       }
       result.bitField0_ |= to_bitField0_;
     }
@@ -1302,6 +1366,11 @@ private static final long serialVersionUID = 0L;
       if (!other.getTraceparent().isEmpty()) {
         traceparent_ = other.traceparent_;
         bitField0_ |= 0x00020000;
+        onChanged();
+      }
+      if (!other.getContractDigest().isEmpty()) {
+        contractDigest_ = other.contractDigest_;
+        bitField0_ |= 0x00040000;
         onChanged();
       }
       this.mergeUnknownFields(other.getUnknownFields());
@@ -1431,6 +1500,11 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00020000;
               break;
             } // case 146
+            case 154: {
+              contractDigest_ = input.readStringRequireUtf8();
+              bitField0_ |= 0x00040000;
+              break;
+            } // case 154
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -2903,6 +2977,103 @@ private static final long serialVersionUID = 0L;
       checkByteStringIsUtf8(value);
       traceparent_ = value;
       bitField0_ |= 0x00020000;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object contractDigest_ = "";
+    /**
+     * <pre>
+     * Contract document digest pinned by the caller; the signal name and
+     * version are taken from the warmed model's declared output contract.
+     * </pre>
+     *
+     * <code>string contract_digest = 19 [json_name = "contractDigest"];</code>
+     * @return The contractDigest.
+     */
+    public java.lang.String getContractDigest() {
+      java.lang.Object ref = contractDigest_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        contractDigest_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <pre>
+     * Contract document digest pinned by the caller; the signal name and
+     * version are taken from the warmed model's declared output contract.
+     * </pre>
+     *
+     * <code>string contract_digest = 19 [json_name = "contractDigest"];</code>
+     * @return The bytes for contractDigest.
+     */
+    public com.google.protobuf.ByteString
+        getContractDigestBytes() {
+      java.lang.Object ref = contractDigest_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        contractDigest_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <pre>
+     * Contract document digest pinned by the caller; the signal name and
+     * version are taken from the warmed model's declared output contract.
+     * </pre>
+     *
+     * <code>string contract_digest = 19 [json_name = "contractDigest"];</code>
+     * @param value The contractDigest to set.
+     * @return This builder for chaining.
+     */
+    public Builder setContractDigest(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      contractDigest_ = value;
+      bitField0_ |= 0x00040000;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Contract document digest pinned by the caller; the signal name and
+     * version are taken from the warmed model's declared output contract.
+     * </pre>
+     *
+     * <code>string contract_digest = 19 [json_name = "contractDigest"];</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearContractDigest() {
+      contractDigest_ = getDefaultInstance().getContractDigest();
+      bitField0_ = (bitField0_ & ~0x00040000);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Contract document digest pinned by the caller; the signal name and
+     * version are taken from the warmed model's declared output contract.
+     * </pre>
+     *
+     * <code>string contract_digest = 19 [json_name = "contractDigest"];</code>
+     * @param value The bytes for contractDigest to set.
+     * @return This builder for chaining.
+     */
+    public Builder setContractDigestBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      contractDigest_ = value;
+      bitField0_ |= 0x00040000;
       onChanged();
       return this;
     }

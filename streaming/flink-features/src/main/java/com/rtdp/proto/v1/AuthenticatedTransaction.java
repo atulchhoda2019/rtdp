@@ -42,8 +42,8 @@ private static final long serialVersionUID = 0L;
     eventType_ = "";
     channel_ = "";
     region_ = "";
-    tokenizedPan_ = "";
-    merchantId_ = "";
+    tokenizedClaimant_ = "";
+    providerId_ = "";
     currency_ = "";
     traceparent_ = "";
   }
@@ -272,7 +272,7 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object eventType_ = "";
   /**
    * <pre>
-   * e.g. AUTH_REQUEST
+   * e.g. CLAIM_SUBMISSION
    * </pre>
    *
    * <code>string event_type = 7 [json_name = "eventType"];</code>
@@ -293,7 +293,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * e.g. AUTH_REQUEST
+   * e.g. CLAIM_SUBMISSION
    * </pre>
    *
    * <code>string event_type = 7 [json_name = "eventType"];</code>
@@ -319,7 +319,7 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object channel_ = "";
   /**
    * <pre>
-   * e.g. ECOMMERCE
+   * e.g. AGENT_PORTAL
    * </pre>
    *
    * <code>string channel = 8 [json_name = "channel"];</code>
@@ -340,7 +340,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * e.g. ECOMMERCE
+   * e.g. AGENT_PORTAL
    * </pre>
    *
    * <code>string channel = 8 [json_name = "channel"];</code>
@@ -400,78 +400,94 @@ private static final long serialVersionUID = 0L;
     }
   }
 
-  public static final int TOKENIZED_PAN_FIELD_NUMBER = 10;
+  public static final int TOKENIZED_CLAIMANT_FIELD_NUMBER = 10;
   @SuppressWarnings("serial")
-  private volatile java.lang.Object tokenizedPan_ = "";
+  private volatile java.lang.Object tokenizedClaimant_ = "";
   /**
-   * <code>string tokenized_pan = 10 [json_name = "tokenizedPan"];</code>
-   * @return The tokenizedPan.
+   * <pre>
+   * insured / claimant, tokenized at ingress
+   * </pre>
+   *
+   * <code>string tokenized_claimant = 10 [json_name = "tokenizedClaimant"];</code>
+   * @return The tokenizedClaimant.
    */
   @java.lang.Override
-  public java.lang.String getTokenizedPan() {
-    java.lang.Object ref = tokenizedPan_;
+  public java.lang.String getTokenizedClaimant() {
+    java.lang.Object ref = tokenizedClaimant_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
       com.google.protobuf.ByteString bs = 
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
-      tokenizedPan_ = s;
+      tokenizedClaimant_ = s;
       return s;
     }
   }
   /**
-   * <code>string tokenized_pan = 10 [json_name = "tokenizedPan"];</code>
-   * @return The bytes for tokenizedPan.
+   * <pre>
+   * insured / claimant, tokenized at ingress
+   * </pre>
+   *
+   * <code>string tokenized_claimant = 10 [json_name = "tokenizedClaimant"];</code>
+   * @return The bytes for tokenizedClaimant.
    */
   @java.lang.Override
   public com.google.protobuf.ByteString
-      getTokenizedPanBytes() {
-    java.lang.Object ref = tokenizedPan_;
+      getTokenizedClaimantBytes() {
+    java.lang.Object ref = tokenizedClaimant_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      tokenizedPan_ = b;
+      tokenizedClaimant_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
     }
   }
 
-  public static final int MERCHANT_ID_FIELD_NUMBER = 11;
+  public static final int PROVIDER_ID_FIELD_NUMBER = 11;
   @SuppressWarnings("serial")
-  private volatile java.lang.Object merchantId_ = "";
+  private volatile java.lang.Object providerId_ = "";
   /**
-   * <code>string merchant_id = 11 [json_name = "merchantId"];</code>
-   * @return The merchantId.
+   * <pre>
+   * service provider (repair shop, clinic, ...)
+   * </pre>
+   *
+   * <code>string provider_id = 11 [json_name = "providerId"];</code>
+   * @return The providerId.
    */
   @java.lang.Override
-  public java.lang.String getMerchantId() {
-    java.lang.Object ref = merchantId_;
+  public java.lang.String getProviderId() {
+    java.lang.Object ref = providerId_;
     if (ref instanceof java.lang.String) {
       return (java.lang.String) ref;
     } else {
       com.google.protobuf.ByteString bs = 
           (com.google.protobuf.ByteString) ref;
       java.lang.String s = bs.toStringUtf8();
-      merchantId_ = s;
+      providerId_ = s;
       return s;
     }
   }
   /**
-   * <code>string merchant_id = 11 [json_name = "merchantId"];</code>
-   * @return The bytes for merchantId.
+   * <pre>
+   * service provider (repair shop, clinic, ...)
+   * </pre>
+   *
+   * <code>string provider_id = 11 [json_name = "providerId"];</code>
+   * @return The bytes for providerId.
    */
   @java.lang.Override
   public com.google.protobuf.ByteString
-      getMerchantIdBytes() {
-    java.lang.Object ref = merchantId_;
+      getProviderIdBytes() {
+    java.lang.Object ref = providerId_;
     if (ref instanceof java.lang.String) {
       com.google.protobuf.ByteString b = 
           com.google.protobuf.ByteString.copyFromUtf8(
               (java.lang.String) ref);
-      merchantId_ = b;
+      providerId_ = b;
       return b;
     } else {
       return (com.google.protobuf.ByteString) ref;
@@ -713,11 +729,11 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(region_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 9, region_);
     }
-    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tokenizedPan_)) {
-      com.google.protobuf.GeneratedMessage.writeString(output, 10, tokenizedPan_);
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tokenizedClaimant_)) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 10, tokenizedClaimant_);
     }
-    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(merchantId_)) {
-      com.google.protobuf.GeneratedMessage.writeString(output, 11, merchantId_);
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(providerId_)) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 11, providerId_);
     }
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(currency_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 12, currency_);
@@ -775,11 +791,11 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(region_)) {
       size += com.google.protobuf.GeneratedMessage.computeStringSize(9, region_);
     }
-    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tokenizedPan_)) {
-      size += com.google.protobuf.GeneratedMessage.computeStringSize(10, tokenizedPan_);
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(tokenizedClaimant_)) {
+      size += com.google.protobuf.GeneratedMessage.computeStringSize(10, tokenizedClaimant_);
     }
-    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(merchantId_)) {
-      size += com.google.protobuf.GeneratedMessage.computeStringSize(11, merchantId_);
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(providerId_)) {
+      size += com.google.protobuf.GeneratedMessage.computeStringSize(11, providerId_);
     }
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(currency_)) {
       size += com.google.protobuf.GeneratedMessage.computeStringSize(12, currency_);
@@ -837,10 +853,10 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
         .equals(other.getChannel())) return false;
     if (!getRegion()
         .equals(other.getRegion())) return false;
-    if (!getTokenizedPan()
-        .equals(other.getTokenizedPan())) return false;
-    if (!getMerchantId()
-        .equals(other.getMerchantId())) return false;
+    if (!getTokenizedClaimant()
+        .equals(other.getTokenizedClaimant())) return false;
+    if (!getProviderId()
+        .equals(other.getProviderId())) return false;
     if (!getCurrency()
         .equals(other.getCurrency())) return false;
     if (java.lang.Double.doubleToLongBits(getAmount())
@@ -885,10 +901,10 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     hash = (53 * hash) + getChannel().hashCode();
     hash = (37 * hash) + REGION_FIELD_NUMBER;
     hash = (53 * hash) + getRegion().hashCode();
-    hash = (37 * hash) + TOKENIZED_PAN_FIELD_NUMBER;
-    hash = (53 * hash) + getTokenizedPan().hashCode();
-    hash = (37 * hash) + MERCHANT_ID_FIELD_NUMBER;
-    hash = (53 * hash) + getMerchantId().hashCode();
+    hash = (37 * hash) + TOKENIZED_CLAIMANT_FIELD_NUMBER;
+    hash = (53 * hash) + getTokenizedClaimant().hashCode();
+    hash = (37 * hash) + PROVIDER_ID_FIELD_NUMBER;
+    hash = (53 * hash) + getProviderId().hashCode();
     hash = (37 * hash) + CURRENCY_FIELD_NUMBER;
     hash = (53 * hash) + getCurrency().hashCode();
     hash = (37 * hash) + AMOUNT_FIELD_NUMBER;
@@ -1078,8 +1094,8 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       eventType_ = "";
       channel_ = "";
       region_ = "";
-      tokenizedPan_ = "";
-      merchantId_ = "";
+      tokenizedClaimant_ = "";
+      providerId_ = "";
       currency_ = "";
       amount_ = 0D;
       eventTime_ = null;
@@ -1150,10 +1166,10 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
         result.region_ = region_;
       }
       if (((from_bitField0_ & 0x00000200) != 0)) {
-        result.tokenizedPan_ = tokenizedPan_;
+        result.tokenizedClaimant_ = tokenizedClaimant_;
       }
       if (((from_bitField0_ & 0x00000400) != 0)) {
-        result.merchantId_ = merchantId_;
+        result.providerId_ = providerId_;
       }
       if (((from_bitField0_ & 0x00000800) != 0)) {
         result.currency_ = currency_;
@@ -1230,13 +1246,13 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
         bitField0_ |= 0x00000100;
         onChanged();
       }
-      if (!other.getTokenizedPan().isEmpty()) {
-        tokenizedPan_ = other.tokenizedPan_;
+      if (!other.getTokenizedClaimant().isEmpty()) {
+        tokenizedClaimant_ = other.tokenizedClaimant_;
         bitField0_ |= 0x00000200;
         onChanged();
       }
-      if (!other.getMerchantId().isEmpty()) {
-        merchantId_ = other.merchantId_;
+      if (!other.getProviderId().isEmpty()) {
+        providerId_ = other.providerId_;
         bitField0_ |= 0x00000400;
         onChanged();
       }
@@ -1331,12 +1347,12 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
               break;
             } // case 74
             case 82: {
-              tokenizedPan_ = input.readStringRequireUtf8();
+              tokenizedClaimant_ = input.readStringRequireUtf8();
               bitField0_ |= 0x00000200;
               break;
             } // case 82
             case 90: {
-              merchantId_ = input.readStringRequireUtf8();
+              providerId_ = input.readStringRequireUtf8();
               bitField0_ |= 0x00000400;
               break;
             } // case 90
@@ -1782,7 +1798,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     private java.lang.Object eventType_ = "";
     /**
      * <pre>
-     * e.g. AUTH_REQUEST
+     * e.g. CLAIM_SUBMISSION
      * </pre>
      *
      * <code>string event_type = 7 [json_name = "eventType"];</code>
@@ -1802,7 +1818,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     /**
      * <pre>
-     * e.g. AUTH_REQUEST
+     * e.g. CLAIM_SUBMISSION
      * </pre>
      *
      * <code>string event_type = 7 [json_name = "eventType"];</code>
@@ -1823,7 +1839,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     /**
      * <pre>
-     * e.g. AUTH_REQUEST
+     * e.g. CLAIM_SUBMISSION
      * </pre>
      *
      * <code>string event_type = 7 [json_name = "eventType"];</code>
@@ -1840,7 +1856,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     /**
      * <pre>
-     * e.g. AUTH_REQUEST
+     * e.g. CLAIM_SUBMISSION
      * </pre>
      *
      * <code>string event_type = 7 [json_name = "eventType"];</code>
@@ -1854,7 +1870,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     /**
      * <pre>
-     * e.g. AUTH_REQUEST
+     * e.g. CLAIM_SUBMISSION
      * </pre>
      *
      * <code>string event_type = 7 [json_name = "eventType"];</code>
@@ -1874,7 +1890,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     private java.lang.Object channel_ = "";
     /**
      * <pre>
-     * e.g. ECOMMERCE
+     * e.g. AGENT_PORTAL
      * </pre>
      *
      * <code>string channel = 8 [json_name = "channel"];</code>
@@ -1894,7 +1910,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     /**
      * <pre>
-     * e.g. ECOMMERCE
+     * e.g. AGENT_PORTAL
      * </pre>
      *
      * <code>string channel = 8 [json_name = "channel"];</code>
@@ -1915,7 +1931,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     /**
      * <pre>
-     * e.g. ECOMMERCE
+     * e.g. AGENT_PORTAL
      * </pre>
      *
      * <code>string channel = 8 [json_name = "channel"];</code>
@@ -1932,7 +1948,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     /**
      * <pre>
-     * e.g. ECOMMERCE
+     * e.g. AGENT_PORTAL
      * </pre>
      *
      * <code>string channel = 8 [json_name = "channel"];</code>
@@ -1946,7 +1962,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     /**
      * <pre>
-     * e.g. ECOMMERCE
+     * e.g. AGENT_PORTAL
      * </pre>
      *
      * <code>string channel = 8 [json_name = "channel"];</code>
@@ -2035,145 +2051,185 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       return this;
     }
 
-    private java.lang.Object tokenizedPan_ = "";
+    private java.lang.Object tokenizedClaimant_ = "";
     /**
-     * <code>string tokenized_pan = 10 [json_name = "tokenizedPan"];</code>
-     * @return The tokenizedPan.
+     * <pre>
+     * insured / claimant, tokenized at ingress
+     * </pre>
+     *
+     * <code>string tokenized_claimant = 10 [json_name = "tokenizedClaimant"];</code>
+     * @return The tokenizedClaimant.
      */
-    public java.lang.String getTokenizedPan() {
-      java.lang.Object ref = tokenizedPan_;
+    public java.lang.String getTokenizedClaimant() {
+      java.lang.Object ref = tokenizedClaimant_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        tokenizedPan_ = s;
+        tokenizedClaimant_ = s;
         return s;
       } else {
         return (java.lang.String) ref;
       }
     }
     /**
-     * <code>string tokenized_pan = 10 [json_name = "tokenizedPan"];</code>
-     * @return The bytes for tokenizedPan.
+     * <pre>
+     * insured / claimant, tokenized at ingress
+     * </pre>
+     *
+     * <code>string tokenized_claimant = 10 [json_name = "tokenizedClaimant"];</code>
+     * @return The bytes for tokenizedClaimant.
      */
     public com.google.protobuf.ByteString
-        getTokenizedPanBytes() {
-      java.lang.Object ref = tokenizedPan_;
+        getTokenizedClaimantBytes() {
+      java.lang.Object ref = tokenizedClaimant_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        tokenizedPan_ = b;
+        tokenizedClaimant_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>string tokenized_pan = 10 [json_name = "tokenizedPan"];</code>
-     * @param value The tokenizedPan to set.
+     * <pre>
+     * insured / claimant, tokenized at ingress
+     * </pre>
+     *
+     * <code>string tokenized_claimant = 10 [json_name = "tokenizedClaimant"];</code>
+     * @param value The tokenizedClaimant to set.
      * @return This builder for chaining.
      */
-    public Builder setTokenizedPan(
+    public Builder setTokenizedClaimant(
         java.lang.String value) {
       if (value == null) { throw new NullPointerException(); }
-      tokenizedPan_ = value;
+      tokenizedClaimant_ = value;
       bitField0_ |= 0x00000200;
       onChanged();
       return this;
     }
     /**
-     * <code>string tokenized_pan = 10 [json_name = "tokenizedPan"];</code>
+     * <pre>
+     * insured / claimant, tokenized at ingress
+     * </pre>
+     *
+     * <code>string tokenized_claimant = 10 [json_name = "tokenizedClaimant"];</code>
      * @return This builder for chaining.
      */
-    public Builder clearTokenizedPan() {
-      tokenizedPan_ = getDefaultInstance().getTokenizedPan();
+    public Builder clearTokenizedClaimant() {
+      tokenizedClaimant_ = getDefaultInstance().getTokenizedClaimant();
       bitField0_ = (bitField0_ & ~0x00000200);
       onChanged();
       return this;
     }
     /**
-     * <code>string tokenized_pan = 10 [json_name = "tokenizedPan"];</code>
-     * @param value The bytes for tokenizedPan to set.
+     * <pre>
+     * insured / claimant, tokenized at ingress
+     * </pre>
+     *
+     * <code>string tokenized_claimant = 10 [json_name = "tokenizedClaimant"];</code>
+     * @param value The bytes for tokenizedClaimant to set.
      * @return This builder for chaining.
      */
-    public Builder setTokenizedPanBytes(
+    public Builder setTokenizedClaimantBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) { throw new NullPointerException(); }
       checkByteStringIsUtf8(value);
-      tokenizedPan_ = value;
+      tokenizedClaimant_ = value;
       bitField0_ |= 0x00000200;
       onChanged();
       return this;
     }
 
-    private java.lang.Object merchantId_ = "";
+    private java.lang.Object providerId_ = "";
     /**
-     * <code>string merchant_id = 11 [json_name = "merchantId"];</code>
-     * @return The merchantId.
+     * <pre>
+     * service provider (repair shop, clinic, ...)
+     * </pre>
+     *
+     * <code>string provider_id = 11 [json_name = "providerId"];</code>
+     * @return The providerId.
      */
-    public java.lang.String getMerchantId() {
-      java.lang.Object ref = merchantId_;
+    public java.lang.String getProviderId() {
+      java.lang.Object ref = providerId_;
       if (!(ref instanceof java.lang.String)) {
         com.google.protobuf.ByteString bs =
             (com.google.protobuf.ByteString) ref;
         java.lang.String s = bs.toStringUtf8();
-        merchantId_ = s;
+        providerId_ = s;
         return s;
       } else {
         return (java.lang.String) ref;
       }
     }
     /**
-     * <code>string merchant_id = 11 [json_name = "merchantId"];</code>
-     * @return The bytes for merchantId.
+     * <pre>
+     * service provider (repair shop, clinic, ...)
+     * </pre>
+     *
+     * <code>string provider_id = 11 [json_name = "providerId"];</code>
+     * @return The bytes for providerId.
      */
     public com.google.protobuf.ByteString
-        getMerchantIdBytes() {
-      java.lang.Object ref = merchantId_;
+        getProviderIdBytes() {
+      java.lang.Object ref = providerId_;
       if (ref instanceof String) {
         com.google.protobuf.ByteString b = 
             com.google.protobuf.ByteString.copyFromUtf8(
                 (java.lang.String) ref);
-        merchantId_ = b;
+        providerId_ = b;
         return b;
       } else {
         return (com.google.protobuf.ByteString) ref;
       }
     }
     /**
-     * <code>string merchant_id = 11 [json_name = "merchantId"];</code>
-     * @param value The merchantId to set.
+     * <pre>
+     * service provider (repair shop, clinic, ...)
+     * </pre>
+     *
+     * <code>string provider_id = 11 [json_name = "providerId"];</code>
+     * @param value The providerId to set.
      * @return This builder for chaining.
      */
-    public Builder setMerchantId(
+    public Builder setProviderId(
         java.lang.String value) {
       if (value == null) { throw new NullPointerException(); }
-      merchantId_ = value;
+      providerId_ = value;
       bitField0_ |= 0x00000400;
       onChanged();
       return this;
     }
     /**
-     * <code>string merchant_id = 11 [json_name = "merchantId"];</code>
+     * <pre>
+     * service provider (repair shop, clinic, ...)
+     * </pre>
+     *
+     * <code>string provider_id = 11 [json_name = "providerId"];</code>
      * @return This builder for chaining.
      */
-    public Builder clearMerchantId() {
-      merchantId_ = getDefaultInstance().getMerchantId();
+    public Builder clearProviderId() {
+      providerId_ = getDefaultInstance().getProviderId();
       bitField0_ = (bitField0_ & ~0x00000400);
       onChanged();
       return this;
     }
     /**
-     * <code>string merchant_id = 11 [json_name = "merchantId"];</code>
-     * @param value The bytes for merchantId to set.
+     * <pre>
+     * service provider (repair shop, clinic, ...)
+     * </pre>
+     *
+     * <code>string provider_id = 11 [json_name = "providerId"];</code>
+     * @param value The bytes for providerId to set.
      * @return This builder for chaining.
      */
-    public Builder setMerchantIdBytes(
+    public Builder setProviderIdBytes(
         com.google.protobuf.ByteString value) {
       if (value == null) { throw new NullPointerException(); }
       checkByteStringIsUtf8(value);
-      merchantId_ = value;
+      providerId_ = value;
       bitField0_ |= 0x00000400;
       onChanged();
       return this;

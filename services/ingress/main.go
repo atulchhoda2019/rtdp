@@ -34,8 +34,8 @@ type decideReq struct {
 	EventType           string  `json:"event_type"`
 	Channel             string  `json:"channel"`
 	Region              string  `json:"region"`
-	TokenizedPAN        string  `json:"tokenized_pan"`
-	MerchantID          string  `json:"merchant_id"`
+	TokenizedClaimant   string  `json:"tokenized_claimant"`
+	ProviderID          string  `json:"provider_id"`
 	Currency            string  `json:"currency"`
 	Amount              float64 `json:"amount"`
 	EventTime           string  `json:"event_time"`
@@ -70,8 +70,8 @@ func main() {
 			http.Error(w, `{"error":"bad json"}`, http.StatusBadRequest)
 			return
 		}
-		if req.TransactionID == "" || req.TokenizedPAN == "" ||
-			req.MerchantID == "" || req.Currency == "" {
+		if req.TransactionID == "" || req.TokenizedClaimant == "" ||
+			req.ProviderID == "" || req.Currency == "" {
 			http.Error(w, `{"error":"missing routing fields"}`,
 				http.StatusBadRequest)
 			return
@@ -92,8 +92,8 @@ func main() {
 			EventType:           req.EventType,
 			Channel:             req.Channel,
 			Region:              req.Region,
-			TokenizedPan:        req.TokenizedPAN,
-			MerchantId:          req.MerchantID,
+			TokenizedClaimant:   req.TokenizedClaimant,
+			ProviderId:          req.ProviderID,
 			Currency:            req.Currency,
 			Amount:              req.Amount,
 			EventTime:           timestamppb.New(et),

@@ -110,7 +110,7 @@ func (s *server) Decide(ctx context.Context,
 	dedupKey := fmt.Sprintf("rtdp:dedup:{%s:%s}:%s:%d",
 		req.TenantId, mode, req.TransactionId, req.TransactionRevision)
 	payloadHash := fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf(
-		"%s|%s|%.6f|%s", req.TokenizedPan, req.MerchantId, req.Amount,
+		"%s|%s|%.6f|%s", req.TokenizedClaimant, req.ProviderId, req.Amount,
 		req.Currency))))
 	prior, _ := s.rdb.HGet(ctx, dedupKey, "payload").Result()
 	if prior != "" && prior != payloadHash {
@@ -158,8 +158,8 @@ func (s *server) Decide(ctx context.Context,
 		Mode:                req.Mode,
 		TransactionId:       req.TransactionId,
 		TransactionRevision: req.TransactionRevision,
-		TokenizedPan:        req.TokenizedPan,
-		MerchantId:          req.MerchantId,
+		TokenizedClaimant:   req.TokenizedClaimant,
+		ProviderId:          req.ProviderId,
 		Currency:            req.Currency,
 		Amount:              req.Amount,
 		EventTime:           req.EventTime,
@@ -171,8 +171,9 @@ func (s *server) Decide(ctx context.Context,
 	}
 
 	// 4. Ordered input vector for providers (schema order from the contract).
-	featNames := []string{"pan_txn_count_1h", "pan_amount_sum_24h",
-		"merchant_txn_count_1h", "merchant_amount_sum_1h"}
+	featNames := []string{"claimant_claim_count_1h",
+		"claimant_amount_sum_24h", "provider_claim_count_1h",
+		"provider_amount_sum_1h"}
 	var featVals []*rtdpv1.TypedValue
 	for _, n := range featNames {
 		v := feat.Features[n]
@@ -266,7 +267,7 @@ func (s *server) Decide(ctx context.Context,
 	if m.ActionPolicy != nil {
 		for _, at := range allowedFor(res.Outcome.String(), m.ActionPolicy.Spec) {
 			key := fmt.Sprintf("%s:%s:%s:%d:%s:%s", req.TenantId, req.Environment,
-				res.DecisionId, res.DecisionGeneration, at, req.MerchantId)
+				res.DecisionId, res.DecisionGeneration, at, req.ProviderId)
 			res.ActionIntents = append(res.ActionIntents, &rtdpv1.ActionIntent{
 				ActionType:     at,
 				IdempotencyKey: key,
@@ -285,8 +286,8 @@ func (s *server) Decide(ctx context.Context,
 		Mode:                req.Mode,
 		TransactionId:       req.TransactionId,
 		TransactionRevision: req.TransactionRevision,
-		TokenizedPan:        req.TokenizedPan,
-		MerchantId:          req.MerchantId,
+		TokenizedClaimant:   req.TokenizedClaimant,
+		ProviderId:          req.ProviderId,
 		Currency:            req.Currency,
 		Amount:              req.Amount,
 		EventTime:           req.EventTime,
@@ -299,7 +300,7 @@ func (s *server) Decide(ctx context.Context,
 		{Topic: kafkax.TopicEgress,
 			Key: []byte(req.TenantId + ":" + req.TransactionId), Value: dres},
 		{Topic: kafkax.TopicFeatureContrib,
-			Key: []byte(req.TenantId + ":" + req.MerchantId), Value: cres},
+			Key: []byte(req.TenantId + ":" + req.ProviderId), Value: cres},
 	}
 	if req.Mode != rtdpv1.Mode_MODE_LIVE {
 		// Shadow/replay cannot emit live action commands.
@@ -365,10 +366,10 @@ func (s *server) Decide(ctx context.Context,
 func allowedFor(outcome string, p bundle.ActionPolicySpec) []string {
 	var out []string
 	for _, a := range p.AllowedActions {
-		if a == "AUTH_RESPONSE" {
+		if a == "CLAIM_RESPONSE" {
 			out = append(out, a) // inline response always permitted
 		}
-		if a == "CREATE_REVIEW_CASE" && outcome == "DECISION_REVIEW" {
+		if a == "OPEN_SIU_CASE" && outcome == "DECISION_REVIEW" {
 			out = append(out, a)
 		}
 	}

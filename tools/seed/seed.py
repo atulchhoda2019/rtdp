@@ -26,9 +26,9 @@ from rtdp_contracts.registry import ContractRegistry, ContractError  # noqa: E40
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD = ROOT / "build"
-MODEL_DIR = BUILD / "models" / "fraud_logistic" / "2"
-BINDING = ROOT / "assets/seed/platform/bindings/fraud-primary/3.yaml"
-PRODUCT = ROOT / "assets/seed/platform/products/card_fraud/1.yaml"
+MODEL_DIR = BUILD / "models" / "claim_fraud_logistic" / "2"
+BINDING = ROOT / "assets/seed/platform/bindings/claim-fraud-primary/3.yaml"
+PRODUCT = ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml"
 
 S3_ENDPOINT = os.environ.get("RTDP_S3_ENDPOINT", "http://localhost:9099")
 S3_KEY = os.environ.get("RTDP_S3_ACCESS_KEY", "minioadmin")
@@ -71,15 +71,16 @@ def upload_model() -> dict:
     for name in ("model.onnx", "input_schema.json", "preprocessing.json",
                  "metadata.json", "golden_vectors.json"):
         s3.upload_file(str(MODEL_DIR / name), ARTIFACT_BUCKET,
-                       f"fraud_logistic/2/{name}")
-    meta["artifact_uri"] = f"s3://{ARTIFACT_BUCKET}/fraud_logistic/2/model.onnx"
+                       f"claim_fraud_logistic/2/{name}")
+    meta["artifact_uri"] = (
+        f"s3://{ARTIFACT_BUCKET}/claim_fraud_logistic/2/model.onnx")
     print(f"model uploaded: {meta['model_digest']}")
     return meta
 
 
 def patch_binding(meta: dict):
     doc = yaml.safe_load(BINDING.read_text())
-    doc["model"] = f"fraud_logistic@2"
+    doc["model"] = "claim_fraud_logistic@2"
     doc["input_schema_digest"] = meta["input_schema_digest"]
     doc["preprocessing_digest"] = meta["preprocessing_digest"]
     doc["model_digest"] = meta["model_digest"]
@@ -151,12 +152,12 @@ def warm_inference(meta: dict, activations):
     ch = grpc.insecure_channel(INFERENCE_ADDR)
     stub = services_pb2_grpc.InferenceServiceStub(ch)
     resp = stub.Warm(services_pb2.WarmRequest(
-        model_id="fraud_logistic", model_version="2",
+        model_id="claim_fraud_logistic", model_version="2",
         model_digest=meta["model_digest"],
         artifact_uri=meta["artifact_uri"],
         input_schema_digest=meta["input_schema_digest"],
         preprocessing_digest=meta["preprocessing_digest"],
-        output_contract="fraud.authorization_probability",
+        output_contract="claim.fraud_probability",
         contract_version="1.1.0"))
     if not resp.ready:
         raise RuntimeError(f"inference warm failed: {resp.error}")
@@ -175,11 +176,11 @@ def warm_pipeline():
                 data=json.dumps({
                     "transaction_id": f"warmup_{client_id}_{attempt}",
                     "transaction_revision": 1,
-                    "event_type": "AUTH_REQUEST",
-                    "channel": "ECOMMERCE",
+                    "event_type": "CLAIM_SUBMISSION",
+                    "channel": "PORTAL",
                     "region": "us-east-1",
-                    "tokenized_pan": f"tok_warm_{client_id}",
-                    "merchant_id": "mch_warm",
+                    "tokenized_claimant": f"tok_warm_{client_id}",
+                    "provider_id": "prv_warm",
                     "currency": "USD",
                     "amount": 10.0,
                     "event_time": time.strftime(

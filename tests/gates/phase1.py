@@ -82,15 +82,15 @@ def decide_ok(client_id, txn, attempts=10):
     return body
 
 
-def make_txn(tag, pan=None, merchant="mch_gate", amount=129.99,
+def make_txn(tag, claimant=None, provider="prv_gate", amount=129.99,
              event_offset_s=0):
     return {
         "transaction_id": f"txn_{tag}_{int(time.time()*1000)}",
         "transaction_revision": 1,
-        "event_type": "AUTH_REQUEST",
-        "channel": "ECOMMERCE", "region": "us-east-1",
-        "tokenized_pan": pan or f"tok_{tag}_{int(time.time())}",
-        "merchant_id": merchant, "currency": "USD",
+        "event_type": "CLAIM_SUBMISSION",
+        "channel": "PORTAL", "region": "us-east-1",
+        "tokenized_claimant": claimant or f"tok_{tag}_{int(time.time())}",
+        "provider_id": provider, "currency": "USD",
         "amount": amount,
         "event_time": time.strftime("%Y-%m-%dT%H:%M:%SZ",
                                     time.gmtime(time.time() + event_offset_s)),
@@ -98,7 +98,7 @@ def make_txn(tag, pan=None, merchant="mch_gate", amount=129.99,
 
 
 PRODUCT = yaml.safe_load(
-    (ROOT / "assets/seed/platform/products/card_fraud/1.yaml").read_text())
+    (ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml").read_text())
 
 
 def registry(assets=None):
@@ -266,9 +266,9 @@ def g4_semantic_incompat(ev):
     tmp = Path(tempfile.mkdtemp())
     try:
         shutil.copytree(ROOT / "assets/seed", tmp / "seed")
-        binding = (tmp / "seed/platform/bindings/fraud-primary/3.yaml")
+        binding = (tmp / "seed/platform/bindings/claim-fraud-primary/3.yaml")
         doc = yaml.safe_load(binding.read_text())
-        doc["output_contract"] = "fraud.authorization_probability@9.9.9"
+        doc["output_contract"] = "claim.fraud_probability@9.9.9"
         binding.write_text(yaml.safe_dump(doc))
         try:
             compile_bundle(registry(tmp), PRODUCT, None, "tenant_a")
@@ -298,7 +298,7 @@ def g5_stream_recovery(ev):
     from google.protobuf.timestamp_pb2 import Timestamp
     from rtdp.v1 import decision_pb2, envelope_pb2
 
-    merchant = f"mch_rec_{int(time.time())}"
+    provider = f"prv_rec_{int(time.time())}"
     base = int(time.time()) - 5  # inside the current minute window
     p = KafkaProducer(bootstrap_servers="localhost:29092")
 
@@ -308,10 +308,10 @@ def g5_stream_recovery(ev):
             tenant_id="tenant_a", environment="work",
             mode=envelope_pb2.MODE_LIVE,
             transaction_id=f"txn_g5_{tag}",
-            transaction_revision=1, tokenized_pan="tok_g5",
-            merchant_id=merchant, currency="USD", amount=10.0)
+            transaction_revision=1, tokenized_claimant="tok_g5",
+            provider_id=provider, currency="USD", amount=10.0)
         c.event_time.CopyFrom(Timestamp(seconds=event_epoch))
-        p.send("rtdp.feature.contrib.v1", key=merchant.encode(),
+        p.send("rtdp.feature.contrib.v1", key=provider.encode(),
                value=c.SerializeToString())
 
     for i in range(3):
@@ -342,10 +342,10 @@ def g5_stream_recovery(ev):
 
     # Wait for the materialized tile; count must equal exactly 3 events in
     # the base window — replay must not inflate absolute tile values.
-    tile = (f"rtdp:t2:{{tenant_a:LIVE}}:merchant_txn_count_1h@1:"
-            f"{merchant}:USD:{base // 60}")
+    tile = (f"rtdp:t2:{{tenant_a:LIVE}}:provider_claim_count_1h@1:"
+            f"{provider}:USD:{base // 60}")
     count = None
-    deadline = time.time() + 180
+    deadline = time.time() + 300  # restart + one 60s checkpoint commit cycle
     while time.time() < deadline:
         val = redis_get(tile)
         if val:
@@ -354,7 +354,7 @@ def g5_stream_recovery(ev):
         time.sleep(10)
     assert count is not None, "no tier2 tile materialized after recovery"
     assert count == 3, f"tile count {count} != 3 (inflation/loss)"
-    ev.update({"job_id": job_id, "merchant": merchant, "tile": tile,
+    ev.update({"job_id": job_id, "provider": provider, "tile": tile,
                "tile_count": count})
     log(f"  job {job_id[:12]} recovered; tile count == 3 exactly")
 
@@ -370,7 +370,7 @@ def g6_model_parity(ev):
     X, y = synth_data()
     clf = LogisticRegression(max_iter=1000, random_state=42).fit(X, y)
     sess = ort.InferenceSession(
-        str(ROOT / "build/models/fraud_logistic/2/model.onnx"))
+        str(ROOT / "build/models/claim_fraud_logistic/2/model.onnx"))
     rng = np.random.default_rng(99)
     probe = np.column_stack([
         rng.poisson(3, 256), rng.gamma(2.0, 150.0, 256),
@@ -396,7 +396,7 @@ def g7_action_ambiguity(ev):
         command_id=f"cmd-{idem}", tenant_id="tenant_a",
         environment="work", mode=envelope_pb2.MODE_LIVE,
         decision_id=f"dec-{idem}", decision_generation=1,
-        action_type="AUTH_RESPONSE", idempotency_key=idem,
+        action_type="CLAIM_RESPONSE", idempotency_key=idem,
         adapter_ref="local_timeout_simulator@1",
         intent_ttl_ms=3600_000)
     cmd.created_at.GetCurrentTime()

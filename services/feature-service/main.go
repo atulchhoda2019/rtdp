@@ -60,7 +60,8 @@ func (s *server) ResolveFeatures(ctx context.Context,
 	eventID := fmt.Sprintf("%s:%s:%d", req.TenantId, req.TransactionId,
 		req.TransactionRevision)
 	digest := fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf(
-		"%s|%s|%s|%.6f|%d", req.TokenizedPan, req.MerchantId, req.Currency,
+		"%s|%s|%s|%.6f|%d", req.TokenizedClaimant, req.ProviderId,
+		req.Currency,
 		req.Amount, req.EventTime.GetSeconds()))))
 	needT1 := false
 	for _, f := range req.RequiredFeatures {
@@ -70,7 +71,7 @@ func (s *server) ResolveFeatures(ctx context.Context,
 	}
 	if needT1 {
 		v, err := s.t1.Apply(ctx, req.TenantId, req.Environment, mode,
-			liveOnly, req.TokenizedPan, req.Currency, eventID, digest,
+			liveOnly, req.TokenizedClaimant, req.Currency, eventID, digest,
 			req.EventTime.AsTime(), req.Amount)
 		if err != nil {
 			reqs.WithLabelValues("tier1_error").Inc()
@@ -82,14 +83,14 @@ func (s *server) ResolveFeatures(ctx context.Context,
 	now := time.Now()
 	for _, f := range req.RequiredFeatures {
 		switch {
-		case f.Tier == "tier1" && f.Name == "pan_txn_count_1h" && t1v != nil:
+		case f.Tier == "tier1" && f.Name == "claimant_claim_count_1h" && t1v != nil:
 			resp.Features[f.Name] = &rtdpv1.TypedValue{
-				Kind: &rtdpv1.TypedValue_IntValue{IntValue: t1v.PanTxnCount1h}}
-		case f.Tier == "tier1" && f.Name == "pan_amount_sum_24h" && t1v != nil:
+				Kind: &rtdpv1.TypedValue_IntValue{IntValue: t1v.ClaimantClaimCount1h}}
+		case f.Tier == "tier1" && f.Name == "claimant_amount_sum_24h" && t1v != nil:
 			resp.Features[f.Name] = &rtdpv1.TypedValue{
-				Kind: &rtdpv1.TypedValue_DoubleValue{DoubleValue: t1v.PanAmountSum24h}}
+				Kind: &rtdpv1.TypedValue_DoubleValue{DoubleValue: t1v.ClaimantAmountSum24h}}
 		case f.Tier == "tier2":
-			entity := req.MerchantId
+			entity := req.ProviderId
 			val, _, err := s.t2.Window(ctx, req.TenantId, mode, f.Name,
 				int(f.Version), entity, req.Currency, time.Hour, now)
 			if err != nil {

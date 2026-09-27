@@ -76,28 +76,28 @@ public interface FeatureContributionOrBuilder extends
   long getTransactionRevision();
 
   /**
-   * <code>string tokenized_pan = 7 [json_name = "tokenizedPan"];</code>
-   * @return The tokenizedPan.
+   * <code>string tokenized_claimant = 7 [json_name = "tokenizedClaimant"];</code>
+   * @return The tokenizedClaimant.
    */
-  java.lang.String getTokenizedPan();
+  java.lang.String getTokenizedClaimant();
   /**
-   * <code>string tokenized_pan = 7 [json_name = "tokenizedPan"];</code>
-   * @return The bytes for tokenizedPan.
+   * <code>string tokenized_claimant = 7 [json_name = "tokenizedClaimant"];</code>
+   * @return The bytes for tokenizedClaimant.
    */
   com.google.protobuf.ByteString
-      getTokenizedPanBytes();
+      getTokenizedClaimantBytes();
 
   /**
-   * <code>string merchant_id = 8 [json_name = "merchantId"];</code>
-   * @return The merchantId.
+   * <code>string provider_id = 8 [json_name = "providerId"];</code>
+   * @return The providerId.
    */
-  java.lang.String getMerchantId();
+  java.lang.String getProviderId();
   /**
-   * <code>string merchant_id = 8 [json_name = "merchantId"];</code>
-   * @return The bytes for merchantId.
+   * <code>string provider_id = 8 [json_name = "providerId"];</code>
+   * @return The bytes for providerId.
    */
   com.google.protobuf.ByteString
-      getMerchantIdBytes();
+      getProviderIdBytes();
 
   /**
    * <code>string currency = 9 [json_name = "currency"];</code>

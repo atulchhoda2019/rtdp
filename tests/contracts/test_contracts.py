@@ -24,14 +24,14 @@ REG = ContractRegistry(ROOT / "contracts", ROOT / "assets")
 
 def test_signal_contract_validates():
     docs = REG.load_all("signal_contract")
-    assert any(d["signal_name"] == "fraud.authorization_probability"
+    assert any(d["signal_name"] == "claim.fraud_probability"
                for d in docs)
 
 
 def test_feature_definitions_have_tiers():
     docs = {d["feature_name"]: d for d in REG.load_all("feature_definition")}
-    assert docs["pan_txn_count_1h"]["tier"] == "tier1"
-    assert docs["merchant_txn_count_1h"]["tier"] == "tier2"
+    assert docs["claimant_claim_count_1h"]["tier"] == "tier1"
+    assert docs["provider_claim_count_1h"]["tier"] == "tier2"
 
 
 @pytest.mark.parametrize("bad, code", [
@@ -53,10 +53,10 @@ def test_invalid_contracts_rejected(bad, code):
 
 
 def test_envelope_validation():
-    contract = REG.get("signal_contract", "fraud.authorization_probability",
+    contract = REG.get("signal_contract", "claim.fraud_probability",
                        "1.1.0")
     good = {
-        "signal_name": "fraud.authorization_probability",
+        "signal_name": "claim.fraud_probability",
         "contract_version": "1.1.0",
         "status": "OK",
         "transaction_revision": 1,
@@ -74,7 +74,7 @@ def test_envelope_validation():
 
 def test_overlay_allowlist():
     product = yaml.safe_load(
-        (ROOT / "assets/seed/platform/products/card_fraud/1.yaml").read_text())
+        (ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml").read_text())
     ok = apply_overlay(product, {"overrides":
                                  {"thresholds.decline_probability": 0.85}})
     assert ok["thresholds"]["decline_probability"] == 0.85
@@ -85,7 +85,7 @@ def test_overlay_allowlist():
 
 def test_bundle_compile_and_digest_stable():
     product = yaml.safe_load(
-        (ROOT / "assets/seed/platform/products/card_fraud/1.yaml").read_text())
+        (ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml").read_text())
     b1 = compile_bundle(REG, product, None, "tenant_a")
     b2 = compile_bundle(REG, product, None, "tenant_a")
     assert b1["digest"] == b2["digest"]  # content-addressed, deterministic
@@ -94,7 +94,7 @@ def test_bundle_compile_and_digest_stable():
 
 def test_cross_tenant_bundles_differ():
     product = yaml.safe_load(
-        (ROOT / "assets/seed/platform/products/card_fraud/1.yaml").read_text())
+        (ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml").read_text())
     sub_b = yaml.safe_load(
         (ROOT / "assets/seed/tenants/tenant_b/subscription.yaml").read_text())
     a = compile_bundle(REG, product, None, "tenant_a")

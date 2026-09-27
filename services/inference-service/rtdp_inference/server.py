@@ -80,6 +80,13 @@ class InferenceServicer(services_pb2_grpc.InferenceServiceServicer):
         if status != STATUS_OK:
             prob = None
 
+        # Signal name/version come from the warmed model's declared output
+        # contract; the digest is pinned by the caller's binding spec.
+        contract_ref = ""
+        if status == STATUS_OK:
+            contract_ref = lm.meta.get("output_contract") or ""
+        signal_name, _, contract_version = contract_ref.partition("@")
+
         env = envelope_pb2.SignalEnvelope(
             envelope_version="1",
             signal_event_id="sig_" + uuid.uuid4().hex[:16],
@@ -89,8 +96,8 @@ class InferenceServicer(services_pb2_grpc.InferenceServiceServicer):
             transaction_id=req.transaction_id,
             transaction_revision=req.transaction_revision,
             decision_context_id=req.decision_context_id,
-            signal_name="fraud.authorization_probability",
-            contract_version="1.1.0",
+            signal_name=signal_name,
+            contract_version=contract_version,
             binding_id=req.binding_id,
             binding_version=req.binding_version,
             producer_id="inference-service",
@@ -110,8 +117,7 @@ class InferenceServicer(services_pb2_grpc.InferenceServiceServicer):
         )
         if status == STATUS_OK:
             env.values["probability"].double_value = prob
-            env.contract_digest = os.environ.get(
-                "RTDP_CONTRACT_DIGEST_FRAUD", "")
+            env.contract_digest = req.contract_digest
         return services_pb2.ScoreResponse(envelope=env)
 
     @staticmethod

@@ -26,15 +26,15 @@ var (
 
 const (
 	dedupHorizon = 24 * time.Hour
-	countWindowM = 60   // pan_txn_count_1h
-	amtWindowM   = 1440 // pan_amount_sum_24h
+	countWindowM = 60   // claimant_claim_count_1h
+	amtWindowM   = 1440 // claimant_amount_sum_24h
 )
 
 // Vector is the Tier 1 returned feature vector for one event.
 type Vector struct {
-	PanTxnCount1h   int64   `json:"pan_txn_count_1h"`
-	PanAmountSum24h float64 `json:"pan_amount_sum_24h"`
-	AsOfBucket      int64   `json:"as_of_bucket"`
+	ClaimantClaimCount1h int64   `json:"claimant_claim_count_1h"`
+	ClaimantAmountSum24h float64 `json:"claimant_amount_sum_24h"`
+	AsOfBucket           int64   `json:"as_of_bucket"`
 }
 
 // Tier1 executes atomic dedup+update+read against Redis.
@@ -50,8 +50,8 @@ func NewTier1(rdb *redis.Client) *Tier1 {
 
 func (t *Tier1) Ping(ctx context.Context) error { return t.rdb.Ping(ctx).Err() }
 
-func hashTag(tenant, env, mode, pan string) string {
-	return fmt.Sprintf("%s:%s:%s:%s", tenant, env, mode, pan)
+func hashTag(tenant, env, mode, claimant string) string {
+	return fmt.Sprintf("%s:%s:%s:%s", tenant, env, mode, claimant)
 }
 
 // Apply atomically deduplicates eventID, applies this event's contribution,
@@ -59,15 +59,15 @@ func hashTag(tenant, env, mode, pan string) string {
 // same event id and payload returns the cached vector; a payload mismatch is
 // a conflict.
 func (t *Tier1) Apply(ctx context.Context, tenant, env, mode string,
-	liveOnly bool, pan, currency, eventID, payloadDigest string,
+	liveOnly bool, claimant, currency, eventID, payloadDigest string,
 	eventTime time.Time, amount float64) (*Vector, error) {
 
-	scope := hashTag(tenant, env, mode, pan)
+	scope := hashTag(tenant, env, mode, claimant)
 	keys := []string{
-		fmt.Sprintf("rtdp:t1:{%s}:dedup:%s", scope, pan),
-		fmt.Sprintf("rtdp:t1:{%s}:count:%s", scope, pan),
-		fmt.Sprintf("rtdp:t1:{%s}:amt:%s:%s", scope, pan, currency),
-		fmt.Sprintf("rtdp:t1:{%s}:vec:%s", scope, pan),
+		fmt.Sprintf("rtdp:t1:{%s}:dedup:%s", scope, claimant),
+		fmt.Sprintf("rtdp:t1:{%s}:count:%s", scope, claimant),
+		fmt.Sprintf("rtdp:t1:{%s}:amt:%s:%s", scope, claimant, currency),
+		fmt.Sprintf("rtdp:t1:{%s}:vec:%s", scope, claimant),
 	}
 	live := "0"
 	if liveOnly {

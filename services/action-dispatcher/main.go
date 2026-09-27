@@ -43,25 +43,25 @@ type adapter interface {
 	Execute(ctx context.Context, cmd *rtdpv1.ActionCommand) (string, bool, error)
 }
 
-type authSimulator struct{}
+type claimSimulator struct{}
 
-func (authSimulator) Execute(ctx context.Context, cmd *rtdpv1.ActionCommand) (string, bool, error) {
-	// Simulate a deterministic authorization effect keyed on idempotency.
-	ref := fmt.Sprintf("authsim:%x", sha256.Sum256([]byte(cmd.IdempotencyKey)))[:24]
+func (claimSimulator) Execute(ctx context.Context, cmd *rtdpv1.ActionCommand) (string, bool, error) {
+	// Simulate a deterministic claim-response effect keyed on idempotency.
+	ref := fmt.Sprintf("claimsim:%x", sha256.Sum256([]byte(cmd.IdempotencyKey)))[:24]
 	return ref, true, nil
 }
 
-type caseAdapter struct{ db *pgxpool.Pool }
+type siuAdapter struct{ db *pgxpool.Pool }
 
-func (a caseAdapter) Execute(ctx context.Context, cmd *rtdpv1.ActionCommand) (string, bool, error) {
-	ref := "case_" + uuid.NewString()[:12]
-	// Durable local case row keyed on the idempotency key; a retry sees the
-	// existing row rather than duplicating the case.
+func (a siuAdapter) Execute(ctx context.Context, cmd *rtdpv1.ActionCommand) (string, bool, error) {
+	ref := "siu_" + uuid.NewString()[:12]
+	// Durable SIU review-case row keyed on the idempotency key; a retry
+	// sees the existing row rather than duplicating the case.
 	_, err := a.db.Exec(ctx, `
 		INSERT INTO execution_event (tenant_id, mode, event_id, kind, detail)
-		VALUES ($1, $2, $3, 'review_case', $4)
+		VALUES ($1, $2, $3, 'siu_case', $4)
 		ON CONFLICT (tenant_id, mode, event_id) DO NOTHING`,
-		cmd.TenantId, "LIVE", "case:"+cmd.IdempotencyKey,
+		cmd.TenantId, "LIVE", "siu:"+cmd.IdempotencyKey,
 		mustJSON(map[string]any{"ref": ref, "decision": cmd.DecisionId}))
 	if err != nil {
 		return "", false, err
@@ -110,10 +110,10 @@ func payloadMap(m map[string]*rtdpv1.TypedValue) map[string]any {
 
 func adapterFor(ref string, db *pgxpool.Pool) adapter {
 	switch {
-	case ref == "local_auth_simulator@1":
-		return authSimulator{}
-	case ref == "local_case_adapter@1":
-		return caseAdapter{db}
+	case ref == "local_claim_simulator@1":
+		return claimSimulator{}
+	case ref == "local_siu_case_adapter@1":
+		return siuAdapter{db}
 	case ref == "local_timeout_simulator@1":
 		return timeoutSimulator{}
 	default:

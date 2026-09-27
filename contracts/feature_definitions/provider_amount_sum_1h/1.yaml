@@ -1,8 +1,8 @@
-feature_name: merchant_amount_sum_1h
+feature_name: provider_amount_sum_1h
 version: 1
 tier: tier2
-description: "Sum of authorization amounts at this merchant+currency in the trailing hour (event time, 1-minute tiles)."
-entity: merchant_id_currency
+description: "Sum of claimed amounts at this provider+currency in the trailing hour (event time, 1-minute tiles)."
+entity: provider_id_currency
 value_type: float64
 computation:
   kind: event_time_window
@@ -12,6 +12,6 @@ computation:
   allowed_lateness: PT1M
   idleness_timeout: PT10S
   aggregate: sum
-scope: [tenant, mode, merchant_id, currency, feature_version]
+scope: [tenant, mode, provider_id, currency, feature_version]
 staleness_policy:
   max_pipeline_staleness: PT30S

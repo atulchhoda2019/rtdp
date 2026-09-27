@@ -6,7 +6,7 @@ Governing documents: `docs/design.md` v2.1 (architecture and behavior — wins o
 ## Non-negotiables
 
 - All tenants, transactions, models, identities, credentials, and actions are **synthetic**.
-  Never use real customer data, real payment credentials, or real enforcement providers.
+  Never use real customer data, real insurer credentials, or real enforcement providers.
 - **Independent configuration deployment** is the governing requirement: routine model,
   ruleset, threshold, and product-binding changes must not require application rebuilds
   or database migrations.

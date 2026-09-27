@@ -1,16 +1,16 @@
-action_policy_id: card_auth_actions
+action_policy_id: claim_actions
 version: 2
 owner_scope: platform
-allowed_actions: [AUTH_RESPONSE, CREATE_REVIEW_CASE]
+allowed_actions: [CLAIM_RESPONSE, OPEN_SIU_CASE]
 adapters:
-  AUTH_RESPONSE: local_auth_simulator@1
-  CREATE_REVIEW_CASE: local_case_adapter@1
-authoritative_decision_domain: card_authorization
+  CLAIM_RESPONSE: local_claim_simulator@1
+  OPEN_SIU_CASE: local_siu_case_adapter@1
+authoritative_decision_domain: claim_decisioning
 intent_ttl_ms:
-  AUTH_RESPONSE: 100
-  CREATE_REVIEW_CASE: 300000
+  CLAIM_RESPONSE: 100
+  OPEN_SIU_CASE: 300000
 retries:
-  CREATE_REVIEW_CASE:
+  OPEN_SIU_CASE:
     maximum_attempts: 3
     strategy: bounded_exponential
 on_unknown_outcome: RECONCILE

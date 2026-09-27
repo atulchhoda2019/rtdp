@@ -142,7 +142,7 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
     java.lang.String[] descriptorData = {
       "\n\026rtdp/v1/services.proto\022\007rtdp.v1\032\037googl" +
       "e/protobuf/timestamp.proto\032\026rtdp/v1/deci" +
-      "sion.proto\032\026rtdp/v1/envelope.proto\"\353\005\n\014S" +
+      "sion.proto\032\026rtdp/v1/envelope.proto\"\224\006\n\014S" +
       "coreRequest\022\033\n\ttenant_id\030\001 \001(\tR\010tenantId" +
       "\022 \n\013environment\030\002 \001(\tR\013environment\022!\n\004mo" +
       "de\030\003 \001(\0162\r.rtdp.v1.ModeR\004mode\022%\n\016transac" +
@@ -161,123 +161,124 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
       "lueR\rfeatureValues\0229\n\nevent_time\030\020 \001(\0132\032" +
       ".google.protobuf.TimestampR\teventTime\022\037\n" +
       "\013deadline_ms\030\021 \001(\003R\ndeadlineMs\022 \n\013tracep" +
-      "arent\030\022 \001(\tR\013traceparent\"D\n\rScoreRespons" +
-      "e\0223\n\010envelope\030\001 \001(\0132\027.rtdp.v1.SignalEnve" +
-      "lopeR\010envelope\"\312\002\n\013WarmRequest\022\031\n\010model_" +
-      "id\030\001 \001(\tR\007modelId\022#\n\rmodel_version\030\002 \001(\t" +
-      "R\014modelVersion\022!\n\014model_digest\030\003 \001(\tR\013mo" +
-      "delDigest\022!\n\014artifact_uri\030\004 \001(\tR\013artifac" +
-      "tUri\022.\n\023input_schema_digest\030\005 \001(\tR\021input" +
-      "SchemaDigest\0221\n\024preprocessing_digest\030\006 \001" +
-      "(\tR\023preprocessingDigest\022\'\n\017output_contra" +
-      "ct\030\007 \001(\tR\016outputContract\022)\n\020contract_ver" +
-      "sion\030\010 \001(\tR\017contractVersion\"]\n\014WarmRespo" +
-      "nse\022\024\n\005ready\030\001 \001(\010R\005ready\022!\n\014model_diges" +
-      "t\030\002 \001(\tR\013modelDigest\022\024\n\005error\030\003 \001(\tR\005err" +
-      "or\"N\n\nFeatureRef\022\022\n\004name\030\001 \001(\tR\004name\022\030\n\007" +
-      "version\030\002 \001(\003R\007version\022\022\n\004tier\030\003 \001(\tR\004ti" +
-      "er\"\313\003\n\026ResolveFeaturesRequest\022\033\n\ttenant_" +
-      "id\030\001 \001(\tR\010tenantId\022 \n\013environment\030\002 \001(\tR" +
-      "\013environment\022!\n\004mode\030\003 \001(\0162\r.rtdp.v1.Mod" +
-      "eR\004mode\022%\n\016transaction_id\030\004 \001(\tR\rtransac" +
-      "tionId\0221\n\024transaction_revision\030\005 \001(\003R\023tr" +
-      "ansactionRevision\022#\n\rtokenized_pan\030\006 \001(\t" +
-      "R\014tokenizedPan\022\037\n\013merchant_id\030\007 \001(\tR\nmer" +
-      "chantId\022\032\n\010currency\030\010 \001(\tR\010currency\022\026\n\006a" +
-      "mount\030\t \001(\001R\006amount\0229\n\nevent_time\030\n \001(\0132" +
-      "\032.google.protobuf.TimestampR\teventTime\022@" +
-      "\n\021required_features\030\013 \003(\0132\023.rtdp.v1.Feat" +
-      "ureRefR\020requiredFeatures\"\213\002\n\027ResolveFeat" +
-      "uresResponse\022J\n\010features\030\001 \003(\0132..rtdp.v1" +
-      ".ResolveFeaturesResponse.FeaturesEntryR\010" +
-      "features\022)\n\020missing_features\030\002 \003(\tR\017miss" +
-      "ingFeatures\022\'\n\017snapshot_digest\030\003 \001(\tR\016sn" +
-      "apshotDigest\032P\n\rFeaturesEntry\022\020\n\003key\030\001 \001" +
-      "(\tR\003key\022)\n\005value\030\002 \001(\0132\023.rtdp.v1.TypedVa" +
-      "lueR\005value:\0028\001\"\223\004\n\nSignalSpec\022\024\n\005alias\030\001" +
-      " \001(\tR\005alias\022\032\n\010contract\030\002 \001(\tR\010contract\022" +
-      "-\n\022accepted_contracts\030\003 \003(\tR\021acceptedCon" +
-      "tracts\022\'\n\017contract_digest\030\004 \001(\tR\016contrac" +
-      "tDigest\022\030\n\007binding\030\005 \001(\tR\007binding\022%\n\016bin" +
-      "ding_digest\030\006 \001(\tR\rbindingDigest\022\035\n\ntime" +
-      "out_ms\030\007 \001(\003R\ttimeoutMs\022\032\n\010required\030\010 \001(" +
-      "\010R\010required\022\032\n\010provider\030\t \001(\tR\010provider\022" +
-      "!\n\014endpoint_ref\030\n \001(\tR\013endpointRef\022\024\n\005mo" +
-      "del\030\013 \001(\tR\005model\022!\n\014model_digest\030\014 \001(\tR\013" +
-      "modelDigest\022.\n\023input_schema_digest\030\r \001(\t" +
-      "R\021inputSchemaDigest\0221\n\024preprocessing_dig" +
-      "est\030\016 \001(\tR\023preprocessingDigest\022$\n\016maximu" +
-      "m_age_ms\030\017 \001(\003R\014maximumAgeMs\"\301\004\n\025Resolve" +
-      "SignalsRequest\022\033\n\ttenant_id\030\001 \001(\tR\010tenan" +
-      "tId\022 \n\013environment\030\002 \001(\tR\013environment\022!\n" +
-      "\004mode\030\003 \001(\0162\r.rtdp.v1.ModeR\004mode\022%\n\016tran" +
-      "saction_id\030\004 \001(\tR\rtransactionId\0221\n\024trans" +
-      "action_revision\030\005 \001(\003R\023transactionRevisi" +
-      "on\022.\n\023decision_context_id\030\006 \001(\tR\021decisio" +
-      "nContextId\0229\n\nevent_time\030\007 \001(\0132\032.google." +
-      "protobuf.TimestampR\teventTime\022\037\n\013deadlin" +
-      "e_ms\030\010 \001(\003R\ndeadlineMs\022)\n\005specs\030\t \003(\0132\023." +
-      "rtdp.v1.SignalSpecR\005specs\022#\n\rfeature_nam" +
-      "es\030\n \003(\tR\014featureNames\022:\n\016feature_values" +
-      "\030\013 \003(\0132\023.rtdp.v1.TypedValueR\rfeatureValu" +
-      "es\0222\n\025input_snapshot_digest\030\014 \001(\tR\023input" +
-      "SnapshotDigest\022 \n\013traceparent\030\r \001(\tR\013tra" +
-      "ceparent\"\214\001\n\016ResolvedSignal\022\024\n\005alias\030\001 \001" +
-      "(\tR\005alias\0223\n\010envelope\030\002 \001(\0132\027.rtdp.v1.Si" +
-      "gnalEnvelopeR\010envelope\022\016\n\002ok\030\003 \001(\010R\002ok\022\037" +
-      "\n\013reject_code\030\004 \001(\tR\nrejectCode\"K\n\026Resol" +
-      "veSignalsResponse\0221\n\007signals\030\001 \003(\0132\027.rtd" +
-      "p.v1.ResolvedSignalR\007signals\"\225\006\n\024Evaluat" +
-      "eRulesRequest\022%\n\016ruleset_digest\030\001 \001(\tR\rr" +
-      "ulesetDigest\022*\n\021ruleset_spec_json\030\002 \001(\014R" +
-      "\017rulesetSpecJson\022G\n\010features\030\003 \003(\0132+.rtd" +
-      "p.v1.EvaluateRulesRequest.FeaturesEntryR" +
-      "\010features\022D\n\007signals\030\004 \003(\0132*.rtdp.v1.Eva" +
-      "luateRulesRequest.SignalsEntryR\007signals\022" +
-      "4\n\026present_signal_aliases\030\005 \003(\tR\024present" +
-      "SignalAliases\0228\n\003cfg\030\006 \003(\0132&.rtdp.v1.Eva" +
-      "luateRulesRequest.CfgEntryR\003cfg\022>\n\005input" +
-      "\030\007 \003(\0132(.rtdp.v1.EvaluateRulesRequest.In" +
-      "putEntryR\005input\022.\n\023execution_budget_ms\030\010" +
-      " \001(\003R\021executionBudgetMs\032P\n\rFeaturesEntry" +
+      "arent\030\022 \001(\tR\013traceparent\022\'\n\017contract_dig" +
+      "est\030\023 \001(\tR\016contractDigest\"D\n\rScoreRespon" +
+      "se\0223\n\010envelope\030\001 \001(\0132\027.rtdp.v1.SignalEnv" +
+      "elopeR\010envelope\"\312\002\n\013WarmRequest\022\031\n\010model" +
+      "_id\030\001 \001(\tR\007modelId\022#\n\rmodel_version\030\002 \001(" +
+      "\tR\014modelVersion\022!\n\014model_digest\030\003 \001(\tR\013m" +
+      "odelDigest\022!\n\014artifact_uri\030\004 \001(\tR\013artifa" +
+      "ctUri\022.\n\023input_schema_digest\030\005 \001(\tR\021inpu" +
+      "tSchemaDigest\0221\n\024preprocessing_digest\030\006 " +
+      "\001(\tR\023preprocessingDigest\022\'\n\017output_contr" +
+      "act\030\007 \001(\tR\016outputContract\022)\n\020contract_ve" +
+      "rsion\030\010 \001(\tR\017contractVersion\"]\n\014WarmResp" +
+      "onse\022\024\n\005ready\030\001 \001(\010R\005ready\022!\n\014model_dige" +
+      "st\030\002 \001(\tR\013modelDigest\022\024\n\005error\030\003 \001(\tR\005er" +
+      "ror\"N\n\nFeatureRef\022\022\n\004name\030\001 \001(\tR\004name\022\030\n" +
+      "\007version\030\002 \001(\003R\007version\022\022\n\004tier\030\003 \001(\tR\004t" +
+      "ier\"\325\003\n\026ResolveFeaturesRequest\022\033\n\ttenant" +
+      "_id\030\001 \001(\tR\010tenantId\022 \n\013environment\030\002 \001(\t" +
+      "R\013environment\022!\n\004mode\030\003 \001(\0162\r.rtdp.v1.Mo" +
+      "deR\004mode\022%\n\016transaction_id\030\004 \001(\tR\rtransa" +
+      "ctionId\0221\n\024transaction_revision\030\005 \001(\003R\023t" +
+      "ransactionRevision\022-\n\022tokenized_claimant" +
+      "\030\006 \001(\tR\021tokenizedClaimant\022\037\n\013provider_id" +
+      "\030\007 \001(\tR\nproviderId\022\032\n\010currency\030\010 \001(\tR\010cu" +
+      "rrency\022\026\n\006amount\030\t \001(\001R\006amount\0229\n\nevent_" +
+      "time\030\n \001(\0132\032.google.protobuf.TimestampR\t" +
+      "eventTime\022@\n\021required_features\030\013 \003(\0132\023.r" +
+      "tdp.v1.FeatureRefR\020requiredFeatures\"\213\002\n\027" +
+      "ResolveFeaturesResponse\022J\n\010features\030\001 \003(" +
+      "\0132..rtdp.v1.ResolveFeaturesResponse.Feat" +
+      "uresEntryR\010features\022)\n\020missing_features\030" +
+      "\002 \003(\tR\017missingFeatures\022\'\n\017snapshot_diges" +
+      "t\030\003 \001(\tR\016snapshotDigest\032P\n\rFeaturesEntry" +
       "\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132\023.rtdp" +
-      ".v1.TypedValueR\005value:\0028\001\032M\n\014SignalsEntr" +
-      "y\022\020\n\003key\030\001 \001(\tR\003key\022\'\n\005value\030\002 \001(\0132\021.rtd" +
-      "p.v1.ValueMapR\005value:\0028\001\032K\n\010CfgEntry\022\020\n\003" +
-      "key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132\023.rtdp.v1." +
-      "TypedValueR\005value:\0028\001\032M\n\nInputEntry\022\020\n\003k" +
-      "ey\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132\023.rtdp.v1.T" +
-      "ypedValueR\005value:\0028\001\"X\n\tFiredRule\022\027\n\007rul" +
-      "e_id\030\001 \001(\tR\006ruleId\022\032\n\010decision\030\002 \001(\tR\010de" +
-      "cision\022\026\n\006reason\030\003 \001(\tR\006reason\"\310\001\n\025Evalu" +
-      "ateRulesResponse\022(\n\005fired\030\001 \003(\0132\022.rtdp.v" +
-      "1.FiredRuleR\005fired\022(\n\020skipped_rule_ids\030\002" +
-      " \003(\tR\016skippedRuleIds\022\032\n\010decision\030\003 \001(\tR\010" +
-      "decision\022!\n\014reason_codes\030\004 \003(\tR\013reasonCo" +
-      "des\022\034\n\tdefaulted\030\005 \001(\010R\tdefaulted\"V\n\030Get" +
-      "DecisionStatusRequest\022\033\n\ttenant_id\030\001 \001(\t" +
-      "R\010tenantId\022\035\n\nrequest_id\030\002 \001(\tR\trequestI" +
-      "d\"f\n\031GetDecisionStatusResponse\0223\n\010decisi" +
-      "on\030\001 \001(\0132\027.rtdp.v1.DecisionResultR\010decis" +
-      "ion\022\024\n\005found\030\002 \001(\010R\005found2\177\n\020InferenceSe" +
-      "rvice\0226\n\005Score\022\025.rtdp.v1.ScoreRequest\032\026." +
-      "rtdp.v1.ScoreResponse\0223\n\004Warm\022\024.rtdp.v1." +
-      "WarmRequest\032\025.rtdp.v1.WarmResponse2f\n\016Fe" +
-      "atureService\022T\n\017ResolveFeatures\022\037.rtdp.v" +
-      "1.ResolveFeaturesRequest\032 .rtdp.v1.Resol" +
-      "veFeaturesResponse2c\n\016SignalResolver\022Q\n\016" +
-      "ResolveSignals\022\036.rtdp.v1.ResolveSignalsR" +
-      "equest\032\037.rtdp.v1.ResolveSignalsResponse2" +
-      "^\n\014RulesService\022N\n\rEvaluateRules\022\035.rtdp." +
-      "v1.EvaluateRulesRequest\032\036.rtdp.v1.Evalua" +
-      "teRulesResponse2\260\001\n\014Orchestrator\022D\n\006Deci" +
-      "de\022!.rtdp.v1.AuthenticatedTransaction\032\027." +
-      "rtdp.v1.DecisionResult\022Z\n\021GetDecisionSta" +
-      "tus\022!.rtdp.v1.GetDecisionStatusRequest\032\"" +
-      ".rtdp.v1.GetDecisionStatusResponseBQ\n\021co" +
-      "m.rtdp.proto.v1B\016ServicesProtosP\001Z*githu" +
-      "b.com/rtdp/rtdp/gen/go/rtdp/v1;rtdpv1b\006p" +
-      "roto3"
+      ".v1.TypedValueR\005value:\0028\001\"\223\004\n\nSignalSpec" +
+      "\022\024\n\005alias\030\001 \001(\tR\005alias\022\032\n\010contract\030\002 \001(\t" +
+      "R\010contract\022-\n\022accepted_contracts\030\003 \003(\tR\021" +
+      "acceptedContracts\022\'\n\017contract_digest\030\004 \001" +
+      "(\tR\016contractDigest\022\030\n\007binding\030\005 \001(\tR\007bin" +
+      "ding\022%\n\016binding_digest\030\006 \001(\tR\rbindingDig" +
+      "est\022\035\n\ntimeout_ms\030\007 \001(\003R\ttimeoutMs\022\032\n\010re" +
+      "quired\030\010 \001(\010R\010required\022\032\n\010provider\030\t \001(\t" +
+      "R\010provider\022!\n\014endpoint_ref\030\n \001(\tR\013endpoi" +
+      "ntRef\022\024\n\005model\030\013 \001(\tR\005model\022!\n\014model_dig" +
+      "est\030\014 \001(\tR\013modelDigest\022.\n\023input_schema_d" +
+      "igest\030\r \001(\tR\021inputSchemaDigest\0221\n\024prepro" +
+      "cessing_digest\030\016 \001(\tR\023preprocessingDiges" +
+      "t\022$\n\016maximum_age_ms\030\017 \001(\003R\014maximumAgeMs\"" +
+      "\301\004\n\025ResolveSignalsRequest\022\033\n\ttenant_id\030\001" +
+      " \001(\tR\010tenantId\022 \n\013environment\030\002 \001(\tR\013env" +
+      "ironment\022!\n\004mode\030\003 \001(\0162\r.rtdp.v1.ModeR\004m" +
+      "ode\022%\n\016transaction_id\030\004 \001(\tR\rtransaction" +
+      "Id\0221\n\024transaction_revision\030\005 \001(\003R\023transa" +
+      "ctionRevision\022.\n\023decision_context_id\030\006 \001" +
+      "(\tR\021decisionContextId\0229\n\nevent_time\030\007 \001(" +
+      "\0132\032.google.protobuf.TimestampR\teventTime" +
+      "\022\037\n\013deadline_ms\030\010 \001(\003R\ndeadlineMs\022)\n\005spe" +
+      "cs\030\t \003(\0132\023.rtdp.v1.SignalSpecR\005specs\022#\n\r" +
+      "feature_names\030\n \003(\tR\014featureNames\022:\n\016fea" +
+      "ture_values\030\013 \003(\0132\023.rtdp.v1.TypedValueR\r" +
+      "featureValues\0222\n\025input_snapshot_digest\030\014" +
+      " \001(\tR\023inputSnapshotDigest\022 \n\013traceparent" +
+      "\030\r \001(\tR\013traceparent\"\214\001\n\016ResolvedSignal\022\024" +
+      "\n\005alias\030\001 \001(\tR\005alias\0223\n\010envelope\030\002 \001(\0132\027" +
+      ".rtdp.v1.SignalEnvelopeR\010envelope\022\016\n\002ok\030" +
+      "\003 \001(\010R\002ok\022\037\n\013reject_code\030\004 \001(\tR\nrejectCo" +
+      "de\"K\n\026ResolveSignalsResponse\0221\n\007signals\030" +
+      "\001 \003(\0132\027.rtdp.v1.ResolvedSignalR\007signals\"" +
+      "\225\006\n\024EvaluateRulesRequest\022%\n\016ruleset_dige" +
+      "st\030\001 \001(\tR\rrulesetDigest\022*\n\021ruleset_spec_" +
+      "json\030\002 \001(\014R\017rulesetSpecJson\022G\n\010features\030" +
+      "\003 \003(\0132+.rtdp.v1.EvaluateRulesRequest.Fea" +
+      "turesEntryR\010features\022D\n\007signals\030\004 \003(\0132*." +
+      "rtdp.v1.EvaluateRulesRequest.SignalsEntr" +
+      "yR\007signals\0224\n\026present_signal_aliases\030\005 \003" +
+      "(\tR\024presentSignalAliases\0228\n\003cfg\030\006 \003(\0132&." +
+      "rtdp.v1.EvaluateRulesRequest.CfgEntryR\003c" +
+      "fg\022>\n\005input\030\007 \003(\0132(.rtdp.v1.EvaluateRule" +
+      "sRequest.InputEntryR\005input\022.\n\023execution_" +
+      "budget_ms\030\010 \001(\003R\021executionBudgetMs\032P\n\rFe" +
+      "aturesEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002" +
+      " \001(\0132\023.rtdp.v1.TypedValueR\005value:\0028\001\032M\n\014" +
+      "SignalsEntry\022\020\n\003key\030\001 \001(\tR\003key\022\'\n\005value\030" +
+      "\002 \001(\0132\021.rtdp.v1.ValueMapR\005value:\0028\001\032K\n\010C" +
+      "fgEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\013" +
+      "2\023.rtdp.v1.TypedValueR\005value:\0028\001\032M\n\nInpu" +
+      "tEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132" +
+      "\023.rtdp.v1.TypedValueR\005value:\0028\001\"X\n\tFired" +
+      "Rule\022\027\n\007rule_id\030\001 \001(\tR\006ruleId\022\032\n\010decisio" +
+      "n\030\002 \001(\tR\010decision\022\026\n\006reason\030\003 \001(\tR\006reaso" +
+      "n\"\310\001\n\025EvaluateRulesResponse\022(\n\005fired\030\001 \003" +
+      "(\0132\022.rtdp.v1.FiredRuleR\005fired\022(\n\020skipped" +
+      "_rule_ids\030\002 \003(\tR\016skippedRuleIds\022\032\n\010decis" +
+      "ion\030\003 \001(\tR\010decision\022!\n\014reason_codes\030\004 \003(" +
+      "\tR\013reasonCodes\022\034\n\tdefaulted\030\005 \001(\010R\tdefau" +
+      "lted\"V\n\030GetDecisionStatusRequest\022\033\n\ttena" +
+      "nt_id\030\001 \001(\tR\010tenantId\022\035\n\nrequest_id\030\002 \001(" +
+      "\tR\trequestId\"f\n\031GetDecisionStatusRespons" +
+      "e\0223\n\010decision\030\001 \001(\0132\027.rtdp.v1.DecisionRe" +
+      "sultR\010decision\022\024\n\005found\030\002 \001(\010R\005found2\177\n\020" +
+      "InferenceService\0226\n\005Score\022\025.rtdp.v1.Scor" +
+      "eRequest\032\026.rtdp.v1.ScoreResponse\0223\n\004Warm" +
+      "\022\024.rtdp.v1.WarmRequest\032\025.rtdp.v1.WarmRes" +
+      "ponse2f\n\016FeatureService\022T\n\017ResolveFeatur" +
+      "es\022\037.rtdp.v1.ResolveFeaturesRequest\032 .rt" +
+      "dp.v1.ResolveFeaturesResponse2c\n\016SignalR" +
+      "esolver\022Q\n\016ResolveSignals\022\036.rtdp.v1.Reso" +
+      "lveSignalsRequest\032\037.rtdp.v1.ResolveSigna" +
+      "lsResponse2^\n\014RulesService\022N\n\rEvaluateRu" +
+      "les\022\035.rtdp.v1.EvaluateRulesRequest\032\036.rtd" +
+      "p.v1.EvaluateRulesResponse2\260\001\n\014Orchestra" +
+      "tor\022D\n\006Decide\022!.rtdp.v1.AuthenticatedTra" +
+      "nsaction\032\027.rtdp.v1.DecisionResult\022Z\n\021Get" +
+      "DecisionStatus\022!.rtdp.v1.GetDecisionStat" +
+      "usRequest\032\".rtdp.v1.GetDecisionStatusRes" +
+      "ponseBQ\n\021com.rtdp.proto.v1B\016ServicesProt" +
+      "osP\001Z*github.com/rtdp/rtdp/gen/go/rtdp/v" +
+      "1;rtdpv1b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -291,7 +292,7 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
     internal_static_rtdp_v1_ScoreRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_rtdp_v1_ScoreRequest_descriptor,
-        new java.lang.String[] { "TenantId", "Environment", "Mode", "TransactionId", "TransactionRevision", "DecisionContextId", "BindingId", "BindingVersion", "ModelId", "ModelVersion", "ModelDigest", "PreprocessingDigest", "InputSnapshotDigest", "FeatureNames", "FeatureValues", "EventTime", "DeadlineMs", "Traceparent", });
+        new java.lang.String[] { "TenantId", "Environment", "Mode", "TransactionId", "TransactionRevision", "DecisionContextId", "BindingId", "BindingVersion", "ModelId", "ModelVersion", "ModelDigest", "PreprocessingDigest", "InputSnapshotDigest", "FeatureNames", "FeatureValues", "EventTime", "DeadlineMs", "Traceparent", "ContractDigest", });
     internal_static_rtdp_v1_ScoreResponse_descriptor =
       getDescriptor().getMessageType(1);
     internal_static_rtdp_v1_ScoreResponse_fieldAccessorTable = new
@@ -321,7 +322,7 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
     internal_static_rtdp_v1_ResolveFeaturesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_rtdp_v1_ResolveFeaturesRequest_descriptor,
-        new java.lang.String[] { "TenantId", "Environment", "Mode", "TransactionId", "TransactionRevision", "TokenizedPan", "MerchantId", "Currency", "Amount", "EventTime", "RequiredFeatures", });
+        new java.lang.String[] { "TenantId", "Environment", "Mode", "TransactionId", "TransactionRevision", "TokenizedClaimant", "ProviderId", "Currency", "Amount", "EventTime", "RequiredFeatures", });
     internal_static_rtdp_v1_ResolveFeaturesResponse_descriptor =
       getDescriptor().getMessageType(6);
     internal_static_rtdp_v1_ResolveFeaturesResponse_fieldAccessorTable = new

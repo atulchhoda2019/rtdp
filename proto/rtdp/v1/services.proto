@@ -37,6 +37,9 @@ message ScoreRequest {
   google.protobuf.Timestamp event_time = 16;
   int64 deadline_ms = 17; // remaining budget
   string traceparent = 18;
+  // Contract document digest pinned by the caller; the signal name and
+  // version are taken from the warmed model's declared output contract.
+  string contract_digest = 19;
 }
 
 message ScoreResponse {
@@ -77,8 +80,8 @@ message ResolveFeaturesRequest {
   Mode mode = 3;
   string transaction_id = 4;
   int64 transaction_revision = 5;
-  string tokenized_pan = 6;
-  string merchant_id = 7;
+  string tokenized_claimant = 6;
+  string provider_id = 7;
   string currency = 8;
   double amount = 9;
   google.protobuf.Timestamp event_time = 10;

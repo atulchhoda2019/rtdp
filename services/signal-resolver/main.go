@@ -115,6 +115,7 @@ func (s *server) ResolveSignals(ctx context.Context,
 				EventTime:           req.EventTime,
 				DeadlineMs:          deadline,
 				Traceparent:         req.Traceparent,
+				ContractDigest:      spec.ContractDigest,
 			})
 			if err != nil {
 				rs.RejectCode = "TIMED_OUT"

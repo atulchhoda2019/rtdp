@@ -1,14 +1,14 @@
-"""Train the synthetic fraud_logistic model and export to ONNX.
+"""Train the synthetic claim_fraud_logistic model and export to ONNX.
 
 Deterministic seed; the artifact is a demo fixture, not a fraud-efficacy
-claim. Writes to build/models/ and (optionally) uploads to MinIO.
+claim. Writes to build/models/ and (optionally) uploads to object storage.
 
 Outputs:
-  build/models/fraud_logistic/2/model.onnx
-  build/models/fraud_logistic/2/input_schema.json
-  build/models/fraud_logistic/2/preprocessing.json
-  build/models/fraud_logistic/2/metadata.json   (digests, provenance)
-  build/models/fraud_logistic/2/golden_vectors.json
+  build/models/claim_fraud_logistic/2/model.onnx
+  build/models/claim_fraud_logistic/2/input_schema.json
+  build/models/claim_fraud_logistic/2/preprocessing.json
+  build/models/claim_fraud_logistic/2/metadata.json   (digests, provenance)
+  build/models/claim_fraud_logistic/2/golden_vectors.json
 """
 
 import hashlib
@@ -20,31 +20,33 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from skl2onnx import to_onnx
 
-MODEL_ID = "fraud_logistic"
+MODEL_ID = "claim_fraud_logistic"
 MODEL_VERSION = "2"
 FEATURES = [
-    "pan_txn_count_1h",
-    "pan_amount_sum_24h",
-    "merchant_txn_count_1h",
-    "merchant_amount_sum_1h",
+    "claimant_claim_count_1h",
+    "claimant_amount_sum_24h",
+    "provider_claim_count_1h",
+    "provider_amount_sum_1h",
 ]
 OUT = Path("build/models") / MODEL_ID / MODEL_VERSION
 
 
 def synth_data(n: int = 20000, seed: int = 42):
-    """Synthetic card-authorization data. Label is a synthetic fraud flag."""
+    """Synthetic claim-submission data. Label is a synthetic fraud flag."""
     rng = np.random.default_rng(seed)
-    pan_count = rng.poisson(3, n).astype(np.float64)
-    pan_amt = rng.gamma(2.0, 150.0, n)
-    merch_count = rng.poisson(20, n).astype(np.float64)
-    merch_amt = rng.gamma(2.0, 3000.0, n)
-    X = np.column_stack([pan_count, pan_amt, merch_count, merch_amt])
-    # Synthetic rule: fraud risk grows with card velocity and spend,
-    # attenuated at busy merchants (high merchant volume lowers marginal risk).
-    z = (-2.2 + 0.35 * np.log1p(pan_count)
-         + 0.9 * np.log1p(pan_amt / 200.0)
-         - 0.4 * np.log1p(merch_count / 50.0)
-         + 0.5 * np.log1p(merch_amt / 5000.0)
+    claimant_count = rng.poisson(3, n).astype(np.float64)
+    claimant_amt = rng.gamma(2.0, 1500.0, n)
+    provider_count = rng.poisson(20, n).astype(np.float64)
+    provider_amt = rng.gamma(2.0, 30000.0, n)
+    X = np.column_stack(
+        [claimant_count, claimant_amt, provider_count, provider_amt])
+    # Synthetic rule: fraud risk grows with claimant velocity and amount,
+    # attenuated at high-volume providers (busy providers lower marginal
+    # risk).
+    z = (-2.2 + 0.35 * np.log1p(claimant_count)
+         + 0.9 * np.log1p(claimant_amt / 2000.0)
+         - 0.4 * np.log1p(provider_count / 50.0)
+         + 0.5 * np.log1p(provider_amt / 50000.0)
          + rng.normal(0, 0.6, n))
     y = (1.0 / (1.0 + np.exp(-z)) > rng.uniform(0, 1, n)).astype(np.int64)
     return X, y
@@ -91,7 +93,7 @@ def main():
         "model_digest": model_digest,
         "input_schema_digest": input_schema_digest,
         "preprocessing_digest": preproc_digest,
-        "output_contract": "fraud.authorization_probability@1.1.0",
+        "output_contract": "claim.fraud_probability@1.1.0",
         "provenance": {
             "kind": "synthetic",
             "generator": "ml/seed-model/train.py",

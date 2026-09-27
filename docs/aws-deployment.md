@@ -4,7 +4,7 @@ Companion to `docs/design.md` v2.1 • Draft 1 • September 27, 2026
 
 This document tells Devin how to stand up RTDP in AWS. It does not change the architecture in `design.md`; it maps each component to an AWS service, sets guardrails for working in a real cloud account, and defines the AWS-specific acceptance gates. Where this document and `design.md` disagree on behavior, `design.md` wins. Where they disagree on infrastructure, this document wins.
 
-Everything remains synthetic: tenants, transactions, models, and actions. No real payment data, no real enforcement providers, no production account.
+Everything remains synthetic: tenants, transactions, models, and actions. No real policyholder data, no real enforcement providers, no production account.
 
 ---
 
@@ -164,7 +164,7 @@ Add these rules to root `AGENTS.md`:
 
 - Never run `terraform apply` or `destroy` without a posted plan and explicit approval.
 - Never create IAM users, access keys, or resources outside the approved region.
-- Never use real customer data, real payment credentials, or real action providers.
+- Never use real customer data, real insurer credentials, or real action providers.
 - Never grant a model service identity write, activation, or dispatch permissions (ADR-011).
 - Record every AWS resource change and its cost impact in `docs/validation/aws/`.
 - If an AWS managed service cannot meet a design.md guarantee, stop and report; do not quietly swap components or weaken a test.

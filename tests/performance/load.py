@@ -64,9 +64,9 @@ def main():
              else float(args.duration.rstrip("s")))
 
     txn_base = {
-        "transaction_revision": 1, "event_type": "AUTH_REQUEST",
-        "channel": "ECOMMERCE", "region": "us-east-1",
-        "tokenized_pan": "tok_load", "merchant_id": "mch_load",
+        "transaction_revision": 1, "event_type": "CLAIM_SUBMISSION",
+        "channel": "PORTAL", "region": "us-east-1",
+        "tokenized_claimant": "tok_load", "provider_id": "prv_load",
         "currency": "USD", "amount": 42.0,
         "event_time": time.strftime("%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
     }
@@ -79,7 +79,7 @@ def main():
         client = "demo-client-a" if i % 2 == 0 else "demo-client-b"
         base = dict(txn_base)
         base["transaction_id"] = f"load_{int(time.time())}_t{i}"
-        base["tokenized_pan"] = f"tok_load_{i}"
+        base["tokenized_claimant"] = f"tok_load_{i}"
         t = threading.Thread(target=worker,
                              args=(client, base, per_thread, stop,
                                    lat, errors, seen))

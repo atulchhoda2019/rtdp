@@ -166,7 +166,7 @@ private static final long serialVersionUID = 0L;
   private volatile java.lang.Object entityId_ = "";
   /**
    * <pre>
-   * merchant or tokenized entity
+   * provider or tokenized claimant
    * </pre>
    *
    * <code>string entity_id = 5 [json_name = "entityId"];</code>
@@ -187,7 +187,7 @@ private static final long serialVersionUID = 0L;
   }
   /**
    * <pre>
-   * merchant or tokenized entity
+   * provider or tokenized claimant
    * </pre>
    *
    * <code>string entity_id = 5 [json_name = "entityId"];</code>
@@ -1127,7 +1127,7 @@ private static final long serialVersionUID = 0L;
     private java.lang.Object entityId_ = "";
     /**
      * <pre>
-     * merchant or tokenized entity
+     * provider or tokenized claimant
      * </pre>
      *
      * <code>string entity_id = 5 [json_name = "entityId"];</code>
@@ -1147,7 +1147,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * merchant or tokenized entity
+     * provider or tokenized claimant
      * </pre>
      *
      * <code>string entity_id = 5 [json_name = "entityId"];</code>
@@ -1168,7 +1168,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * merchant or tokenized entity
+     * provider or tokenized claimant
      * </pre>
      *
      * <code>string entity_id = 5 [json_name = "entityId"];</code>
@@ -1185,7 +1185,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * merchant or tokenized entity
+     * provider or tokenized claimant
      * </pre>
      *
      * <code>string entity_id = 5 [json_name = "entityId"];</code>
@@ -1199,7 +1199,7 @@ private static final long serialVersionUID = 0L;
     }
     /**
      * <pre>
-     * merchant or tokenized entity
+     * provider or tokenized claimant
      * </pre>
      *
      * <code>string entity_id = 5 [json_name = "entityId"];</code>

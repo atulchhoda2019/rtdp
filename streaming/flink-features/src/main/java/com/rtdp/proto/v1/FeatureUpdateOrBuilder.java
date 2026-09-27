@@ -53,7 +53,7 @@ public interface FeatureUpdateOrBuilder extends
 
   /**
    * <pre>
-   * merchant or tokenized entity
+   * provider or tokenized claimant
    * </pre>
    *
    * <code>string entity_id = 5 [json_name = "entityId"];</code>
@@ -62,7 +62,7 @@ public interface FeatureUpdateOrBuilder extends
   java.lang.String getEntityId();
   /**
    * <pre>
-   * merchant or tokenized entity
+   * provider or tokenized claimant
    * </pre>
    *
    * <code>string entity_id = 5 [json_name = "entityId"];</code>

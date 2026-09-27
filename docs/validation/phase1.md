@@ -10,8 +10,8 @@ this file; commands below reproduce them.
 - Kafka `apache/kafka:3.9.1`, Postgres `postgres:16.6`, Redis `redis:7.4.2`,
   S3-compatible `adobe/s3mock:4.9.1` (local substitute for MinIO — see compose
   comments), Flink `1.20.0-java17`, ONNX Runtime `1.30.0` (Python 3.11)
-- Model: `fraud_logistic@2`,
-  `sha256:00d9bf2be82198577846f4ea66081f9f4b6cd0464a1203e56f64ddae1e7f95e5`
+- Model: `claim_fraud_logistic@2`,
+  `sha256:32d410b0a029739e1f86b9ac4888bdfb40162f40bb12f3a2e401842b433f0b33`
 
 ## Contract tests (Phase 0)
 
@@ -29,8 +29,8 @@ Evidence: `phase1-gates.json`, `phase1-gates.log`.
 | G1 e2e decision path | pass | 401 for unknown client; tenant_a `DECISION_APPROVE`, tenant_b `DECISION_APPROVE`; distinct pinned bundle digests; idempotent retry; payload conflict rejected |
 | G2 tenant isolation | pass | `tenant_id` in request body ignored (tenant bound from `X-RTDP-Client-Id`); `decision_fact` row carries `tenant_a`; Redis dedup key scoped `rtdp:dedup:{tenant_a:LIVE}:…` |
 | G3 config-only change | pass | tenant_b `thresholds.decline_probability` overlay 0.85 → 0.0; same transaction shape flips `APPROVE` → `DECLINE`; image digests and `pg_dump -s` schema hash identical before/after; no restart (activations.json re-read per request) |
-| G4 semantic incompatibility | pass | binding emitting `fraud.authorization_probability@9.9.9` and `no.such.contract@1.0.0` both rejected at compile: `SEMANTIC_INCOMPATIBLE` |
-| G5 stream recovery | pass | TaskManager hard-restarted mid-window; job `1c59cf6b87b0` resumed from checkpoint; tier-2 tile `merchant_txn_count_1h@1` count == 3 exactly (no feature inflation on replay) |
+| G4 semantic incompatibility | pass | binding emitting `claim.fraud_probability@9.9.9` and `no.such.contract@1.0.0` both rejected at compile: `SEMANTIC_INCOMPATIBLE` |
+| G5 stream recovery | pass | TaskManager hard-restarted mid-window; job `c352c3f9cc3a` resumed from checkpoint; tier-2 tile `provider_claim_count_1h@1` count == 3 exactly (no feature inflation on replay) |
 | G6 model parity | pass | ONNX Runtime vs sklearn `predict_proba` on 256 probes: max \|Δp\| = 1.665e-16 |
 | G7 action ambiguity | pass | `local_timeout_simulator@1` adapter (times out after possible apply) → `action_execution.state = 'UNKNOWN'` with provider_reference; never `ACKNOWLEDGED`; no blind retry |
 

@@ -87,7 +87,7 @@ public final class DecisionProtos extends com.google.protobuf.GeneratedFile {
     java.lang.String[] descriptorData = {
       "\n\026rtdp/v1/decision.proto\022\007rtdp.v1\032\037googl" +
       "e/protobuf/timestamp.proto\032\026rtdp/v1/enve" +
-      "lope.proto\"\304\005\n\030AuthenticatedTransaction\022" +
+      "lope.proto\"\316\005\n\030AuthenticatedTransaction\022" +
       "\035\n\nrequest_id\030\001 \001(\tR\trequestId\022\033\n\ttenant" +
       "_id\030\002 \001(\tR\010tenantId\022 \n\013environment\030\003 \001(\t" +
       "R\013environment\022!\n\004mode\030\004 \001(\0162\r.rtdp.v1.Mo" +
@@ -95,86 +95,87 @@ public final class DecisionProtos extends com.google.protobuf.GeneratedFile {
       "ctionId\0221\n\024transaction_revision\030\006 \001(\003R\023t" +
       "ransactionRevision\022\035\n\nevent_type\030\007 \001(\tR\t" +
       "eventType\022\030\n\007channel\030\010 \001(\tR\007channel\022\026\n\006r" +
-      "egion\030\t \001(\tR\006region\022#\n\rtokenized_pan\030\n \001" +
-      "(\tR\014tokenizedPan\022\037\n\013merchant_id\030\013 \001(\tR\nm" +
-      "erchantId\022\032\n\010currency\030\014 \001(\tR\010currency\022\026\n" +
-      "\006amount\030\r \001(\001R\006amount\0229\n\nevent_time\030\016 \001(" +
-      "\0132\032.google.protobuf.TimestampR\teventTime" +
-      "\022Q\n\nattributes\030\017 \003(\01321.rtdp.v1.Authentic" +
-      "atedTransaction.AttributesEntryR\nattribu" +
-      "tes\022 \n\013traceparent\030\020 \001(\tR\013traceparent\032R\n" +
-      "\017AttributesEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005va" +
-      "lue\030\002 \001(\0132\023.rtdp.v1.TypedValueR\005value:\0028" +
-      "\001\"\347\001\n\017SelectedProduct\022\035\n\nproduct_id\030\001 \001(" +
-      "\tR\tproductId\0223\n\025subscription_revision\030\002 " +
-      "\001(\tR\024subscriptionRevision\0226\n\027effective_c" +
-      "onfig_digest\030\003 \001(\tR\025effectiveConfigDiges" +
-      "t\022\033\n\tbundle_id\030\004 \001(\tR\010bundleId\022+\n\021select" +
-      "ion_reasons\030\005 \003(\tR\020selectionReasons\"\237\002\n\014" +
-      "ActionIntent\022\037\n\013action_type\030\001 \001(\tR\nactio" +
-      "nType\022\'\n\017idempotency_key\030\002 \001(\tR\016idempote" +
-      "ncyKey\022<\n\007payload\030\003 \003(\0132\".rtdp.v1.Action" +
-      "Intent.PayloadEntryR\007payload\022\037\n\013adapter_" +
-      "ref\030\004 \001(\tR\nadapterRef\022\025\n\006ttl_ms\030\005 \001(\003R\005t" +
-      "tlMs\032O\n\014PayloadEntry\022\020\n\003key\030\001 \001(\tR\003key\022)" +
-      "\n\005value\030\002 \001(\0132\023.rtdp.v1.TypedValueR\005valu" +
-      "e:\0028\001\"\362\005\n\016DecisionResult\022\037\n\013decision_id\030" +
-      "\001 \001(\tR\ndecisionId\022/\n\023decision_generation" +
-      "\030\002 \001(\003R\022decisionGeneration\022\033\n\ttenant_id\030" +
-      "\003 \001(\tR\010tenantId\022 \n\013environment\030\004 \001(\tR\013en" +
-      "vironment\022!\n\004mode\030\005 \001(\0162\r.rtdp.v1.ModeR\004" +
-      "mode\022%\n\016transaction_id\030\006 \001(\tR\rtransactio" +
-      "nId\0221\n\024transaction_revision\030\007 \001(\003R\023trans" +
-      "actionRevision\022+\n\007outcome\030\010 \001(\0162\021.rtdp.v" +
-      "1.DecisionR\007outcome\022!\n\014reason_codes\030\t \003(" +
-      "\tR\013reasonCodes\0224\n\010products\030\n \003(\0132\030.rtdp." +
-      "v1.SelectedProductR\010products\022#\n\rbundle_d" +
-      "igest\030\013 \001(\tR\014bundleDigest\022%\n\016manifest_ep" +
-      "och\030\014 \001(\003R\rmanifestEpoch\0222\n\025input_snapsh" +
-      "ot_digest\030\r \001(\tR\023inputSnapshotDigest\0221\n\007" +
-      "signals\030\016 \003(\0132\027.rtdp.v1.SignalEnvelopeR\007" +
-      "signals\022<\n\016action_intents\030\017 \003(\0132\025.rtdp.v" +
-      "1.ActionIntentR\ractionIntents\0229\n\ndecided" +
-      "_at\030\020 \001(\0132\032.google.protobuf.TimestampR\td" +
-      "ecidedAt\022 \n\013traceparent\030\021 \001(\tR\013tracepare" +
-      "nt\"\274\004\n\rActionCommand\022\035\n\ncommand_id\030\001 \001(\t" +
-      "R\tcommandId\022\033\n\ttenant_id\030\002 \001(\tR\010tenantId" +
-      "\022 \n\013environment\030\003 \001(\tR\013environment\022!\n\004mo" +
-      "de\030\004 \001(\0162\r.rtdp.v1.ModeR\004mode\022\037\n\013decisio" +
-      "n_id\030\005 \001(\tR\ndecisionId\022/\n\023decision_gener" +
-      "ation\030\006 \001(\003R\022decisionGeneration\022\037\n\013actio" +
-      "n_type\030\007 \001(\tR\nactionType\022\'\n\017idempotency_" +
-      "key\030\010 \001(\tR\016idempotencyKey\022\037\n\013adapter_ref" +
-      "\030\t \001(\tR\nadapterRef\022=\n\007payload\030\n \003(\0132#.rt" +
-      "dp.v1.ActionCommand.PayloadEntryR\007payloa" +
-      "d\022\"\n\rintent_ttl_ms\030\013 \001(\003R\013intentTtlMs\0229\n" +
-      "\ncreated_at\030\014 \001(\0132\032.google.protobuf.Time" +
-      "stampR\tcreatedAt\032O\n\014PayloadEntry\022\020\n\003key\030" +
-      "\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132\023.rtdp.v1.Type" +
-      "dValueR\005value:\0028\001\"\257\003\n\023FeatureContributio" +
-      "n\022\'\n\017contribution_id\030\001 \001(\tR\016contribution" +
-      "Id\022\033\n\ttenant_id\030\002 \001(\tR\010tenantId\022 \n\013envir" +
-      "onment\030\003 \001(\tR\013environment\022!\n\004mode\030\004 \001(\0162" +
-      "\r.rtdp.v1.ModeR\004mode\022%\n\016transaction_id\030\005" +
-      " \001(\tR\rtransactionId\0221\n\024transaction_revis" +
-      "ion\030\006 \001(\003R\023transactionRevision\022#\n\rtokeni" +
-      "zed_pan\030\007 \001(\tR\014tokenizedPan\022\037\n\013merchant_" +
-      "id\030\010 \001(\tR\nmerchantId\022\032\n\010currency\030\t \001(\tR\010" +
-      "currency\022\026\n\006amount\030\n \001(\001R\006amount\0229\n\neven" +
-      "t_time\030\013 \001(\0132\032.google.protobuf.Timestamp" +
-      "R\teventTime\"\230\003\n\rFeatureUpdate\022\033\n\ttenant_" +
-      "id\030\001 \001(\tR\010tenantId\022!\n\004mode\030\002 \001(\0162\r.rtdp." +
-      "v1.ModeR\004mode\022!\n\014feature_name\030\003 \001(\tR\013fea" +
-      "tureName\022\'\n\017feature_version\030\004 \001(\003R\016featu" +
-      "reVersion\022\033\n\tentity_id\030\005 \001(\tR\010entityId\022\032" +
-      "\n\010currency\030\006 \001(\tR\010currency\0229\n\ntile_start" +
-      "\030\007 \001(\0132\032.google.protobuf.TimestampR\ttile" +
-      "Start\0225\n\010tile_end\030\010 \001(\0132\032.google.protobu" +
-      "f.TimestampR\007tileEnd\022\024\n\005value\030\t \001(\001R\005val" +
-      "ue\022:\n\031feature_definition_digest\030\n \001(\tR\027f" +
-      "eatureDefinitionDigestBQ\n\021com.rtdp.proto" +
-      ".v1B\016DecisionProtosP\001Z*github.com/rtdp/r" +
-      "tdp/gen/go/rtdp/v1;rtdpv1b\006proto3"
+      "egion\030\t \001(\tR\006region\022-\n\022tokenized_claiman" +
+      "t\030\n \001(\tR\021tokenizedClaimant\022\037\n\013provider_i" +
+      "d\030\013 \001(\tR\nproviderId\022\032\n\010currency\030\014 \001(\tR\010c" +
+      "urrency\022\026\n\006amount\030\r \001(\001R\006amount\0229\n\nevent" +
+      "_time\030\016 \001(\0132\032.google.protobuf.TimestampR" +
+      "\teventTime\022Q\n\nattributes\030\017 \003(\01321.rtdp.v1" +
+      ".AuthenticatedTransaction.AttributesEntr" +
+      "yR\nattributes\022 \n\013traceparent\030\020 \001(\tR\013trac" +
+      "eparent\032R\n\017AttributesEntry\022\020\n\003key\030\001 \001(\tR" +
+      "\003key\022)\n\005value\030\002 \001(\0132\023.rtdp.v1.TypedValue" +
+      "R\005value:\0028\001\"\347\001\n\017SelectedProduct\022\035\n\nprodu" +
+      "ct_id\030\001 \001(\tR\tproductId\0223\n\025subscription_r" +
+      "evision\030\002 \001(\tR\024subscriptionRevision\0226\n\027e" +
+      "ffective_config_digest\030\003 \001(\tR\025effectiveC" +
+      "onfigDigest\022\033\n\tbundle_id\030\004 \001(\tR\010bundleId" +
+      "\022+\n\021selection_reasons\030\005 \003(\tR\020selectionRe" +
+      "asons\"\237\002\n\014ActionIntent\022\037\n\013action_type\030\001 " +
+      "\001(\tR\nactionType\022\'\n\017idempotency_key\030\002 \001(\t" +
+      "R\016idempotencyKey\022<\n\007payload\030\003 \003(\0132\".rtdp" +
+      ".v1.ActionIntent.PayloadEntryR\007payload\022\037" +
+      "\n\013adapter_ref\030\004 \001(\tR\nadapterRef\022\025\n\006ttl_m" +
+      "s\030\005 \001(\003R\005ttlMs\032O\n\014PayloadEntry\022\020\n\003key\030\001 " +
+      "\001(\tR\003key\022)\n\005value\030\002 \001(\0132\023.rtdp.v1.TypedV" +
+      "alueR\005value:\0028\001\"\362\005\n\016DecisionResult\022\037\n\013de" +
+      "cision_id\030\001 \001(\tR\ndecisionId\022/\n\023decision_" +
+      "generation\030\002 \001(\003R\022decisionGeneration\022\033\n\t" +
+      "tenant_id\030\003 \001(\tR\010tenantId\022 \n\013environment" +
+      "\030\004 \001(\tR\013environment\022!\n\004mode\030\005 \001(\0162\r.rtdp" +
+      ".v1.ModeR\004mode\022%\n\016transaction_id\030\006 \001(\tR\r" +
+      "transactionId\0221\n\024transaction_revision\030\007 " +
+      "\001(\003R\023transactionRevision\022+\n\007outcome\030\010 \001(" +
+      "\0162\021.rtdp.v1.DecisionR\007outcome\022!\n\014reason_" +
+      "codes\030\t \003(\tR\013reasonCodes\0224\n\010products\030\n \003" +
+      "(\0132\030.rtdp.v1.SelectedProductR\010products\022#" +
+      "\n\rbundle_digest\030\013 \001(\tR\014bundleDigest\022%\n\016m" +
+      "anifest_epoch\030\014 \001(\003R\rmanifestEpoch\0222\n\025in" +
+      "put_snapshot_digest\030\r \001(\tR\023inputSnapshot" +
+      "Digest\0221\n\007signals\030\016 \003(\0132\027.rtdp.v1.Signal" +
+      "EnvelopeR\007signals\022<\n\016action_intents\030\017 \003(" +
+      "\0132\025.rtdp.v1.ActionIntentR\ractionIntents\022" +
+      "9\n\ndecided_at\030\020 \001(\0132\032.google.protobuf.Ti" +
+      "mestampR\tdecidedAt\022 \n\013traceparent\030\021 \001(\tR" +
+      "\013traceparent\"\274\004\n\rActionCommand\022\035\n\ncomman" +
+      "d_id\030\001 \001(\tR\tcommandId\022\033\n\ttenant_id\030\002 \001(\t" +
+      "R\010tenantId\022 \n\013environment\030\003 \001(\tR\013environ" +
+      "ment\022!\n\004mode\030\004 \001(\0162\r.rtdp.v1.ModeR\004mode\022" +
+      "\037\n\013decision_id\030\005 \001(\tR\ndecisionId\022/\n\023deci" +
+      "sion_generation\030\006 \001(\003R\022decisionGeneratio" +
+      "n\022\037\n\013action_type\030\007 \001(\tR\nactionType\022\'\n\017id" +
+      "empotency_key\030\010 \001(\tR\016idempotencyKey\022\037\n\013a" +
+      "dapter_ref\030\t \001(\tR\nadapterRef\022=\n\007payload\030" +
+      "\n \003(\0132#.rtdp.v1.ActionCommand.PayloadEnt" +
+      "ryR\007payload\022\"\n\rintent_ttl_ms\030\013 \001(\003R\013inte" +
+      "ntTtlMs\0229\n\ncreated_at\030\014 \001(\0132\032.google.pro" +
+      "tobuf.TimestampR\tcreatedAt\032O\n\014PayloadEnt" +
+      "ry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132\023.rt" +
+      "dp.v1.TypedValueR\005value:\0028\001\"\271\003\n\023FeatureC" +
+      "ontribution\022\'\n\017contribution_id\030\001 \001(\tR\016co" +
+      "ntributionId\022\033\n\ttenant_id\030\002 \001(\tR\010tenantI" +
+      "d\022 \n\013environment\030\003 \001(\tR\013environment\022!\n\004m" +
+      "ode\030\004 \001(\0162\r.rtdp.v1.ModeR\004mode\022%\n\016transa" +
+      "ction_id\030\005 \001(\tR\rtransactionId\0221\n\024transac" +
+      "tion_revision\030\006 \001(\003R\023transactionRevision" +
+      "\022-\n\022tokenized_claimant\030\007 \001(\tR\021tokenizedC" +
+      "laimant\022\037\n\013provider_id\030\010 \001(\tR\nproviderId" +
+      "\022\032\n\010currency\030\t \001(\tR\010currency\022\026\n\006amount\030\n" +
+      " \001(\001R\006amount\0229\n\nevent_time\030\013 \001(\0132\032.googl" +
+      "e.protobuf.TimestampR\teventTime\"\230\003\n\rFeat" +
+      "ureUpdate\022\033\n\ttenant_id\030\001 \001(\tR\010tenantId\022!" +
+      "\n\004mode\030\002 \001(\0162\r.rtdp.v1.ModeR\004mode\022!\n\014fea" +
+      "ture_name\030\003 \001(\tR\013featureName\022\'\n\017feature_" +
+      "version\030\004 \001(\003R\016featureVersion\022\033\n\tentity_" +
+      "id\030\005 \001(\tR\010entityId\022\032\n\010currency\030\006 \001(\tR\010cu" +
+      "rrency\0229\n\ntile_start\030\007 \001(\0132\032.google.prot" +
+      "obuf.TimestampR\ttileStart\0225\n\010tile_end\030\010 " +
+      "\001(\0132\032.google.protobuf.TimestampR\007tileEnd" +
+      "\022\024\n\005value\030\t \001(\001R\005value\022:\n\031feature_defini" +
+      "tion_digest\030\n \001(\tR\027featureDefinitionDige" +
+      "stBQ\n\021com.rtdp.proto.v1B\016DecisionProtosP" +
+      "\001Z*github.com/rtdp/rtdp/gen/go/rtdp/v1;r" +
+      "tdpv1b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -187,7 +188,7 @@ public final class DecisionProtos extends com.google.protobuf.GeneratedFile {
     internal_static_rtdp_v1_AuthenticatedTransaction_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_rtdp_v1_AuthenticatedTransaction_descriptor,
-        new java.lang.String[] { "RequestId", "TenantId", "Environment", "Mode", "TransactionId", "TransactionRevision", "EventType", "Channel", "Region", "TokenizedPan", "MerchantId", "Currency", "Amount", "EventTime", "Attributes", "Traceparent", });
+        new java.lang.String[] { "RequestId", "TenantId", "Environment", "Mode", "TransactionId", "TransactionRevision", "EventType", "Channel", "Region", "TokenizedClaimant", "ProviderId", "Currency", "Amount", "EventTime", "Attributes", "Traceparent", });
     internal_static_rtdp_v1_AuthenticatedTransaction_AttributesEntry_descriptor =
       internal_static_rtdp_v1_AuthenticatedTransaction_descriptor.getNestedType(0);
     internal_static_rtdp_v1_AuthenticatedTransaction_AttributesEntry_fieldAccessorTable = new
@@ -235,7 +236,7 @@ public final class DecisionProtos extends com.google.protobuf.GeneratedFile {
     internal_static_rtdp_v1_FeatureContribution_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_rtdp_v1_FeatureContribution_descriptor,
-        new java.lang.String[] { "ContributionId", "TenantId", "Environment", "Mode", "TransactionId", "TransactionRevision", "TokenizedPan", "MerchantId", "Currency", "Amount", "EventTime", });
+        new java.lang.String[] { "ContributionId", "TenantId", "Environment", "Mode", "TransactionId", "TransactionRevision", "TokenizedClaimant", "ProviderId", "Currency", "Amount", "EventTime", });
     internal_static_rtdp_v1_FeatureUpdate_descriptor =
       getDescriptor().getMessageType(6);
     internal_static_rtdp_v1_FeatureUpdate_fieldAccessorTable = new

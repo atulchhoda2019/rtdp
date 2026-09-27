@@ -254,4 +254,26 @@ public interface ScoreRequestOrBuilder extends
    */
   com.google.protobuf.ByteString
       getTraceparentBytes();
+
+  /**
+   * <pre>
+   * Contract document digest pinned by the caller; the signal name and
+   * version are taken from the warmed model's declared output contract.
+   * </pre>
+   *
+   * <code>string contract_digest = 19 [json_name = "contractDigest"];</code>
+   * @return The contractDigest.
+   */
+  java.lang.String getContractDigest();
+  /**
+   * <pre>
+   * Contract document digest pinned by the caller; the signal name and
+   * version are taken from the warmed model's declared output contract.
+   * </pre>
+   *
+   * <code>string contract_digest = 19 [json_name = "contractDigest"];</code>
+   * @return The bytes for contractDigest.
+   */
+  com.google.protobuf.ByteString
+      getContractDigestBytes();
 }

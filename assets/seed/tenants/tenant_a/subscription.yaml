@@ -1,8 +1,8 @@
 tenant_id: tenant_a
 display_name: "Synthetic Tenant A"
 subscriptions:
-  - subscription_id: sub_a_cardfraud
-    product: card_fraud@1
+  - subscription_id: sub_a_claimdecisioning
+    product: claim_decisioning@1
     revision: 4
     status: ACTIVE
 overlays: []

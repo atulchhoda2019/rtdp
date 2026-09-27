@@ -3,8 +3,8 @@
 -- mode (design.md Tier 1 contract).
 --
 -- KEYS[1] dedup hash    rtdp:t1:{scope}:dedup:<entity>
--- KEYS[2] count hash    rtdp:t1:{scope}:count:<pan>
--- KEYS[3] amount hash   rtdp:t1:{scope}:amt:<pan>:<currency>
+-- KEYS[2] count hash    rtdp:t1:{scope}:count:<claimant>
+-- KEYS[3] amount hash   rtdp:t1:{scope}:amt:<claimant>:<currency>
 -- KEYS[4] vector hash   rtdp:t1:{scope}:vec:<entity>
 -- ARGV[1] event_id      stable dedup identity (tenant+txn+revision)
 -- ARGV[2] payload_digest
@@ -63,12 +63,13 @@ local function sum_window(key, minutes)
 end
 
 local vector = {
-  pan_txn_count_1h = sum_window(count_key, count_win),
-  pan_amount_sum_24h = sum_window(amt_key, amt_win),
+  claimant_claim_count_1h = sum_window(count_key, count_win),
+  claimant_amount_sum_24h = sum_window(amt_key, amt_win),
 }
 local vector_json = string.format(
-  '{"pan_txn_count_1h":%d,"pan_amount_sum_24h":%.6f,"as_of_bucket":%d}',
-  vector.pan_txn_count_1h, vector.pan_amount_sum_24h, now_bucket)
+  '{"claimant_claim_count_1h":%d,"claimant_amount_sum_24h":%.6f,"as_of_bucket":%d}',
+  vector.claimant_claim_count_1h, vector.claimant_amount_sum_24h,
+  now_bucket)
 
 redis.call('HSET', dedup_key, event_id, digest .. '|' .. event_id)
 redis.call('HSET', vec_key, event_id, vector_json)

@@ -20,11 +20,11 @@ message AuthenticatedTransaction {
   Mode mode = 4;
   string transaction_id = 5;
   int64 transaction_revision = 6;
-  string event_type = 7;  // e.g. AUTH_REQUEST
-  string channel = 8;     // e.g. ECOMMERCE
+  string event_type = 7;  // e.g. CLAIM_SUBMISSION
+  string channel = 8;     // e.g. AGENT_PORTAL
   string region = 9;
-  string tokenized_pan = 10;
-  string merchant_id = 11;
+  string tokenized_claimant = 10; // insured / claimant, tokenized at ingress
+  string provider_id = 11;        // service provider (repair shop, clinic, ...)
   string currency = 12;
   double amount = 13;
   google.protobuf.Timestamp event_time = 14;
@@ -96,8 +96,8 @@ message FeatureContribution {
   Mode mode = 4;
   string transaction_id = 5;
   int64 transaction_revision = 6;
-  string tokenized_pan = 7;
-  string merchant_id = 8;
+  string tokenized_claimant = 7;
+  string provider_id = 8;
   string currency = 9;
   double amount = 10;
   google.protobuf.Timestamp event_time = 11;
@@ -109,7 +109,7 @@ message FeatureUpdate {
   Mode mode = 2;
   string feature_name = 3;
   int64 feature_version = 4;
-  string entity_id = 5;   // merchant or tokenized entity
+  string entity_id = 5;   // provider or tokenized claimant
   string currency = 6;
   google.protobuf.Timestamp tile_start = 7;
   google.protobuf.Timestamp tile_end = 8;

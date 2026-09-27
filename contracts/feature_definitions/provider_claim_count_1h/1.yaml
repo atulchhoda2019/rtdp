@@ -1,8 +1,8 @@
-feature_name: merchant_txn_count_1h
+feature_name: provider_claim_count_1h
 version: 1
 tier: tier2
-description: "Count of authorizations at this merchant in the trailing hour (event time, 1-minute tiles)."
-entity: merchant_id
+description: "Count of claims at this provider in the trailing hour (event time, 1-minute tiles)."
+entity: provider_id
 value_type: float64
 computation:
   kind: event_time_window
@@ -11,6 +11,6 @@ computation:
   out_of_orderness: PT2S
   allowed_lateness: PT1M
   idleness_timeout: PT10S
-scope: [tenant, mode, merchant_id, currency, feature_version]
+scope: [tenant, mode, provider_id, currency, feature_version]
 staleness_policy:
   max_pipeline_staleness: PT30S

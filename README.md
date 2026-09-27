@@ -1,9 +1,26 @@
 # RTDP — Real-Time Decisioning Platform (synthetic)
 
 Multi-tenant, real-time decisioning platform built to `docs/design.md` v2.1.
-Everything in this repo is synthetic: synthetic tenants, transactions,
-model, identities, and simulated action providers only. No real customer
+The demo domain is **insurance claim decisioning**: tenants submit claim
+transactions (`CLAIM_SUBMISSION` events) which are scored for fraud risk and
+adjudicated in real time.
+
+Everything in this repo is synthetic: synthetic tenants, claims, model,
+identities, and simulated action providers only. No real policyholder
 data, credentials, or enforcement providers.
+
+## Synthetic domain
+
+| Concept | Demo value |
+|---------|-----------|
+| Event | `CLAIM_SUBMISSION` (claim filed via `PORTAL`/`BROKER` channels) |
+| Entities | `tokenized_claimant` (insured, tokenized at ingress), `provider_id` (repair shop, clinic, ...) |
+| Product | `claim_decisioning@1` |
+| Signal | `claim.fraud_probability@1.1.0` — `claim_fraud_logistic@2` ONNX model |
+| Tier 1 features | `claimant_claim_count_1h`, `claimant_amount_sum_24h` (Redis Lua, atomic) |
+| Tier 2 features | `provider_claim_count_1h`, `provider_amount_sum_1h` (Flink 1-min event-time tiles) |
+| Outcomes | `APPROVE` / `REVIEW` / `DECLINE` |
+| Actions | `CLAIM_RESPONSE` (inline, simulated), `OPEN_SIU_CASE` (durable simulated SIU adapter) |
 
 Request path: `ingress → orchestrator → feature-service → signal-resolver
 → inference (ONNX) → rules-service (CEL) → Kafka transactional commit →

@@ -31,7 +31,7 @@ import java.util.Properties;
  *
  *   committed tokenized contributions
  *     -> validate + dedup
- *     -> keyBy(tenant, mode, merchant, currency)
+ *     -> keyBy(tenant, mode, provider, currency)
  *     -> event-time 1-minute tiles, watermarks, allowed lateness
  *     -> transactional feature.updates sink (absolute tile values)
  *     -> read_committed materializer -> versioned Tier 2 store
@@ -73,7 +73,7 @@ public class FeaturesJob {
 
         SingleOutputStreamOperator<FeatureUpdate> tiles = contribs
             .keyBy(c -> c.getTenantId() + "|" + c.getMode() + "|"
-                + c.getMerchantId() + "|" + c.getCurrency())
+                + c.getProviderId() + "|" + c.getCurrency())
             .window(TumblingEventTimeWindows.of(Time.minutes(1)))
             .allowedLateness(Time.seconds(60))
             .sideOutputLateData(LATE)
@@ -138,7 +138,7 @@ public class FeaturesJob {
             FeatureUpdate.Builder base = FeatureUpdate.newBuilder()
                 .setTenantId(first.getTenantId())
                 .setMode(first.getMode())
-                .setEntityId(first.getMerchantId())
+                .setEntityId(first.getProviderId())
                 .setCurrency(first.getCurrency())
                 .setFeatureVersion(1)
                 .setTileStart(start)
@@ -146,10 +146,10 @@ public class FeaturesJob {
                 .setFeatureDefinitionDigest("seed-tiles-v1");
 
             out.collect(base.clone()
-                .setFeatureName("merchant_txn_count_1h")
+                .setFeatureName("provider_claim_count_1h")
                 .setValue(count).build());
             out.collect(base.clone()
-                .setFeatureName("merchant_amount_sum_1h")
+                .setFeatureName("provider_amount_sum_1h")
                 .setValue(sum).build());
         }
     }

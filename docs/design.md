@@ -48,7 +48,7 @@ All examples use synthetic tenants, transactions, models, and thresholds. This i
 ### Explicit non-goals
 **No arbitrary self-modification:** Configuration cannot execute uploaded Python, JavaScript, SQL, shell commands, or unapproved network requests.
 **No universal zero-code promise:** A new model runtime, unsupported feature operator, external data connector, or action integration may require code.
-**No production authority in the demo:** All identities, payments, credentials, endpoints, and actions are synthetic or local simulations.
+**No production authority in the demo:** All identities, claims, credentials, endpoints, and actions are synthetic or local simulations.
 **No guaranteed business accuracy:** Synthetic model performance and thresholds demonstrate mechanics, not fraud efficacy.
 **No global exactly-once assertion:** Guarantees are defined separately for Flink state, Kafka records, serving stores, and external side effects.
 ## Core tenets
@@ -161,7 +161,7 @@ Apply an explicit exclusivity group or multi-product fan-out policy. Resolve equ
 Produce SelectedProduct{product_id, subscription_revision, effective_config_digest, bundle_id} and selection reasons.
 Execute the selected DAGs with tenant-level concurrency/latency limits. Share a feature or signal result only if tenant, transaction revision, contract, binding, and input-snapshot digests match exactly.
 If no product qualifies, return NOT_APPLICABLE or the explicit tenant fallback. Do not silently approve the transaction.
-Authorization happens before business selection. A BIN range, merchant id, or request-body tenant_id is not sufficient proof of tenant identity.
+Authorization happens before business selection. A policy number, provider id, or request-body tenant_id is not sufficient proof of tenant identity.
 ### Isolation rules
 **Keys:** Include tenant, environment, and execution mode in entity-feature keys, signal correlation, decision ids, action idempotency, caches, and replay namespaces.
 **Database:** Every tenant-private table uses tenant-qualified keys; application queries and row policies enforce the same boundary. Background workers explicitly bind tenant context and must not use unrestricted cross-tenant reads for convenience.
@@ -183,13 +183,13 @@ Use a stable Protobuf envelope for transport and a registered typed value map fo
   "transaction_id": "txn_001",
   "transaction_revision": 1,
   "decision_context_id": "ctx_001",
-  "signal_name": "fraud.authorization_probability",
+  "signal_name": "claim.fraud_probability",
   "contract_version": "1.1.0",
   "contract_digest": "sha256:<contract-bytes>",
-  "binding_id": "fraud-primary",
+  "binding_id": "claim-fraud-primary",
   "binding_version": 3,
   "producer_id": "inference-service",
-  "model_id": "fraud_logistic",
+  "model_id": "claim_fraud_logistic",
   "model_version": "2",
   "model_digest": "sha256:<model-bytes>",
   "preprocessing_digest": "sha256:<preprocessing-bytes>",
@@ -206,13 +206,13 @@ Use a stable Protobuf envelope for transport and a registered typed value map fo
 Illustrative digests and times are not executable secrets or production values. decision_context_id for synchronous requests comes from the orchestrator; external producers must return a platform-issued context token, or their outputs must be correlated through a separately validated pre-scored-event contract.
 ### Registered semantic contract
 ```
-signal_name: fraud.authorization_probability
+signal_name: claim.fraud_probability
 version: 1.1.0
 value_schema:
   probability: {type: float64, required: true, minimum: 0.0, maximum: 1.0}
 semantics:
-  meaning: probability_that_this_authorization_is_fraudulent
-  population: synthetic_card_authorizations_v1
+  meaning: probability_that_this_claim_is_fraudulent
+  population: synthetic_claim_submissions_v1
   target_label: synthetic_fraud_label_v1
   label_observation_horizon: P30D
   unit: probability
@@ -266,70 +266,70 @@ Contract compatibility ranges are evaluated during compilation. Runtime uses the
 ### Effective product configuration
 This is the resolved form executed by the runtime; catalog inheritance and authorization are already compiled. Example probabilities and thresholds are synthetic.
 ```
-product_id: card_fraud
+product_id: claim_decisioning
 product_version: 1
 tenant_id: tenant_a
 subscription_revision: 4
 effective_config_version: 7
-runtime_profile: authorization
+runtime_profile: claim_submission
 routing:
-  event_types: [AUTH_REQUEST]
-  channels: [ECOMMERCE]
+  event_types: [CLAIM_SUBMISSION]
+  channels: [PORTAL]
 execution:
   total_deadline_ms: 100
   required_features:
-    - pan_txn_count_1h@1
-    - pan_amount_sum_24h@1
-    - merchant_txn_count_1h@1
-    - merchant_amount_sum_1h@1
+    - claimant_claim_count_1h@1
+    - claimant_amount_sum_24h@1
+    - provider_claim_count_1h@1
+    - provider_amount_sum_1h@1
   signals:
     fraud:
-      contract: fraud.authorization_probability
+      contract: claim.fraud_probability
       accepted_contracts: ["1.1.0"]
-      binding: fraud-primary@3
+      binding: claim-fraud-primary@3
       timeout_ms: 20
       required: true
-  ruleset: card_fraud_policy@5
+  ruleset: claim_fraud_policy@5
   missing_required_signal: REVIEW
-  aggregation: fraud_action_precedence@1
+  aggregation: claim_action_precedence@1
 thresholds:
   review_probability: 0.70
   decline_probability: 0.90
   velocity_decline_count: 12
-action_policy: card_auth_actions@2
+action_policy: claim_actions@2
 rollout:
   mode: LIVE
   cohort: champion
 ```
 The provider binding carries model-specific information:
 ```
-binding_id: fraud-primary
+binding_id: claim-fraud-primary
 version: 3
 tenant_id: tenant_a
 provider: grpc_inference
 endpoint_ref: inference-local
-model: fraud_logistic@2
+model: claim_fraud_logistic@2
 model_digest: "sha256:<artifact>"
 input_schema_digest: "sha256:<ordered-input-contract>"
 preprocessing_digest: "sha256:<preprocessing>"
-output_contract: fraud.authorization_probability@1.1.0
+output_contract: claim.fraud_probability@1.1.0
 maximum_age_ms: 50
 required_quality: {allow_stale_required_features: false}
 ```
 endpoint_ref resolves through an administrator-approved endpoint catalog. Tenant overlays cannot introduce arbitrary URLs.
 ### Declarative rules
 ```
-ruleset_id: card_fraud_policy
+ruleset_id: claim_fraud_policy
 version: 5
 requires:
-  - signal: fraud.authorization_probability
+  - signal: claim.fraud_probability
     contract: "1.1.0"
     alias: fraud
     optional: false
 evaluation: all_match
 rules:
   - id: velocity_block
-    when: "features.pan_txn_count_1h > cfg.velocity_decline_count"
+    when: "features.claimant_claim_count_1h > cfg.velocity_decline_count"
     outcome: {decision: DECLINE, reason: VELOCITY_LIMIT}
     requires_signals: []
   - id: model_decline
@@ -346,7 +346,7 @@ missing_required_signal_outcome: REVIEW
 Missing required inputs do not become CEL zero values. Evaluate signal-independent rules, mark dependent rules skipped, inject the explicit missing-signal outcome, and aggregate. The configured default outcome applies only after valid required inputs and successful evaluation, not after a timeout or engine exception.
 CEL context aliases are compiled from registered schemas and feature refs. Enforce expression size, supported operators, instruction/cost limits, and permitted actions. An arbitrary expression string is not considered safe merely because it is stored as configuration.
 ### Two-tenant worked example
-Both tenants subscribe to card_fraud@1 and can use the same shared model artifact. Their private effective configurations and state remain distinct.
+Both tenants subscribe to claim_decisioning@1 and can use the same shared model artifact. Their private effective configurations and state remain distinct.
 
 | Item | Tenant A | Tenant B |
 |---|---|---|
@@ -360,7 +360,7 @@ Both tenants subscribe to card_fraud@1 and can use the same shared model artifac
 The same numeric score is intentionally supplied to isolate policy behavior. The example does not imply that real tenants with different private feature histories produce equal model outputs.
 Changing Tenant A’s decline threshold to 0.85 produces a new overlay/configuration/bundle and approved activation. It requires no model retraining, rules-engine rebuild, or database migration. Tenant B’s active configuration is unaffected.
 ### Aggregation and authority
-For the demonstration, use DECLINE > REVIEW > APPROVE only within the single fraud authorization decision domain. Across multiple products, define explicit authority, exclusivity, and composition: advisory scores cannot overrule an authoritative compliance decline, and billing flags cannot determine risk policy.
+For the demonstration, use DECLINE > REVIEW > APPROVE only within the single claim-fraud decision domain. Across multiple products, define explicit authority, exclusivity, and composition: advisory scores cannot overrule an authoritative compliance decline, and billing flags cannot determine risk policy.
 The original highest-priority-enrolled-product rule is no longer an assumed universal default. Preserve it only as an optional named aggregation strategy after business confirmation. Conflicting authoritative actions produce a configured conflict outcome, never iteration-order-dependent behavior.
 ### Request execution
 Accept and authenticate a transaction; tokenize sensitive values before broad distribution.
@@ -380,18 +380,18 @@ Flink remains a first-class MVP component for asynchronous event-time feature co
 ```
 Committed tokenized contributions
     → validate + deduplicate
-    → keyBy(tenant, mode, merchant, currency)
+    → keyBy(tenant, mode, provider, currency)
     → event-time tiles + watermark/late-data handling
     → transactional feature.updates topic
     → read_committed materializer
     → versioned Tier 2 online store
 ```
 ### Tier 1 contract
-Use atomic per-entity update/dedup/returned-vector operations for decision-critical card count and amount velocities. For local development, implement a Redis Lua operation with all affected keys in one tenant/entity hash slot; do not use unprotected client-side read-compute-write.
+Use atomic per-entity update/dedup/returned-vector operations for decision-critical claimant count and amount velocities. For local development, implement a Redis Lua operation with all affected keys in one tenant/entity hash slot; do not use unprotected client-side read-compute-write.
 The MVP defines processing-time minute-bucket windows, including the current event exactly once within a 24-hour dedup horizon. Keep a cached returned vector for retries; repeated requests do not recompute a different counter result. Reject live requests outside the accepted horizon, and run older replay fixtures in a separate namespace.
-The 24-hour amount feature is scoped to card and currency; cross-currency totals require an explicitly versioned conversion policy. Production durability, failover, regional ownership, and recovery guarantees of the chosen Tier 1 store remain a mandatory benchmark/review gate.
+The 24-hour amount feature is scoped to claimant and currency; cross-currency totals require an explicitly versioned conversion policy. Production durability, failover, regional ownership, and recovery guarantees of the chosen Tier 1 store remain a mandatory benchmark/review gate.
 ### Tier 2 contract
-Seed merchant transaction count and amount-sum features using 1-minute event-time tiles over a trailing 1-hour window, scoped by tenant, mode, merchant, currency, and feature version. Proposed out-of-orderness is 2 seconds, allowed lateness 60 seconds, and source-idleness timeout 10 seconds.
+Seed provider claim count and amount-sum features using 1-minute event-time tiles over a trailing 1-hour window, scoped by tenant, mode, provider, currency, and feature version. Proposed out-of-orderness is 2 seconds, allowed lateness 60 seconds, and source-idleness timeout 10 seconds.
 Emit absolute tile values on accepted changes, not increments at the materializer. Include feature definition digest, time interval, event-time coverage, computation time, and provenance. Beyond-lateness events go to a late-data topic for investigation or isolated backfill; they do not retroactively change an already-returned decision.
 The Feature Service selects tiles under the declared window-boundary convention and captures the values actually served. A collection of Tier 2 reads is not automatically a globally atomic feature snapshot. Model training and replay must respect the same convention and the captured known-as-of information.
 ### Recovery and materialization
@@ -419,37 +419,37 @@ Weights may change without a rule release if semantic and quality gates pass. A 
 ## Real-time action execution
 ### Separate decision from effect
 DecisionResult records what policy decided. ActionIntent records a permitted desired effect. ActionExecution records what the downstream system actually acknowledged, rejected, or left uncertain.
-An inline authorization response can be time-critical while case creation and notifications are asynchronous. Do not require slow secondary actions to complete before returning the transaction decision. Conversely, if a product requires a downstream acknowledgment inside its SLA, budget and test that integration explicitly.
+An inline claim response can be time-critical while case creation and notifications are asynchronous. Do not require slow secondary actions to complete before returning the transaction decision. Conversely, if a product requires a downstream acknowledgment inside its SLA, budget and test that integration explicitly.
 ### Action classes
 
 | Action class | Example | Default MVP implementation |
 |---|---|---|
-| Inline response | Return APPROVE / DECLINE / REVIEW to caller | Local authorization-response simulator |
-| Asynchronous workflow | Create a fraud-review case | Local durable case adapter |
+| Inline response | Return APPROVE / DECLINE / REVIEW to caller | Local claim-response simulator |
+| Asynchronous workflow | Open an SIU investigation case | Local durable case adapter |
 | Notification | Emit investigation alert | Local notification sink |
 | High-impact state change | Block account, modify limit | Disabled unless explicitly designed and authorized |
 
 Rule authors select registered action types. They cannot supply raw provider URLs, credentials, arbitrary SQL, or unbounded action payloads.
-Choose one enforcement route per action. An upstream system reading egress and an action adapter consuming commands must not both independently issue the same authorization effect; configure which integration owns enforcement and use the same stable action identity for retries/status. In the local demonstration, egress exposes the decision while only the simulator adapter records the synthetic effect.
+Choose one enforcement route per action. An upstream system reading egress and an action adapter consuming commands must not both independently issue the same claim-response effect; configure which integration owns enforcement and use the same stable action identity for retries/status. In the local demonstration, egress exposes the decision while only the simulator adapter records the synthetic effect.
 ### Action policy example
 ```
-action_policy_id: card_auth_actions
+action_policy_id: claim_actions
 version: 2
 tenant_id: tenant_a
-allowed_actions: [AUTH_RESPONSE, CREATE_REVIEW_CASE]
+allowed_actions: [CLAIM_RESPONSE, OPEN_SIU_CASE]
 adapters:
-  AUTH_RESPONSE: local_auth_simulator@1
-  CREATE_REVIEW_CASE: local_case_adapter@1
-authoritative_decision_domain: card_authorization
+  CLAIM_RESPONSE: local_claim_simulator@1
+  OPEN_SIU_CASE: local_siu_case_adapter@1
+authoritative_decision_domain: claim_decisioning
 intent_ttl_ms:
-  AUTH_RESPONSE: 100
-  CREATE_REVIEW_CASE: 300000
+  CLAIM_RESPONSE: 100
+  OPEN_SIU_CASE: 300000
 retries:
-  CREATE_REVIEW_CASE: {maximum_attempts: 3, strategy: bounded_exponential}
+  OPEN_SIU_CASE: {maximum_attempts: 3, strategy: bounded_exponential}
 on_unknown_outcome: RECONCILE
 live_effects_allowed: false
 ```
-TTL is measured against the relevant original request/intent time, not reset on every retry. The 100 ms response example is a proposed local target and must not be mistaken for permission to issue a delayed real authorization.
+TTL is measured against the relevant original request/intent time, not reset on every retry. The 100 ms response example is a proposed local target and must not be mistaken for permission to issue a delayed real claim response.
 ### Durable dispatcher protocol
 Consume a committed action command and verify tenant, mode, intent expiry, approved adapter, payload schema, and action policy.
 Derive the idempotency key from (tenant, environment, decision_id, decision_generation, action_type, target). Do not include retry attempt; retries must reuse the same key.
@@ -476,7 +476,7 @@ A language model may help author, test, and operate these flows. It may not exec
 ### State-flow asset
 A state flow declares states, transitions, guards, timers, and the registered action types each transition may emit. Guards are CEL expressions evaluated under the same sandbox and cost limits as rules. The example below is synthetic.
 ```
-flow_id: card_review_case
+flow_id: siu_case
 version: 1
 kind: state_flow
 subject: decision   # key: tenant, env, mode, flow, decision, generation
@@ -520,7 +520,7 @@ transitions:
     on: timer.fired
     guard: "timer.id.startsWith('sla_')"
     emits: [NOTIFY_OPERATIONS]
-action_policy: card_case_actions@1
+action_policy: siu_case_actions@1
 ```
 emits names registered action types only. The compiler rejects any action not permitted by the pinned action policy, and emitted commands follow the durable dispatcher protocol unchanged.
 ### Flow engine runtime rules
@@ -544,7 +544,7 @@ Language models, large or small, operate around the decision path, not inside it
 
 | Role | Placement | Authority | Boundary |
 |---|---|---|---|
-| Signal provider | Classify merchant descriptors, free-text fields, and case notes into registered signals such as merchant.category_risk or case_triage.priority | Produces evidence only | Behind SignalProvider with a semantic contract, binding, fallback, and shadow evaluation; precomputed or asynchronous by default |
+| Signal provider | Classify provider descriptors, free-text fields, and case notes into registered signals such as provider.category_risk or case_triage.priority | Produces evidence only | Behind SignalProvider with a semantic contract, binding, fallback, and shadow evaluation; precomputed or asynchronous by default |
 | Case assistant | Summarize a review case and suggest a disposition | Advisory | Runs after the case action is acknowledged; a human submits the disposition event |
 | Explanation writer | Plain-language narrative from fired rules and the signal snapshot | Advisory | Asynchronous from decision_fact; code-generated reason codes remain authoritative |
 | Authoring assistant | Draft rules, overlays, thresholds, and state flows from feedback, replay diffs, and incident notes | Draft only | Enters as a DRAFT asset; normal compile, simulation, replay diff, and separate human approval |
@@ -571,7 +571,7 @@ Build the flow engine in Phase 2, with the review-case flow as its first asset. 
 | Durable timers | An SLA timer fires exactly once across a scheduler restart |
 | Model authority | A model service identity cannot write activations, flow instances, action commands, or the action ledger |
 | Model-assisted draft | A model-assisted asset cannot activate without separate human approval, and its provenance is recorded |
-| Prompt injection | Malicious merchant descriptors and case notes do not change signal schemas, flow transitions, or permitted actions |
+| Prompt injection | Malicious provider descriptors and case notes do not change signal schemas, flow transitions, or permitted actions |
 | Replay isolation | Flows replayed or shadowed emit zero live actions |
 
 ## Persistence and data ownership
@@ -780,7 +780,7 @@ Use bounded metric labels. Do not place unrestricted tenant ids, transaction ids
 A reproducible decision trace includes authenticated tenant, subscription revision, selection reasons, manifest epoch, bundle digest, feature snapshot, signal provenance/quality, rules fired/skipped, aggregation policy, and action intent/status references.
 ## Security and governance
 **Identity:** Bind tenant from verified service/user identity; use scoped credentials and short-lived tokens for internal callers.
-**Sensitive inputs:** Tokenize raw identifiers at trusted ingress; no real PANs in the reference implementation. Tokenization scheme/key rotation must preserve intended entity continuity through explicit migration.
+**Sensitive inputs:** Tokenize raw identifiers at trusted ingress; no real policyholder identifiers in the reference implementation. Tokenization scheme/key rotation must preserve intended entity continuity through explicit migration.
 **RBAC:** Distinguish platform author, tenant author, approver, operator, investigator, and action administrator.
 **Separation of duties:** Author cannot approve their own production asset; approval binds immutable content and effective scope.
 **Untrusted artifacts:** Validate formats and model loader behavior; restrict execution/runtime operators, file access, network egress, CPU, and memory.
@@ -836,7 +836,7 @@ Use layered Helm values for base, platform, region, and environment. ArgoCD rema
 Implement the monorepo, schema validation, Go/Python/Java Protobuf code generation, local infrastructure, dependency locking, CI, tenant identity fixture, and immutable artifact bootstrap. Establish the contract registry and canonical typed-value envelope before implementing model-specific logic.
 Acceptance: make up, make proto, and schema tests pass; Flink and inference infrastructure are included; invalid contract and cross-tenant fixture tests fail as expected.
 ### Phase 1: Real streaming, scoring, rules, and simulated actions
-Implement two synthetic tenants and pinned static configurations; tenant-aware selection; Tier 1 atomic velocities; real Flink merchant features and materializer; real ONNX logistic scoring; canonical signal validation; CEL rules; configurable aggregation; durable decision/action publication; action simulators with an idempotency ledger; and a basic trace UI.
+Implement two synthetic tenants and pinned static configurations; tenant-aware selection; Tier 1 atomic velocities; real Flink provider features and materializer; real ONNX logistic scoring; canonical signal validation; CEL rules; configurable aggregation; durable decision/action publication; action simulators with an idempotency ledger; and a basic trace UI.
 Use static asset files with a compile/activate CLI initially. Configuration-only deployment and isolation are MVP requirements; a full graphical authoring/approval experience is not.
 
 | Gate | Pass condition |

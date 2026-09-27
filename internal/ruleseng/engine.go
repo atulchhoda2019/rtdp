@@ -138,8 +138,8 @@ func (e *Engine) Evaluate(features map[string]any,
 	return res, nil
 }
 
-// Aggregate applies the pinned precedence policy. Within the fraud
-// authorization domain: DECLINE > REVIEW > APPROVE (design.md worked
+// Aggregate applies the pinned precedence policy. Within the claim
+// decisioning domain: DECLINE > REVIEW > APPROVE (design.md worked
 // example). The configured default applies only when inputs were valid —
 // a missing required signal yields the declared missing-signal outcome.
 func (e *Engine) Aggregate(res *Result,

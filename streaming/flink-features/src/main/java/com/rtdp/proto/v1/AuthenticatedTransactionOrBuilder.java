@@ -85,7 +85,7 @@ public interface AuthenticatedTransactionOrBuilder extends
 
   /**
    * <pre>
-   * e.g. AUTH_REQUEST
+   * e.g. CLAIM_SUBMISSION
    * </pre>
    *
    * <code>string event_type = 7 [json_name = "eventType"];</code>
@@ -94,7 +94,7 @@ public interface AuthenticatedTransactionOrBuilder extends
   java.lang.String getEventType();
   /**
    * <pre>
-   * e.g. AUTH_REQUEST
+   * e.g. CLAIM_SUBMISSION
    * </pre>
    *
    * <code>string event_type = 7 [json_name = "eventType"];</code>
@@ -105,7 +105,7 @@ public interface AuthenticatedTransactionOrBuilder extends
 
   /**
    * <pre>
-   * e.g. ECOMMERCE
+   * e.g. AGENT_PORTAL
    * </pre>
    *
    * <code>string channel = 8 [json_name = "channel"];</code>
@@ -114,7 +114,7 @@ public interface AuthenticatedTransactionOrBuilder extends
   java.lang.String getChannel();
   /**
    * <pre>
-   * e.g. ECOMMERCE
+   * e.g. AGENT_PORTAL
    * </pre>
    *
    * <code>string channel = 8 [json_name = "channel"];</code>
@@ -136,28 +136,44 @@ public interface AuthenticatedTransactionOrBuilder extends
       getRegionBytes();
 
   /**
-   * <code>string tokenized_pan = 10 [json_name = "tokenizedPan"];</code>
-   * @return The tokenizedPan.
+   * <pre>
+   * insured / claimant, tokenized at ingress
+   * </pre>
+   *
+   * <code>string tokenized_claimant = 10 [json_name = "tokenizedClaimant"];</code>
+   * @return The tokenizedClaimant.
    */
-  java.lang.String getTokenizedPan();
+  java.lang.String getTokenizedClaimant();
   /**
-   * <code>string tokenized_pan = 10 [json_name = "tokenizedPan"];</code>
-   * @return The bytes for tokenizedPan.
+   * <pre>
+   * insured / claimant, tokenized at ingress
+   * </pre>
+   *
+   * <code>string tokenized_claimant = 10 [json_name = "tokenizedClaimant"];</code>
+   * @return The bytes for tokenizedClaimant.
    */
   com.google.protobuf.ByteString
-      getTokenizedPanBytes();
+      getTokenizedClaimantBytes();
 
   /**
-   * <code>string merchant_id = 11 [json_name = "merchantId"];</code>
-   * @return The merchantId.
+   * <pre>
+   * service provider (repair shop, clinic, ...)
+   * </pre>
+   *
+   * <code>string provider_id = 11 [json_name = "providerId"];</code>
+   * @return The providerId.
    */
-  java.lang.String getMerchantId();
+  java.lang.String getProviderId();
   /**
-   * <code>string merchant_id = 11 [json_name = "merchantId"];</code>
-   * @return The bytes for merchantId.
+   * <pre>
+   * service provider (repair shop, clinic, ...)
+   * </pre>
+   *
+   * <code>string provider_id = 11 [json_name = "providerId"];</code>
+   * @return The bytes for providerId.
    */
   com.google.protobuf.ByteString
-      getMerchantIdBytes();
+      getProviderIdBytes();
 
   /**
    * <code>string currency = 12 [json_name = "currency"];</code>

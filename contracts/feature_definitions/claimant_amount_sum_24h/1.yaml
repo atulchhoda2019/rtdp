@@ -1,14 +1,14 @@
-feature_name: pan_amount_sum_24h
+feature_name: claimant_amount_sum_24h
 version: 1
 tier: tier1
-description: "Sum of authorization amounts on this card+currency in the trailing 24 hours (processing time)."
-entity: tokenized_pan_currency
+description: "Sum of claimed amounts by this claimant+currency in the trailing 24 hours (processing time)."
+entity: tokenized_claimant_currency
 value_type: float64
 computation:
   kind: sync_sum
   window: PT24H
   bucket: minute
   dedup_horizon: PT24H
-scope: [tenant, environment, mode, tokenized_pan, currency]
+scope: [tenant, environment, mode, tokenized_claimant, currency]
 staleness_policy:
   max_age: PT0S

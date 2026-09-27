@@ -46,7 +46,7 @@ A language model may help author, test, and operate these flows. It may not exec
 A state flow declares states, transitions, guards, timers, and the registered action types each transition may emit. Guards are CEL expressions evaluated under the same sandbox and cost limits as rules. The example below is synthetic.
 
 ```yaml
-flow_id: card_review_case
+flow_id: siu_case
 version: 1
 kind: state_flow
 subject: decision   # key: tenant, env, mode, flow, decision, generation
@@ -90,7 +90,7 @@ transitions:
     on: timer.fired
     guard: "timer.id.startsWith('sla_')"
     emits: [NOTIFY_OPERATIONS]
-action_policy: card_case_actions@1
+action_policy: siu_case_actions@1
 ```
 
 `emits` names registered action types only. The compiler rejects any action not permitted by the pinned action policy, and emitted commands follow the durable dispatcher protocol unchanged.
@@ -122,7 +122,7 @@ Language models, large or small, operate around the decision path, not inside it
 
 | Role | Placement | Authority | Boundary |
 |---|---|---|---|
-| Signal provider | Classify merchant descriptors, free-text fields, and case notes into registered signals such as `merchant.category_risk` or `case_triage.priority` | Produces evidence only | Behind `SignalProvider` with a semantic contract, binding, fallback, and shadow evaluation; precomputed or asynchronous by default |
+| Signal provider | Classify provider descriptors, free-text fields, and case notes into registered signals such as `provider.category_risk` or `case_triage.priority` | Produces evidence only | Behind `SignalProvider` with a semantic contract, binding, fallback, and shadow evaluation; precomputed or asynchronous by default |
 | Case assistant | Summarize a review case and suggest a disposition | Advisory | Runs after the case action is acknowledged; a human submits the disposition event |
 | Explanation writer | Plain-language narrative from fired rules and the signal snapshot | Advisory | Asynchronous from `decision_fact`; code-generated reason codes remain authoritative |
 | Authoring assistant | Draft rules, overlays, thresholds, and state flows from feedback, replay diffs, and incident notes | Draft only | Enters as a DRAFT asset; normal compile, simulation, replay diff, and separate human approval |
@@ -152,7 +152,7 @@ Build the flow engine in Phase 2, with the review-case flow as its first asset. 
 | Durable timers | An SLA timer fires exactly once across a scheduler restart |
 | Model authority | A model service identity cannot write activations, flow instances, action commands, or the action ledger |
 | Model-assisted draft | A model-assisted asset cannot activate without separate human approval, and its provenance is recorded |
-| Prompt injection | Malicious merchant descriptors and case notes do not change signal schemas, flow transitions, or permitted actions |
+| Prompt injection | Malicious provider descriptors and case notes do not change signal schemas, flow transitions, or permitted actions |
 | Replay isolation | Flows replayed or shadowed emit zero live actions |
 ````
 
