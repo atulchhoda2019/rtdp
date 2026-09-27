@@ -16,7 +16,9 @@ variable "node_type" {
   default = "cache.t4g.medium"
 }
 variable "engine_version" {
-  default = "7.2"
+  # 8.x required: the Tier-1 Lua op uses HEXPIRE (hash-field expiry),
+  # which landed in Valkey 8.0 / Redis 7.4 — 7.2 does not support it.
+  default = "8.0"
 }
 variable "kms_key_arn" {
   type = string
@@ -38,8 +40,8 @@ resource "aws_elasticache_subnet_group" "this" {
   tags       = var.tags
 }
 resource "aws_elasticache_parameter_group" "this" {
-  name   = "rtdp-valkey7"
-  family = "valkey7"
+  name   = "rtdp-valkey8"
+  family = "valkey8"
   parameter {
     name  = "cluster-enabled"
     value = "no"
