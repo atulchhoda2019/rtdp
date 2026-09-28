@@ -1,0 +1,20 @@
+action_policy_id: quote_actions
+version: 1
+owner_scope: platform
+allowed_actions: [QUOTE_RESPONSE, REFER_ACTUARY]
+adapters:
+  QUOTE_RESPONSE: local_quote_simulator@1
+  REFER_ACTUARY: local_actuarial_queue_adapter@1
+authoritative_decision_domain: pricing
+action_rules:
+  QUOTE_RESPONSE: [APPROVE, REVIEW, DECLINE]
+  REFER_ACTUARY: [REVIEW]
+intent_ttl_ms:
+  QUOTE_RESPONSE: 100
+  REFER_ACTUARY: 300000
+retries:
+  REFER_ACTUARY:
+    maximum_attempts: 3
+    strategy: bounded_exponential
+on_unknown_outcome: RECONCILE
+live_effects_allowed: false

@@ -26,9 +26,28 @@ from rtdp_contracts.registry import ContractRegistry, ContractError  # noqa: E40
 
 ROOT = Path(__file__).resolve().parents[2]
 BUILD = ROOT / "build"
-MODEL_DIR = BUILD / "models" / "claim_fraud_logistic" / "2"
-BINDING = ROOT / "assets/seed/platform/bindings/claim-fraud-primary/3.yaml"
-PRODUCT = ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml"
+
+# model_id -> (version, binding yaml, product yaml). Each model uploads to
+# s3://<bucket>/<model_id>/<version>/ and patches its binding's digests.
+MODELS = {
+    "claim_fraud_logistic": {
+        "version": "2",
+        "binding": ROOT / "assets/seed/platform/bindings/claim-fraud-primary/3.yaml",
+    },
+    "uw_eligibility_logistic": {
+        "version": "1",
+        "binding": ROOT / "assets/seed/platform/bindings/uw-eligibility-primary/1.yaml",
+    },
+    "premium_linear": {
+        "version": "1",
+        "binding": ROOT / "assets/seed/platform/bindings/premium-linear-primary/1.yaml",
+    },
+}
+PRODUCTS = {
+    "claim_decisioning": ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml",
+    "underwriting_decisioning": ROOT / "assets/seed/platform/products/underwriting_decisioning/1.yaml",
+    "risk_pricing": ROOT / "assets/seed/platform/products/risk_pricing/1.yaml",
+}
 
 S3_ENDPOINT = os.environ.get("RTDP_S3_ENDPOINT", "http://localhost:9099")
 S3_KEY = os.environ.get("RTDP_S3_ACCESS_KEY", "minioadmin")
@@ -62,51 +81,65 @@ def ensure_topics():
     print(f"topics: {len(TOPICS)} ensured")
 
 
-def upload_model() -> dict:
+def upload_model(model_id: str) -> dict:
     import boto3
-    meta = json.loads((MODEL_DIR / "metadata.json").read_text())
+    mdir = BUILD / "models" / model_id / MODELS[model_id]["version"]
+    meta = json.loads((mdir / "metadata.json").read_text())
     s3 = boto3.client("s3", endpoint_url=S3_ENDPOINT,
                       aws_access_key_id=S3_KEY,
                       aws_secret_access_key=S3_SECRET)
+    ver = MODELS[model_id]["version"]
     for name in ("model.onnx", "input_schema.json", "preprocessing.json",
                  "metadata.json", "golden_vectors.json"):
-        s3.upload_file(str(MODEL_DIR / name), ARTIFACT_BUCKET,
-                       f"claim_fraud_logistic/2/{name}")
+        s3.upload_file(str(mdir / name), ARTIFACT_BUCKET,
+                       f"{model_id}/{ver}/{name}")
     meta["artifact_uri"] = (
-        f"s3://{ARTIFACT_BUCKET}/claim_fraud_logistic/2/model.onnx")
-    print(f"model uploaded: {meta['model_digest']}")
+        f"s3://{ARTIFACT_BUCKET}/{model_id}/{ver}/model.onnx")
+    print(f"model uploaded: {model_id} {meta['model_digest']}")
     return meta
 
 
-def patch_binding(meta: dict):
-    doc = yaml.safe_load(BINDING.read_text())
-    doc["model"] = "claim_fraud_logistic@2"
+def patch_binding(model_id: str, meta: dict):
+    binding = MODELS[model_id]["binding"]
+    doc = yaml.safe_load(binding.read_text())
+    doc["model"] = f"{model_id}@{MODELS[model_id]['version']}"
     doc["input_schema_digest"] = meta["input_schema_digest"]
     doc["preprocessing_digest"] = meta["preprocessing_digest"]
     doc["model_digest"] = meta["model_digest"]
-    BINDING.write_text(yaml.safe_dump(doc, sort_keys=False))
+    binding.write_text(yaml.safe_dump(doc, sort_keys=False))
 
 
 def compile_tenants():
+    """Compile one bundle per (tenant, subscription) — a tenant activates
+    every subscribed product; routing.event_types selects per request."""
     registry = ContractRegistry(ROOT / "contracts", ROOT / "assets")
-    product = yaml.safe_load(PRODUCT.read_text())
+    products = {pid: yaml.safe_load(p.read_text())
+                for pid, p in PRODUCTS.items()}
     activations = []
     epoch = int(time.time())
-    for tenant, sub_rev in (("tenant_a", 4), ("tenant_b", 2)):
-        overlay = None
-        sub_path = (ROOT / "assets/seed/tenants" / tenant / "subscription.yaml")
+    for tenant_dir in sorted((ROOT / "assets/seed/tenants").iterdir()):
+        sub_path = tenant_dir / "subscription.yaml"
+        if not sub_path.exists():
+            continue
         sub = yaml.safe_load(sub_path.read_text())
-        for ov in sub.get("overlays") or []:
-            overlay = ov
-        bundle = compile_bundle(registry, product, overlay, tenant)
-        bundle["subscription_revision"] = sub_rev
-        path = write_bundle(bundle, BUILD / "bundles")
-        activations.append({
-            "tenant_id": tenant, "environment": "work", "cohort": "champion",
-            "epoch": epoch, "bundle_digest": bundle["digest"],
-            "bundle": bundle,
-        })
-        print(f"compiled {tenant}: {bundle['digest'][:23]} -> {path.name}")
+        tenant = sub["tenant_id"]
+        overlays = {o.get("product"): o for o in (sub.get("overlays") or [])}
+        for s in sub.get("subscriptions", []):
+            if s.get("status") != "ACTIVE":
+                continue
+            pid, _, _pver = s["product"].partition("@")
+            product = products[pid]
+            overlay = overlays.get(s["product"])
+            bundle = compile_bundle(registry, product, overlay, tenant)
+            bundle["subscription_revision"] = s["revision"]
+            path = write_bundle(bundle, BUILD / "bundles")
+            activations.append({
+                "tenant_id": tenant, "environment": "work",
+                "cohort": "champion", "epoch": epoch,
+                "bundle_digest": bundle["digest"], "bundle": bundle,
+            })
+            print(f"compiled {tenant}/{pid}: "
+                  f"{bundle['digest'][:23]} -> {path.name}")
     (BUILD / "bundles" / "activations.json").write_text(
         json.dumps(activations, indent=2))
     return activations
@@ -148,20 +181,20 @@ def submit_flink():
     print(f"flink job submitted: {run_resp.get('jobid', run_resp)}")
 
 
-def warm_inference(meta: dict, activations):
+def warm_inference(model_id: str, meta: dict):
     ch = grpc.insecure_channel(INFERENCE_ADDR)
     stub = services_pb2_grpc.InferenceServiceStub(ch)
     resp = stub.Warm(services_pb2.WarmRequest(
-        model_id="claim_fraud_logistic", model_version="2",
+        model_id=model_id, model_version=MODELS[model_id]["version"],
         model_digest=meta["model_digest"],
         artifact_uri=meta["artifact_uri"],
         input_schema_digest=meta["input_schema_digest"],
         preprocessing_digest=meta["preprocessing_digest"],
-        output_contract="claim.fraud_probability",
-        contract_version="1.1.0"))
+        output_contract=meta["output_contract"].split("@")[0],
+        contract_version=meta["output_contract"].split("@")[1]))
     if not resp.ready:
         raise RuntimeError(f"inference warm failed: {resp.error}")
-    print(f"inference warm: {resp.model_digest}")
+    print(f"inference warm: {model_id} {resp.model_digest}")
 
 
 def warm_pipeline():
@@ -170,45 +203,52 @@ def warm_pipeline():
     blow the configured total_deadline_ms on first request (design.md
     warm-readiness contract)."""
     for client_id in ("demo-client-a", "demo-client-b"):
-        for attempt in range(40):
-            req = urllib.request.Request(
-                f"{INGRESS}/v1/decide",
-                data=json.dumps({
-                    "transaction_id": f"warmup_{client_id}_{attempt}",
-                    "transaction_revision": 1,
-                    "event_type": "CLAIM_SUBMISSION",
-                    "channel": "PORTAL",
-                    "region": "us-east-1",
-                    "tokenized_claimant": f"tok_warm_{client_id}",
-                    "provider_id": "prv_warm",
-                    "currency": "USD",
-                    "amount": 10.0,
-                    "event_time": time.strftime(
-                        "%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
-                }).encode(),
-                headers={"Content-Type": "application/json",
-                         "X-RTDP-Client-Id": client_id},
-                method="POST")
-            try:
-                with urllib.request.urlopen(req, timeout=10) as r:
-                    json.loads(r.read())
-                    print(f"pipeline warm: {client_id} ok "
-                          f"(attempt {attempt + 1})")
-                    break
-            except Exception:
-                if attempt == 39:
-                    raise
-                time.sleep(0.5)
+        for event_type in ("CLAIM_SUBMISSION", "POLICY_APPLICATION",
+                           "QUOTE_REQUEST"):
+            for attempt in range(40):
+                req = urllib.request.Request(
+                    f"{INGRESS}/v1/decide",
+                    data=json.dumps({
+                        "transaction_id":
+                            f"warmup_{client_id}_{event_type}_{attempt}",
+                        "transaction_revision": 1,
+                        "event_type": event_type,
+                        "channel": "PORTAL",
+                        "region": "us-east-1",
+                        "tokenized_claimant": f"tok_warm_{client_id}",
+                        "provider_id": "prv_warm",
+                        "currency": "USD",
+                        "amount": 2500.0,
+                        "event_time": time.strftime(
+                            "%Y-%m-%dT%H:%M:%SZ", time.gmtime()),
+                    }).encode(),
+                    headers={"Content-Type": "application/json",
+                             "X-RTDP-Client-Id": client_id},
+                    method="POST")
+                try:
+                    with urllib.request.urlopen(req, timeout=10) as r:
+                        json.loads(r.read())
+                        print(f"pipeline warm: {client_id} {event_type} ok "
+                              f"(attempt {attempt + 1})")
+                        break
+                except Exception:
+                    if attempt == 39:
+                        raise
+                    time.sleep(0.5)
 
 
 def main():
     os.chdir(ROOT)
     ensure_topics()
-    meta = upload_model()
-    patch_binding(meta)
+    metas = {}
+    for model_id in MODELS:
+        meta = upload_model(model_id)
+        patch_binding(model_id, meta)
+        metas[model_id] = meta
     activations = compile_tenants()
     submit_flink()
-    warm_inference(meta, activations)
+    for model_id, meta in metas.items():
+        warm_inference(model_id, meta)
     warm_pipeline()
     print("seed complete")
 

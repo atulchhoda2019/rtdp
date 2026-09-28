@@ -158,7 +158,8 @@ def write_activation(tenant, bundle, epoch):
     acts_path = BUILD / "bundles" / "activations.json"
     acts = json.loads(acts_path.read_text())
     for a in acts:
-        if a["tenant_id"] == tenant:
+        if (a["tenant_id"] == tenant
+                and a["bundle"]["product_id"] == bundle["product_id"]):
             a["bundle_digest"] = bundle["digest"]
             a["epoch"] = epoch
             a["bundle"] = bundle
@@ -183,11 +184,38 @@ def g1_e2e_path(ev):
                                          "transaction_id":
                                          txn["transaction_id"] + "_a"})
     assert status in (400, 502), "payload conflict not rejected"
+
+    # Multi-product routing: event_type selects the pinned product bundle.
+    digest_to_product = {
+        x["bundle_digest"]: x["bundle"]["product_id"]
+        for x in json.loads(
+            (BUILD / "bundles/activations.json").read_text())
+        if x["tenant_id"] == "tenant_a"}
+    routing = {}
+    for ev_type, expected in (("CLAIM_SUBMISSION", "claim_decisioning"),
+                              ("POLICY_APPLICATION", "underwriting_decisioning"),
+                              ("QUOTE_REQUEST", "risk_pricing")):
+        r = decide_ok("demo-client-a", {
+            **txn, "transaction_id":
+            f"{txn['transaction_id']}_{ev_type}", "event_type": ev_type})
+        actual = digest_to_product.get(r["bundle_digest"])
+        assert actual == expected, \
+            f"{ev_type} routed to {actual}, want {expected}"
+        routing[ev_type] = {"product": actual, "outcome": r["outcome"]}
+    # An event type no subscribed product routes must fail closed.
+    status, _ = decide("demo-client-a", {**txn,
+                                         "transaction_id":
+                                         txn["transaction_id"] + "_no",
+                                         "event_type": "NO_SUCH_EVENT"})
+    assert status == 502, f"unrouted event not rejected: {status}"
+
     ev.update({"unauthorized_status": 401,
                "tenant_a": a, "tenant_b": b,
-               "idempotent_retry": True, "conflict_rejected": status})
+               "idempotent_retry": True, "conflict_rejected": status,
+               "product_routing": routing})
     log(f"  tenant_a -> {a['outcome']} | tenant_b -> {b['outcome']} "
-        f"| digests differ | idempotent | conflict rejected")
+        f"| digests differ | idempotent | conflict rejected "
+        f"| routed {list(routing)}")
 
 
 def g2_tenant_isolation(ev):
@@ -198,7 +226,8 @@ def g2_tenant_isolation(ev):
     res = decide_ok("demo-client-a", spoof)
     a_act = [a for a in json.loads(
         (BUILD / "bundles/activations.json").read_text())
-        if a["tenant_id"] == "tenant_a"][0]
+        if a["tenant_id"] == "tenant_a"
+        and a["bundle"]["product_id"] == "claim_decisioning"][0]
     assert res["bundle_digest"] == a_act["bundle_digest"], \
         "payload tenant spoof changed the pinned bundle"
     # Durable facts carry the authenticated tenant.
@@ -345,8 +374,8 @@ def g5_stream_recovery(ev):
     tile = (f"rtdp:t2:{{tenant_a:LIVE}}:provider_claim_count_1h@1:"
             f"{provider}:USD:{base // 60}")
     count = None
-    deadline = time.time() + 300  # restart + one 60s checkpoint commit cycle
-    while time.time() < deadline:
+    deadline = time.time() + 480  # TM restart + redeploy + 60s checkpoint
+    while time.time() < deadline:  # commit + materializer consume lag
         val = redis_get(tile)
         if val:
             count = int(float(val))
@@ -364,26 +393,32 @@ def g6_model_parity(ev):
     import numpy as np
     import onnxruntime as ort
     sys.path.insert(0, str(ROOT / "ml/seed-model"))
-    from train import synth_data, FEATURES
-    from sklearn.linear_model import LogisticRegression
+    from train import MODELS, synth_data
 
-    X, y = synth_data()
-    clf = LogisticRegression(max_iter=1000, random_state=42).fit(X, y)
-    sess = ort.InferenceSession(
-        str(ROOT / "build/models/claim_fraud_logistic/2/model.onnx"))
-    rng = np.random.default_rng(99)
-    probe = np.column_stack([
-        rng.poisson(3, 256), rng.gamma(2.0, 150.0, 256),
-        rng.poisson(20, 256), rng.gamma(2.0, 3000.0, 256)])
-    ref = clf.predict_proba(probe)[:, 1]
-    probs = sess.run(["probabilities"], {
-        sess.get_inputs()[0].name: probe})[0]
-    onnx_p = probs[:, 1] if probs.ndim == 2 else probs
-    max_delta = float(np.max(np.abs(onnx_p - ref)))
-    assert max_delta < 1e-5, f"parity delta {max_delta}"
-    ev.update({"n_samples": 256, "max_abs_delta": max_delta,
-               "features": FEATURES})
-    log(f"  256 probes, max |dp| = {max_delta:.3e}")
+    results = {}
+    for model_id, spec in MODELS.items():
+        X, y = synth_data(model_id)
+        est = spec["estimator"]()
+        est.fit(X, y)
+        sess = ort.InferenceSession(
+            str(ROOT / "build/models" / model_id / spec["version"]
+                / "model.onnx"))
+        probe, _ = synth_data(model_id, n=256, seed=99)
+        if spec["kind"] == "binary_probability":
+            ref = est.predict_proba(probe)[:, 1]
+            out = sess.run(["probabilities"],
+                           {sess.get_inputs()[0].name: probe})[0]
+            got = out[:, 1] if out.ndim == 2 else out
+        else:
+            ref = est.predict(probe)
+            got = sess.run([sess.get_outputs()[0].name],
+                           {sess.get_inputs()[0].name: probe})[0].ravel()
+        max_delta = float(np.max(np.abs(got - ref)))
+        assert max_delta < 1e-5, f"{model_id} parity delta {max_delta}"
+        results[model_id] = max_delta
+        log(f"  {model_id}: 256 probes, max |d| = {max_delta:.3e}")
+    ev.update({"n_samples": 256, "max_abs_delta": results,
+               "features": {m: s["features"] for m, s in MODELS.items()}})
 
 
 def g7_action_ambiguity(ev):

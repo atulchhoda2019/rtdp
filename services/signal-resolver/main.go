@@ -94,6 +94,27 @@ func (s *server) ResolveSignals(ctx context.Context,
 				time.Duration(deadline)*time.Millisecond)
 			defer cancel()
 
+			// Order this binding's input vector per its pinned input_features
+			// schema; absent = the shared request order (back-compat).
+			names, values := req.FeatureNames, req.FeatureValues
+			if len(spec.InputFeatures) > 0 {
+				byName := make(map[string]*rtdpv1.TypedValue,
+					len(req.FeatureNames))
+				for i, n := range req.FeatureNames {
+					byName[n] = req.FeatureValues[i]
+				}
+				names = spec.InputFeatures
+				values = make([]*rtdpv1.TypedValue, 0, len(names))
+				for _, n := range names {
+					v := byName[n]
+					if v == nil {
+						rs.RejectCode = "MISSING_INPUT"
+						resolved.WithLabelValues("reject").Inc()
+						return
+					}
+					values = append(values, v)
+				}
+			}
 			modelID, modelVer := splitRef(spec.Model)
 			bindID, bindVer := splitRefI(spec.Binding)
 			sr, err := client.Score(sctx, &rtdpv1.ScoreRequest{
@@ -110,8 +131,8 @@ func (s *server) ResolveSignals(ctx context.Context,
 				ModelDigest:         spec.ModelDigest,
 				PreprocessingDigest: spec.PreprocessingDigest,
 				InputSnapshotDigest: req.InputSnapshotDigest,
-				FeatureNames:        req.FeatureNames,
-				FeatureValues:       req.FeatureValues,
+				FeatureNames:        names,
+				FeatureValues:       values,
 				EventTime:           req.EventTime,
 				DeadlineMs:          deadline,
 				Traceparent:         req.Traceparent,

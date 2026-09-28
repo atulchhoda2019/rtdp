@@ -47,24 +47,32 @@ def _fetch(uri: str) -> bytes:
 
 class LoadedModel:
     def __init__(self, digest: str, session: ort.InferenceSession,
-                 input_name: str, prob_name: str, feature_order: list[str],
+                 input_name: str, out_name: str, feature_order: list[str],
                  meta: dict, preprocessing_digest: str):
         self.digest = digest
         self.session = session
         self.input_name = input_name
-        self.prob_name = prob_name
+        self.out_name = out_name
         self.feature_order = feature_order
         self.meta = meta
         self.preprocessing_digest = preprocessing_digest
+        self.output_kind = meta.get("output_kind", "binary_probability")
 
     def predict_proba(self, features: list[float]) -> float:
+        """The contracted output scalar: P(class=1) for classifiers, the
+        regression estimate for regression models."""
         x = np.array([features], dtype=np.float64)
-        out = self.session.run([self.prob_name], {self.input_name: x})[0]
+        out = self.session.run([self.out_name], {self.input_name: x})[0]
+        if self.output_kind == "regression":
+            return float(np.asarray(out).ravel()[0])
         return float(out[0][1])  # P(class=1) from the [N,2] prob matrix
 
 
-def _prob_output_name(session: ort.InferenceSession) -> str:
-    """skl2onnx emits (label, probabilities); pick the 2-D tensor output."""
+def _output_name(session: ort.InferenceSession, kind: str) -> str:
+    """skl2onnx classifiers emit (label, probabilities) — pick the 2-D
+    tensor; regressors emit a single prediction tensor."""
+    if kind == "regression":
+        return session.get_outputs()[0].name
     for o in session.get_outputs():
         if len(o.shape) == 2:
             return o.name
@@ -110,18 +118,20 @@ class ModelRegistry:
             session = ort.InferenceSession(
                 data, sess_options=self._sess_opts, providers=["CPUExecutionProvider"])
             input_name = session.get_inputs()[0].name
+            kind = meta.get("output_kind", "binary_probability")
 
             lm = LoadedModel(actual, session, input_name,
-                             _prob_output_name(session),
+                             _output_name(session, kind),
                              schema.get("ordered_features", []), meta,
                              preprocessing_digest)
 
-            # Golden vectors: known inputs must reproduce known probabilities.
+            # Golden vectors: known inputs must reproduce known outputs.
             try:
                 golden = json.loads(
                     _fetch(artifact_uri.rsplit("/", 1)[0] + "/golden_vectors.json"))
                 for gv in golden:
-                    if abs(lm.predict_proba(gv["input"]) - gv["probability"]) > 1e-5:
+                    expected = gv.get("value", gv.get("probability"))
+                    if abs(lm.predict_proba(gv["input"]) - expected) > 1e-5:
                         raise ModelNotReady("golden vector mismatch")
             except FileNotFoundError:
                 pass  # golden vectors optional for unregistered artifacts

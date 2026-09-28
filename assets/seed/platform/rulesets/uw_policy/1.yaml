@@ -1,0 +1,28 @@
+ruleset_id: uw_policy
+version: 1
+owner_scope: platform
+requires:
+  - signal: underwriting.eligibility_probability
+    contract: "1.0.0"
+    alias: uw
+    optional: false
+evaluation: all_match
+rules:
+  - id: velocity_refer
+    when: "features.claimant_claim_count_1h > cfg.velocity_decline_count"
+    outcome: {decision: DECLINE, reason: VELOCITY_LIMIT}
+    requires_signals: []
+  - id: auto_bind
+    when: "signals.uw.probability >= cfg.bind_probability"
+    outcome: {decision: APPROVE, reason: UW_ELIGIBLE}
+    requires_signals: [uw]
+  - id: refer_underwriter
+    when: "signals.uw.probability >= cfg.decline_probability && signals.uw.probability < cfg.bind_probability"
+    outcome: {decision: REVIEW, reason: UW_REFER_BAND}
+    requires_signals: [uw]
+  - id: ineligible_decline
+    when: "signals.uw.probability < cfg.decline_probability"
+    outcome: {decision: DECLINE, reason: UW_INELIGIBLE}
+    requires_signals: [uw]
+default_outcome: REVIEW
+missing_required_signal_outcome: REVIEW

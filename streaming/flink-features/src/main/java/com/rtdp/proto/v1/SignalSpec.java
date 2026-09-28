@@ -46,6 +46,8 @@ private static final long serialVersionUID = 0L;
     modelDigest_ = "";
     inputSchemaDigest_ = "";
     preprocessingDigest_ = "";
+    inputFeatures_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
@@ -592,6 +594,67 @@ private static final long serialVersionUID = 0L;
     return maximumAgeMs_;
   }
 
+  public static final int INPUT_FEATURES_FIELD_NUMBER = 16;
+  @SuppressWarnings("serial")
+  private com.google.protobuf.LazyStringArrayList inputFeatures_ =
+      com.google.protobuf.LazyStringArrayList.emptyList();
+  /**
+   * <pre>
+   * Ordered input vector for this binding's model (schema order from the
+   * binding's input_features). Values resolve from the shared feature map;
+   * "txn.*" names read from the transaction itself.
+   * </pre>
+   *
+   * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+   * @return A list containing the inputFeatures.
+   */
+  public com.google.protobuf.ProtocolStringList
+      getInputFeaturesList() {
+    return inputFeatures_;
+  }
+  /**
+   * <pre>
+   * Ordered input vector for this binding's model (schema order from the
+   * binding's input_features). Values resolve from the shared feature map;
+   * "txn.*" names read from the transaction itself.
+   * </pre>
+   *
+   * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+   * @return The count of inputFeatures.
+   */
+  public int getInputFeaturesCount() {
+    return inputFeatures_.size();
+  }
+  /**
+   * <pre>
+   * Ordered input vector for this binding's model (schema order from the
+   * binding's input_features). Values resolve from the shared feature map;
+   * "txn.*" names read from the transaction itself.
+   * </pre>
+   *
+   * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+   * @param index The index of the element to return.
+   * @return The inputFeatures at the given index.
+   */
+  public java.lang.String getInputFeatures(int index) {
+    return inputFeatures_.get(index);
+  }
+  /**
+   * <pre>
+   * Ordered input vector for this binding's model (schema order from the
+   * binding's input_features). Values resolve from the shared feature map;
+   * "txn.*" names read from the transaction itself.
+   * </pre>
+   *
+   * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the inputFeatures at the given index.
+   */
+  public com.google.protobuf.ByteString
+      getInputFeaturesBytes(int index) {
+    return inputFeatures_.getByteString(index);
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -650,6 +713,9 @@ private static final long serialVersionUID = 0L;
     }
     if (maximumAgeMs_ != 0L) {
       output.writeInt64(15, maximumAgeMs_);
+    }
+    for (int i = 0; i < inputFeatures_.size(); i++) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 16, inputFeatures_.getRaw(i));
     }
     getUnknownFields().writeTo(output);
   }
@@ -713,6 +779,14 @@ private static final long serialVersionUID = 0L;
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(15, maximumAgeMs_);
     }
+    {
+      int dataSize = 0;
+      for (int i = 0; i < inputFeatures_.size(); i++) {
+        dataSize += computeStringSizeNoTag(inputFeatures_.getRaw(i));
+      }
+      size += dataSize;
+      size += 2 * getInputFeaturesList().size();
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -758,6 +832,8 @@ private static final long serialVersionUID = 0L;
         .equals(other.getPreprocessingDigest())) return false;
     if (getMaximumAgeMs()
         != other.getMaximumAgeMs()) return false;
+    if (!getInputFeaturesList()
+        .equals(other.getInputFeaturesList())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -804,6 +880,10 @@ private static final long serialVersionUID = 0L;
     hash = (37 * hash) + MAXIMUM_AGE_MS_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
         getMaximumAgeMs());
+    if (getInputFeaturesCount() > 0) {
+      hash = (37 * hash) + INPUT_FEATURES_FIELD_NUMBER;
+      hash = (53 * hash) + getInputFeaturesList().hashCode();
+    }
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -956,6 +1036,8 @@ private static final long serialVersionUID = 0L;
       inputSchemaDigest_ = "";
       preprocessingDigest_ = "";
       maximumAgeMs_ = 0L;
+      inputFeatures_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
       return this;
     }
 
@@ -1034,6 +1116,10 @@ private static final long serialVersionUID = 0L;
       }
       if (((from_bitField0_ & 0x00004000) != 0)) {
         result.maximumAgeMs_ = maximumAgeMs_;
+      }
+      if (((from_bitField0_ & 0x00008000) != 0)) {
+        inputFeatures_.makeImmutable();
+        result.inputFeatures_ = inputFeatures_;
       }
     }
 
@@ -1122,6 +1208,16 @@ private static final long serialVersionUID = 0L;
       }
       if (other.getMaximumAgeMs() != 0L) {
         setMaximumAgeMs(other.getMaximumAgeMs());
+      }
+      if (!other.inputFeatures_.isEmpty()) {
+        if (inputFeatures_.isEmpty()) {
+          inputFeatures_ = other.inputFeatures_;
+          bitField0_ |= 0x00008000;
+        } else {
+          ensureInputFeaturesIsMutable();
+          inputFeatures_.addAll(other.inputFeatures_);
+        }
+        onChanged();
       }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
@@ -1225,6 +1321,12 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00004000;
               break;
             } // case 120
+            case 130: {
+              java.lang.String s = input.readStringRequireUtf8();
+              ensureInputFeaturesIsMutable();
+              inputFeatures_.add(s);
+              break;
+            } // case 130
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -2317,6 +2419,171 @@ private static final long serialVersionUID = 0L;
     public Builder clearMaximumAgeMs() {
       bitField0_ = (bitField0_ & ~0x00004000);
       maximumAgeMs_ = 0L;
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.LazyStringArrayList inputFeatures_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    private void ensureInputFeaturesIsMutable() {
+      if (!inputFeatures_.isModifiable()) {
+        inputFeatures_ = new com.google.protobuf.LazyStringArrayList(inputFeatures_);
+      }
+      bitField0_ |= 0x00008000;
+    }
+    /**
+     * <pre>
+     * Ordered input vector for this binding's model (schema order from the
+     * binding's input_features). Values resolve from the shared feature map;
+     * "txn.*" names read from the transaction itself.
+     * </pre>
+     *
+     * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+     * @return A list containing the inputFeatures.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getInputFeaturesList() {
+      inputFeatures_.makeImmutable();
+      return inputFeatures_;
+    }
+    /**
+     * <pre>
+     * Ordered input vector for this binding's model (schema order from the
+     * binding's input_features). Values resolve from the shared feature map;
+     * "txn.*" names read from the transaction itself.
+     * </pre>
+     *
+     * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+     * @return The count of inputFeatures.
+     */
+    public int getInputFeaturesCount() {
+      return inputFeatures_.size();
+    }
+    /**
+     * <pre>
+     * Ordered input vector for this binding's model (schema order from the
+     * binding's input_features). Values resolve from the shared feature map;
+     * "txn.*" names read from the transaction itself.
+     * </pre>
+     *
+     * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+     * @param index The index of the element to return.
+     * @return The inputFeatures at the given index.
+     */
+    public java.lang.String getInputFeatures(int index) {
+      return inputFeatures_.get(index);
+    }
+    /**
+     * <pre>
+     * Ordered input vector for this binding's model (schema order from the
+     * binding's input_features). Values resolve from the shared feature map;
+     * "txn.*" names read from the transaction itself.
+     * </pre>
+     *
+     * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the inputFeatures at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getInputFeaturesBytes(int index) {
+      return inputFeatures_.getByteString(index);
+    }
+    /**
+     * <pre>
+     * Ordered input vector for this binding's model (schema order from the
+     * binding's input_features). Values resolve from the shared feature map;
+     * "txn.*" names read from the transaction itself.
+     * </pre>
+     *
+     * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+     * @param index The index to set the value at.
+     * @param value The inputFeatures to set.
+     * @return This builder for chaining.
+     */
+    public Builder setInputFeatures(
+        int index, java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      ensureInputFeaturesIsMutable();
+      inputFeatures_.set(index, value);
+      bitField0_ |= 0x00008000;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Ordered input vector for this binding's model (schema order from the
+     * binding's input_features). Values resolve from the shared feature map;
+     * "txn.*" names read from the transaction itself.
+     * </pre>
+     *
+     * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+     * @param value The inputFeatures to add.
+     * @return This builder for chaining.
+     */
+    public Builder addInputFeatures(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      ensureInputFeaturesIsMutable();
+      inputFeatures_.add(value);
+      bitField0_ |= 0x00008000;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Ordered input vector for this binding's model (schema order from the
+     * binding's input_features). Values resolve from the shared feature map;
+     * "txn.*" names read from the transaction itself.
+     * </pre>
+     *
+     * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+     * @param values The inputFeatures to add.
+     * @return This builder for chaining.
+     */
+    public Builder addAllInputFeatures(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureInputFeaturesIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, inputFeatures_);
+      bitField0_ |= 0x00008000;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Ordered input vector for this binding's model (schema order from the
+     * binding's input_features). Values resolve from the shared feature map;
+     * "txn.*" names read from the transaction itself.
+     * </pre>
+     *
+     * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearInputFeatures() {
+      inputFeatures_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+      bitField0_ = (bitField0_ & ~0x00008000);;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Ordered input vector for this binding's model (schema order from the
+     * binding's input_features). Values resolve from the shared feature map;
+     * "txn.*" names read from the transaction itself.
+     * </pre>
+     *
+     * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+     * @param value The bytes of the inputFeatures to add.
+     * @return This builder for chaining.
+     */
+    public Builder addInputFeaturesBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      ensureInputFeaturesIsMutable();
+      inputFeatures_.add(value);
+      bitField0_ |= 0x00008000;
       onChanged();
       return this;
     }

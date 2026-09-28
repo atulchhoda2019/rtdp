@@ -195,7 +195,7 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
       "\002 \003(\tR\017missingFeatures\022\'\n\017snapshot_diges" +
       "t\030\003 \001(\tR\016snapshotDigest\032P\n\rFeaturesEntry" +
       "\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132\023.rtdp" +
-      ".v1.TypedValueR\005value:\0028\001\"\223\004\n\nSignalSpec" +
+      ".v1.TypedValueR\005value:\0028\001\"\272\004\n\nSignalSpec" +
       "\022\024\n\005alias\030\001 \001(\tR\005alias\022\032\n\010contract\030\002 \001(\t" +
       "R\010contract\022-\n\022accepted_contracts\030\003 \003(\tR\021" +
       "acceptedContracts\022\'\n\017contract_digest\030\004 \001" +
@@ -208,77 +208,78 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
       "est\030\014 \001(\tR\013modelDigest\022.\n\023input_schema_d" +
       "igest\030\r \001(\tR\021inputSchemaDigest\0221\n\024prepro" +
       "cessing_digest\030\016 \001(\tR\023preprocessingDiges" +
-      "t\022$\n\016maximum_age_ms\030\017 \001(\003R\014maximumAgeMs\"" +
-      "\301\004\n\025ResolveSignalsRequest\022\033\n\ttenant_id\030\001" +
-      " \001(\tR\010tenantId\022 \n\013environment\030\002 \001(\tR\013env" +
-      "ironment\022!\n\004mode\030\003 \001(\0162\r.rtdp.v1.ModeR\004m" +
-      "ode\022%\n\016transaction_id\030\004 \001(\tR\rtransaction" +
-      "Id\0221\n\024transaction_revision\030\005 \001(\003R\023transa" +
-      "ctionRevision\022.\n\023decision_context_id\030\006 \001" +
-      "(\tR\021decisionContextId\0229\n\nevent_time\030\007 \001(" +
-      "\0132\032.google.protobuf.TimestampR\teventTime" +
-      "\022\037\n\013deadline_ms\030\010 \001(\003R\ndeadlineMs\022)\n\005spe" +
-      "cs\030\t \003(\0132\023.rtdp.v1.SignalSpecR\005specs\022#\n\r" +
-      "feature_names\030\n \003(\tR\014featureNames\022:\n\016fea" +
-      "ture_values\030\013 \003(\0132\023.rtdp.v1.TypedValueR\r" +
-      "featureValues\0222\n\025input_snapshot_digest\030\014" +
-      " \001(\tR\023inputSnapshotDigest\022 \n\013traceparent" +
-      "\030\r \001(\tR\013traceparent\"\214\001\n\016ResolvedSignal\022\024" +
-      "\n\005alias\030\001 \001(\tR\005alias\0223\n\010envelope\030\002 \001(\0132\027" +
-      ".rtdp.v1.SignalEnvelopeR\010envelope\022\016\n\002ok\030" +
-      "\003 \001(\010R\002ok\022\037\n\013reject_code\030\004 \001(\tR\nrejectCo" +
-      "de\"K\n\026ResolveSignalsResponse\0221\n\007signals\030" +
-      "\001 \003(\0132\027.rtdp.v1.ResolvedSignalR\007signals\"" +
-      "\225\006\n\024EvaluateRulesRequest\022%\n\016ruleset_dige" +
-      "st\030\001 \001(\tR\rrulesetDigest\022*\n\021ruleset_spec_" +
-      "json\030\002 \001(\014R\017rulesetSpecJson\022G\n\010features\030" +
-      "\003 \003(\0132+.rtdp.v1.EvaluateRulesRequest.Fea" +
-      "turesEntryR\010features\022D\n\007signals\030\004 \003(\0132*." +
-      "rtdp.v1.EvaluateRulesRequest.SignalsEntr" +
-      "yR\007signals\0224\n\026present_signal_aliases\030\005 \003" +
-      "(\tR\024presentSignalAliases\0228\n\003cfg\030\006 \003(\0132&." +
-      "rtdp.v1.EvaluateRulesRequest.CfgEntryR\003c" +
-      "fg\022>\n\005input\030\007 \003(\0132(.rtdp.v1.EvaluateRule" +
-      "sRequest.InputEntryR\005input\022.\n\023execution_" +
-      "budget_ms\030\010 \001(\003R\021executionBudgetMs\032P\n\rFe" +
-      "aturesEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002" +
-      " \001(\0132\023.rtdp.v1.TypedValueR\005value:\0028\001\032M\n\014" +
-      "SignalsEntry\022\020\n\003key\030\001 \001(\tR\003key\022\'\n\005value\030" +
-      "\002 \001(\0132\021.rtdp.v1.ValueMapR\005value:\0028\001\032K\n\010C" +
-      "fgEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\013" +
-      "2\023.rtdp.v1.TypedValueR\005value:\0028\001\032M\n\nInpu" +
-      "tEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132" +
-      "\023.rtdp.v1.TypedValueR\005value:\0028\001\"X\n\tFired" +
-      "Rule\022\027\n\007rule_id\030\001 \001(\tR\006ruleId\022\032\n\010decisio" +
-      "n\030\002 \001(\tR\010decision\022\026\n\006reason\030\003 \001(\tR\006reaso" +
-      "n\"\310\001\n\025EvaluateRulesResponse\022(\n\005fired\030\001 \003" +
-      "(\0132\022.rtdp.v1.FiredRuleR\005fired\022(\n\020skipped" +
-      "_rule_ids\030\002 \003(\tR\016skippedRuleIds\022\032\n\010decis" +
-      "ion\030\003 \001(\tR\010decision\022!\n\014reason_codes\030\004 \003(" +
-      "\tR\013reasonCodes\022\034\n\tdefaulted\030\005 \001(\010R\tdefau" +
-      "lted\"V\n\030GetDecisionStatusRequest\022\033\n\ttena" +
-      "nt_id\030\001 \001(\tR\010tenantId\022\035\n\nrequest_id\030\002 \001(" +
-      "\tR\trequestId\"f\n\031GetDecisionStatusRespons" +
-      "e\0223\n\010decision\030\001 \001(\0132\027.rtdp.v1.DecisionRe" +
-      "sultR\010decision\022\024\n\005found\030\002 \001(\010R\005found2\177\n\020" +
-      "InferenceService\0226\n\005Score\022\025.rtdp.v1.Scor" +
-      "eRequest\032\026.rtdp.v1.ScoreResponse\0223\n\004Warm" +
-      "\022\024.rtdp.v1.WarmRequest\032\025.rtdp.v1.WarmRes" +
-      "ponse2f\n\016FeatureService\022T\n\017ResolveFeatur" +
-      "es\022\037.rtdp.v1.ResolveFeaturesRequest\032 .rt" +
-      "dp.v1.ResolveFeaturesResponse2c\n\016SignalR" +
-      "esolver\022Q\n\016ResolveSignals\022\036.rtdp.v1.Reso" +
-      "lveSignalsRequest\032\037.rtdp.v1.ResolveSigna" +
-      "lsResponse2^\n\014RulesService\022N\n\rEvaluateRu" +
-      "les\022\035.rtdp.v1.EvaluateRulesRequest\032\036.rtd" +
-      "p.v1.EvaluateRulesResponse2\260\001\n\014Orchestra" +
-      "tor\022D\n\006Decide\022!.rtdp.v1.AuthenticatedTra" +
-      "nsaction\032\027.rtdp.v1.DecisionResult\022Z\n\021Get" +
-      "DecisionStatus\022!.rtdp.v1.GetDecisionStat" +
-      "usRequest\032\".rtdp.v1.GetDecisionStatusRes" +
-      "ponseBQ\n\021com.rtdp.proto.v1B\016ServicesProt" +
-      "osP\001Z*github.com/rtdp/rtdp/gen/go/rtdp/v" +
-      "1;rtdpv1b\006proto3"
+      "t\022$\n\016maximum_age_ms\030\017 \001(\003R\014maximumAgeMs\022" +
+      "%\n\016input_features\030\020 \003(\tR\rinputFeatures\"\301" +
+      "\004\n\025ResolveSignalsRequest\022\033\n\ttenant_id\030\001 " +
+      "\001(\tR\010tenantId\022 \n\013environment\030\002 \001(\tR\013envi" +
+      "ronment\022!\n\004mode\030\003 \001(\0162\r.rtdp.v1.ModeR\004mo" +
+      "de\022%\n\016transaction_id\030\004 \001(\tR\rtransactionI" +
+      "d\0221\n\024transaction_revision\030\005 \001(\003R\023transac" +
+      "tionRevision\022.\n\023decision_context_id\030\006 \001(" +
+      "\tR\021decisionContextId\0229\n\nevent_time\030\007 \001(\013" +
+      "2\032.google.protobuf.TimestampR\teventTime\022" +
+      "\037\n\013deadline_ms\030\010 \001(\003R\ndeadlineMs\022)\n\005spec" +
+      "s\030\t \003(\0132\023.rtdp.v1.SignalSpecR\005specs\022#\n\rf" +
+      "eature_names\030\n \003(\tR\014featureNames\022:\n\016feat" +
+      "ure_values\030\013 \003(\0132\023.rtdp.v1.TypedValueR\rf" +
+      "eatureValues\0222\n\025input_snapshot_digest\030\014 " +
+      "\001(\tR\023inputSnapshotDigest\022 \n\013traceparent\030" +
+      "\r \001(\tR\013traceparent\"\214\001\n\016ResolvedSignal\022\024\n" +
+      "\005alias\030\001 \001(\tR\005alias\0223\n\010envelope\030\002 \001(\0132\027." +
+      "rtdp.v1.SignalEnvelopeR\010envelope\022\016\n\002ok\030\003" +
+      " \001(\010R\002ok\022\037\n\013reject_code\030\004 \001(\tR\nrejectCod" +
+      "e\"K\n\026ResolveSignalsResponse\0221\n\007signals\030\001" +
+      " \003(\0132\027.rtdp.v1.ResolvedSignalR\007signals\"\225" +
+      "\006\n\024EvaluateRulesRequest\022%\n\016ruleset_diges" +
+      "t\030\001 \001(\tR\rrulesetDigest\022*\n\021ruleset_spec_j" +
+      "son\030\002 \001(\014R\017rulesetSpecJson\022G\n\010features\030\003" +
+      " \003(\0132+.rtdp.v1.EvaluateRulesRequest.Feat" +
+      "uresEntryR\010features\022D\n\007signals\030\004 \003(\0132*.r" +
+      "tdp.v1.EvaluateRulesRequest.SignalsEntry" +
+      "R\007signals\0224\n\026present_signal_aliases\030\005 \003(" +
+      "\tR\024presentSignalAliases\0228\n\003cfg\030\006 \003(\0132&.r" +
+      "tdp.v1.EvaluateRulesRequest.CfgEntryR\003cf" +
+      "g\022>\n\005input\030\007 \003(\0132(.rtdp.v1.EvaluateRules" +
+      "Request.InputEntryR\005input\022.\n\023execution_b" +
+      "udget_ms\030\010 \001(\003R\021executionBudgetMs\032P\n\rFea" +
+      "turesEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 " +
+      "\001(\0132\023.rtdp.v1.TypedValueR\005value:\0028\001\032M\n\014S" +
+      "ignalsEntry\022\020\n\003key\030\001 \001(\tR\003key\022\'\n\005value\030\002" +
+      " \001(\0132\021.rtdp.v1.ValueMapR\005value:\0028\001\032K\n\010Cf" +
+      "gEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132" +
+      "\023.rtdp.v1.TypedValueR\005value:\0028\001\032M\n\nInput" +
+      "Entry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001(\0132\023" +
+      ".rtdp.v1.TypedValueR\005value:\0028\001\"X\n\tFiredR" +
+      "ule\022\027\n\007rule_id\030\001 \001(\tR\006ruleId\022\032\n\010decision" +
+      "\030\002 \001(\tR\010decision\022\026\n\006reason\030\003 \001(\tR\006reason" +
+      "\"\310\001\n\025EvaluateRulesResponse\022(\n\005fired\030\001 \003(" +
+      "\0132\022.rtdp.v1.FiredRuleR\005fired\022(\n\020skipped_" +
+      "rule_ids\030\002 \003(\tR\016skippedRuleIds\022\032\n\010decisi" +
+      "on\030\003 \001(\tR\010decision\022!\n\014reason_codes\030\004 \003(\t" +
+      "R\013reasonCodes\022\034\n\tdefaulted\030\005 \001(\010R\tdefaul" +
+      "ted\"V\n\030GetDecisionStatusRequest\022\033\n\ttenan" +
+      "t_id\030\001 \001(\tR\010tenantId\022\035\n\nrequest_id\030\002 \001(\t" +
+      "R\trequestId\"f\n\031GetDecisionStatusResponse" +
+      "\0223\n\010decision\030\001 \001(\0132\027.rtdp.v1.DecisionRes" +
+      "ultR\010decision\022\024\n\005found\030\002 \001(\010R\005found2\177\n\020I" +
+      "nferenceService\0226\n\005Score\022\025.rtdp.v1.Score" +
+      "Request\032\026.rtdp.v1.ScoreResponse\0223\n\004Warm\022" +
+      "\024.rtdp.v1.WarmRequest\032\025.rtdp.v1.WarmResp" +
+      "onse2f\n\016FeatureService\022T\n\017ResolveFeature" +
+      "s\022\037.rtdp.v1.ResolveFeaturesRequest\032 .rtd" +
+      "p.v1.ResolveFeaturesResponse2c\n\016SignalRe" +
+      "solver\022Q\n\016ResolveSignals\022\036.rtdp.v1.Resol" +
+      "veSignalsRequest\032\037.rtdp.v1.ResolveSignal" +
+      "sResponse2^\n\014RulesService\022N\n\rEvaluateRul" +
+      "es\022\035.rtdp.v1.EvaluateRulesRequest\032\036.rtdp" +
+      ".v1.EvaluateRulesResponse2\260\001\n\014Orchestrat" +
+      "or\022D\n\006Decide\022!.rtdp.v1.AuthenticatedTran" +
+      "saction\032\027.rtdp.v1.DecisionResult\022Z\n\021GetD" +
+      "ecisionStatus\022!.rtdp.v1.GetDecisionStatu" +
+      "sRequest\032\".rtdp.v1.GetDecisionStatusResp" +
+      "onseBQ\n\021com.rtdp.proto.v1B\016ServicesProto" +
+      "sP\001Z*github.com/rtdp/rtdp/gen/go/rtdp/v1" +
+      ";rtdpv1b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -340,7 +341,7 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
     internal_static_rtdp_v1_SignalSpec_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_rtdp_v1_SignalSpec_descriptor,
-        new java.lang.String[] { "Alias", "Contract", "AcceptedContracts", "ContractDigest", "Binding", "BindingDigest", "TimeoutMs", "Required", "Provider", "EndpointRef", "Model", "ModelDigest", "InputSchemaDigest", "PreprocessingDigest", "MaximumAgeMs", });
+        new java.lang.String[] { "Alias", "Contract", "AcceptedContracts", "ContractDigest", "Binding", "BindingDigest", "TimeoutMs", "Required", "Provider", "EndpointRef", "Model", "ModelDigest", "InputSchemaDigest", "PreprocessingDigest", "MaximumAgeMs", "InputFeatures", });
     internal_static_rtdp_v1_ResolveSignalsRequest_descriptor =
       getDescriptor().getMessageType(8);
     internal_static_rtdp_v1_ResolveSignalsRequest_fieldAccessorTable = new

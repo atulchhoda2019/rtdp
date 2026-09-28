@@ -13,6 +13,7 @@ import (
 	"net/http"
 	"os"
 	"strconv"
+	"strings"
 	"sync"
 	"time"
 
@@ -86,7 +87,8 @@ func (s *server) Decide(ctx context.Context,
 	mode := req.Mode.String()[5:]
 
 	// 1. Pin the activation manifest for tenant+env+cohort.
-	act, err := s.bundles.ActivationFor(req.TenantId, envOr("RTDP_ENV", "work"))
+	act, err := s.bundles.ActivationFor(req.TenantId, envOr("RTDP_ENV", "work"),
+		req.EventType)
 	if err != nil {
 		decisions.WithLabelValues("reject").Inc()
 		return nil, fmt.Errorf("activation: %w", err)
@@ -170,19 +172,20 @@ func (s *server) Decide(ctx context.Context,
 		return nil, fmt.Errorf("features: %w", err)
 	}
 
-	// 4. Ordered input vector for providers (schema order from the contract).
-	featNames := []string{"claimant_claim_count_1h",
-		"claimant_amount_sum_24h", "provider_claim_count_1h",
-		"provider_amount_sum_1h"}
+	// 4. Shared feature universe for signal inputs. Each binding orders its
+	// own vector via input_features; "txn.*" names resolve from the request.
+	featNames := make([]string, 0, len(feat.Features)+1)
 	var featVals []*rtdpv1.TypedValue
-	for _, n := range featNames {
-		v := feat.Features[n]
+	for _, f := range m.Features {
+		featNames = append(featNames, f.Name)
+		v := feat.Features[f.Name]
 		if v == nil {
-			featVals = append(featVals, tvf(0))
-		} else {
-			featVals = append(featVals, v)
+			v = tvf(0)
 		}
+		featVals = append(featVals, v)
 	}
+	featNames = append(featNames, "txn.amount")
+	featVals = append(featVals, tvf(req.Amount))
 	inputSnap := fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(
 		fmt.Sprintf("%v", featVals))))
 
@@ -204,6 +207,7 @@ func (s *server) Decide(ctx context.Context,
 			InputSchemaDigest:   sig.InputSchemaDigest,
 			PreprocessingDigest: sig.PreprocDigest,
 			MaximumAgeMs:        int64(sig.MaxAgeMs),
+			InputFeatures:       sig.InputFeatures,
 		})
 	}
 	remaining := time.Until(deadline).Milliseconds()
@@ -366,10 +370,18 @@ func (s *server) Decide(ctx context.Context,
 func allowedFor(outcome string, p bundle.ActionPolicySpec) []string {
 	var out []string
 	for _, a := range p.AllowedActions {
-		if a == "CLAIM_RESPONSE" {
-			out = append(out, a) // inline response always permitted
+		if rules, ok := p.ActionRules[a]; ok && len(rules) > 0 {
+			for _, o := range rules {
+				if "DECISION_"+o == outcome {
+					out = append(out, a)
+					break
+				}
+			}
+			continue
 		}
-		if a == "OPEN_SIU_CASE" && outcome == "DECISION_REVIEW" {
+		// Default policy: a synchronous *-RESPONSE action applies to every
+		// outcome; any other action fires only on REVIEW.
+		if strings.HasSuffix(a, "_RESPONSE") || outcome == "DECISION_REVIEW" {
 			out = append(out, a)
 		}
 	}

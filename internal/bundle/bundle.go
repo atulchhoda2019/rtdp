@@ -54,6 +54,7 @@ type Signal struct {
 	InputSchemaDigest string   `json:"input_schema_digest"`
 	PreprocDigest     string   `json:"preprocessing_digest"`
 	MaxAgeMs          int      `json:"maximum_age_ms"`
+	InputFeatures     []string `json:"input_features"`
 }
 
 type Ruleset struct {
@@ -131,9 +132,12 @@ type ActionPolicySpec struct {
 	Version        int               `json:"version"`
 	AllowedActions []string          `json:"allowed_actions"`
 	Adapters       map[string]string `json:"adapters"`
-	Domain         string            `json:"authoritative_decision_domain"`
-	IntentTTLMs    map[string]int64  `json:"intent_ttl_ms"`
-	Retries        map[string]struct {
+	// ActionRules maps action type -> outcomes that may emit it
+	// (e.g. OPEN_SIU_CASE only on REVIEW).
+	ActionRules map[string][]string `json:"action_rules"`
+	Domain      string              `json:"authoritative_decision_domain"`
+	IntentTTLMs map[string]int64    `json:"intent_ttl_ms"`
+	Retries     map[string]struct {
 		MaxAttempts int    `json:"maximum_attempts"`
 		Strategy    string `json:"strategy"`
 	} `json:"retries"`
@@ -175,9 +179,10 @@ func (s *Store) LoadManifest(path string) (*Manifest, error) {
 	return &m, nil
 }
 
-// ActivationFor returns the pinned activation for tenant/env/cohort from the
-// local activations file (written by the seed/control-plane CLI).
-func (s *Store) ActivationFor(tenant, env string) (*Activation, error) {
+// ActivationFor returns the pinned activation for tenant/env/eventType —
+// a tenant may activate several products; routing.event_types inside each
+// pinned bundle selects which one applies to this request.
+func (s *Store) ActivationFor(tenant, env, eventType string) (*Activation, error) {
 	b, err := os.ReadFile(filepath.Join(s.dir, "activations.json"))
 	if err != nil {
 		return nil, err
@@ -186,11 +191,27 @@ func (s *Store) ActivationFor(tenant, env string) (*Activation, error) {
 	if err := json.Unmarshal(b, &acts); err != nil {
 		return nil, err
 	}
+	var fallback *Activation
 	for i := range acts {
 		a := &acts[i]
-		if a.TenantID == tenant && a.Environment == env {
-			return a, nil
+		if a.TenantID != tenant || a.Environment != env || a.Bundle == nil {
+			continue
+		}
+		routing, _ := a.Bundle.EffectiveConfig["routing"].(map[string]any)
+		types, _ := routing["event_types"].([]any)
+		for _, t := range types {
+			if t == eventType {
+				return a, nil
+			}
+		}
+		// A bundle with no event_types constraint matches anything.
+		if len(types) == 0 && fallback == nil {
+			fallback = a
 		}
 	}
-	return nil, fmt.Errorf("no activation for tenant=%s env=%s", tenant, env)
+	if fallback != nil {
+		return fallback, nil
+	}
+	return nil, fmt.Errorf("no activation for tenant=%s env=%s "+
+		"event_type=%s", tenant, env, eventType)
 }

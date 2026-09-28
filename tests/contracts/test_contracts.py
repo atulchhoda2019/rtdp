@@ -28,6 +28,31 @@ def test_signal_contract_validates():
                for d in docs)
 
 
+def test_multi_product_contracts_validate():
+    docs = {d["signal_name"]: d for d in REG.load_all("signal_contract")}
+    assert "underwriting.eligibility_probability" in docs
+    assert "pricing.premium_estimate" in docs
+    # The pricing signal is a numeric estimate, not a probability — its
+    # contract must declare a different unit, proving signal contracts are
+    # product-independent schemas, not a fixed probability envelope.
+    assert docs["pricing.premium_estimate"]["semantics"]["unit"] != \
+        docs["claim.fraud_probability"]["semantics"]["unit"]
+
+
+def test_all_products_compile():
+    for pid in ("claim_decisioning", "underwriting_decisioning",
+                "risk_pricing"):
+        product = yaml.safe_load(
+            (ROOT / f"assets/seed/platform/products/{pid}/1.yaml").read_text())
+        b = compile_bundle(REG, product, None, "tenant_a")
+        assert b["product_id"] == pid
+        assert b["digest"].startswith("sha256:")
+        # Every binding declares its model's ordered input features.
+        for sig in b["signals"]:
+            assert sig["input_features"], \
+                f"{pid}: signal {sig['name']} has no input_features"
+
+
 def test_feature_definitions_have_tiers():
     docs = {d["feature_name"]: d for d in REG.load_all("feature_definition")}
     assert docs["claimant_claim_count_1h"]["tier"] == "tier1"

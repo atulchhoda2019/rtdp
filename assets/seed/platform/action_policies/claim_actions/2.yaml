@@ -6,6 +6,9 @@ adapters:
   CLAIM_RESPONSE: local_claim_simulator@1
   OPEN_SIU_CASE: local_siu_case_adapter@1
 authoritative_decision_domain: claim_decisioning
+action_rules:
+  CLAIM_RESPONSE: [APPROVE, REVIEW, DECLINE]
+  OPEN_SIU_CASE: [REVIEW]
 intent_ttl_ms:
   CLAIM_RESPONSE: 100
   OPEN_SIU_CASE: 300000

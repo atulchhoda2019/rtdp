@@ -1,0 +1,24 @@
+ruleset_id: pricing_policy
+version: 1
+owner_scope: platform
+requires:
+  - signal: pricing.premium_estimate
+    contract: "1.0.0"
+    alias: pricing
+    optional: false
+evaluation: all_match
+rules:
+  - id: over_rating_bound
+    when: "signals.pricing.premium > cfg.max_auto_quote"
+    outcome: {decision: REVIEW, reason: PREMIUM_OVER_RATING_BOUND}
+    requires_signals: [pricing]
+  - id: under_rating_bound
+    when: "signals.pricing.premium < cfg.min_auto_quote"
+    outcome: {decision: REVIEW, reason: PREMIUM_UNDER_RATING_BOUND}
+    requires_signals: [pricing]
+  - id: quote_in_band
+    when: "signals.pricing.premium >= cfg.min_auto_quote && signals.pricing.premium <= cfg.max_auto_quote"
+    outcome: {decision: APPROVE, reason: QUOTE_ISSUED}
+    requires_signals: [pricing]
+default_outcome: REVIEW
+missing_required_signal_outcome: REVIEW

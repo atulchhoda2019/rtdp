@@ -5,9 +5,18 @@ subscriptions:
     product: claim_decisioning@1
     revision: 2
     status: ACTIVE
+  - subscription_id: sub_b_uw
+    product: underwriting_decisioning@1
+    revision: 1
+    status: ACTIVE
+  - subscription_id: sub_b_pricing
+    product: risk_pricing@1
+    revision: 1
+    status: ACTIVE
 overlays:
   - overlay_id: ovl_b_decline
     version: 1
+    product: claim_decisioning@1
     # Tenant B's stricter decline threshold (worked example in design.md).
     overrides:
       thresholds.decline_probability: 0.85

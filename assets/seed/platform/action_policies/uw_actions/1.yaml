@@ -1,0 +1,20 @@
+action_policy_id: uw_actions
+version: 1
+owner_scope: platform
+allowed_actions: [POLICY_RESPONSE, ASSIGN_UNDERWRITER]
+adapters:
+  POLICY_RESPONSE: local_policy_simulator@1
+  ASSIGN_UNDERWRITER: local_uw_queue_adapter@1
+authoritative_decision_domain: underwriting
+action_rules:
+  POLICY_RESPONSE: [APPROVE, REVIEW, DECLINE]
+  ASSIGN_UNDERWRITER: [REVIEW]
+intent_ttl_ms:
+  POLICY_RESPONSE: 100
+  ASSIGN_UNDERWRITER: 300000
+retries:
+  ASSIGN_UNDERWRITER:
+    maximum_attempts: 3
+    strategy: bounded_exponential
+on_unknown_outcome: RECONCILE
+live_effects_allowed: false

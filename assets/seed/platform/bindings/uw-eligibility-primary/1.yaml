@@ -1,12 +1,12 @@
-binding_id: claim-fraud-primary
-version: 3
+binding_id: uw-eligibility-primary
+version: 1
 owner_scope: platform
 provider: grpc_inference
 endpoint_ref: inference-local
-model: claim_fraud_logistic@2
+model: uw_eligibility_logistic@1
 input_schema_digest: sha256:f9d6ecfe1586091a6fb3e930c24a6e589bff54cf3a456926c6954b8bf53d6c6d
 preprocessing_digest: sha256:16f815d56f2ab7b35ae4c44d306f26ee56a3a5bfa8c5f210b970d59050fc6af7
-output_contract: claim.fraud_probability@1.1.0
+output_contract: underwriting.eligibility_probability@1.0.0
 input_features:
 - claimant_claim_count_1h
 - claimant_amount_sum_24h
@@ -15,4 +15,4 @@ input_features:
 maximum_age_ms: 50
 required_quality:
   allow_stale_required_features: false
-model_digest: sha256:32d410b0a029739e1f86b9ac4888bdfb40162f40bb12f3a2e401842b433f0b33
+model_digest: sha256:9e64a10a50a62d700f5fb1a1fd81b198ccb5a951d93c28110ee2cc2e6ff547ec

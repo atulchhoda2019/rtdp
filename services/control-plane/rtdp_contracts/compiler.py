@@ -157,7 +157,9 @@ def compile_bundle(registry: ContractRegistry, product: dict,
                          s["binding_def"].get("input_schema_digest"),
                      "preprocessing_digest":
                          s["binding_def"].get("preprocessing_digest"),
-                     "maximum_age_ms": s["binding_def"].get("maximum_age_ms")}
+                     "maximum_age_ms": s["binding_def"].get("maximum_age_ms"),
+                     "input_features":
+                         s["binding_def"].get("input_features")}
                     for s in signals],
         "ruleset": {"id": rid, "version": rver, "digest": ruleset["_digest"],
                     "spec": {k: v for k, v in ruleset.items()

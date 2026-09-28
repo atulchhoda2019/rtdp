@@ -216,4 +216,53 @@ public interface SignalSpecOrBuilder extends
    * @return The maximumAgeMs.
    */
   long getMaximumAgeMs();
+
+  /**
+   * <pre>
+   * Ordered input vector for this binding's model (schema order from the
+   * binding's input_features). Values resolve from the shared feature map;
+   * "txn.*" names read from the transaction itself.
+   * </pre>
+   *
+   * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+   * @return A list containing the inputFeatures.
+   */
+  java.util.List<java.lang.String>
+      getInputFeaturesList();
+  /**
+   * <pre>
+   * Ordered input vector for this binding's model (schema order from the
+   * binding's input_features). Values resolve from the shared feature map;
+   * "txn.*" names read from the transaction itself.
+   * </pre>
+   *
+   * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+   * @return The count of inputFeatures.
+   */
+  int getInputFeaturesCount();
+  /**
+   * <pre>
+   * Ordered input vector for this binding's model (schema order from the
+   * binding's input_features). Values resolve from the shared feature map;
+   * "txn.*" names read from the transaction itself.
+   * </pre>
+   *
+   * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+   * @param index The index of the element to return.
+   * @return The inputFeatures at the given index.
+   */
+  java.lang.String getInputFeatures(int index);
+  /**
+   * <pre>
+   * Ordered input vector for this binding's model (schema order from the
+   * binding's input_features). Values resolve from the shared feature map;
+   * "txn.*" names read from the transaction itself.
+   * </pre>
+   *
+   * <code>repeated string input_features = 16 [json_name = "inputFeatures"];</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the inputFeatures at the given index.
+   */
+  com.google.protobuf.ByteString
+      getInputFeaturesBytes(int index);
 }

@@ -5,4 +5,12 @@ subscriptions:
     product: claim_decisioning@1
     revision: 4
     status: ACTIVE
+  - subscription_id: sub_a_uw
+    product: underwriting_decisioning@1
+    revision: 1
+    status: ACTIVE
+  - subscription_id: sub_a_pricing
+    product: risk_pricing@1
+    revision: 1
+    status: ACTIVE
 overlays: []

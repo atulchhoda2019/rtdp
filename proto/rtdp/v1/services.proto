@@ -117,6 +117,10 @@ message SignalSpec {
   string input_schema_digest = 13;
   string preprocessing_digest = 14;
   int64 maximum_age_ms = 15;
+  // Ordered input vector for this binding's model (schema order from the
+  // binding's input_features). Values resolve from the shared feature map;
+  // "txn.*" names read from the transaction itself.
+  repeated string input_features = 16;
 }
 
 message ResolveSignalsRequest {

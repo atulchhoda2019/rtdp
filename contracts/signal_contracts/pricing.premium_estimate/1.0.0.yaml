@@ -1,0 +1,21 @@
+signal_name: pricing.premium_estimate
+version: 1.0.0
+value_schema:
+  premium:
+    type: float64
+    required: true
+    minimum: 0.0
+    maximum: 1000000.0
+semantics:
+  meaning: estimated_premium_for_the_quoted_coverage_in_request_currency
+  population: synthetic_quote_requests_v1
+  target_label: synthetic_rated_premium_v1
+  label_observation_horizon: P30D
+  unit: currency_amount
+  higher_means: more_premium
+  calibration_contract: synthetic_rating_plan_v1
+scope: transaction_revision
+allowed_statuses: [OK, UNAVAILABLE, INVALID_INPUT, TIMED_OUT]
+compatibility:
+  additive_optional_values: allowed_after_validation
+  semantic_change: new_major_required

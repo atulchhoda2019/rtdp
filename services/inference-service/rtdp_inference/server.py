@@ -65,9 +65,10 @@ class InferenceServicer(services_pb2_grpc.InferenceServiceServicer):
         try:
             lm = self.registry.get(req.model_digest)
             values = [self._scalar(v) for v in req.feature_values]
-            prob = lm.predict_proba(values)
+            prob = lm.predict_proba(values)  # contracted scalar
             status = STATUS_OK
-            out_values = {"probability": prob}
+            out_name = lm.meta.get("output_value", "probability")
+            out_values = {out_name: prob}
             quality = envelope_pb2.SignalQuality()
         except ModelNotReady:
             status = envelope_pb2.SIGNAL_STATUS_UNAVAILABLE
@@ -116,7 +117,8 @@ class InferenceServicer(services_pb2_grpc.InferenceServiceServicer):
             traceparent=req.traceparent,
         )
         if status == STATUS_OK:
-            env.values["probability"].double_value = prob
+            env.values[lm.meta.get("output_value", "probability")
+                       ].double_value = prob
             env.contract_digest = req.contract_digest
         return services_pb2.ScoreResponse(envelope=env)
 

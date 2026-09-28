@@ -359,6 +359,20 @@ Both tenants subscribe to claim_decisioning@1 and can use the same shared model 
 
 The same numeric score is intentionally supplied to isolate policy behavior. The example does not imply that real tenants with different private feature histories produce equal model outputs.
 Changing Tenant A’s decline threshold to 0.85 produces a new overlay/configuration/bundle and approved activation. It requires no model retraining, rules-engine rebuild, or database migration. Tenant B’s active configuration is unaffected.
+### Multi-product routing and schema-independent models
+The reference runtime ships three products on one decision path; a tenant may subscribe to any subset. Product selection evaluates each activated bundle's routing predicates — `event_type` first — and pins exactly one bundle per request. An unrouted event type fails closed (no fallback product).
+
+| Event type | Product | Signal contract | Model | Decision actions |
+|---|---|---|---|---|
+| CLAIM_SUBMISSION | claim_decisioning@1 | claim.fraud_probability@1.1.0 | claim_fraud_logistic@2 | CLAIM_RESPONSE, OPEN_SIU_CASE |
+| POLICY_APPLICATION | underwriting_decisioning@1 | underwriting.eligibility_probability@1.0.0 | uw_eligibility_logistic@1 | POLICY_RESPONSE, ASSIGN_UNDERWRITER |
+| QUOTE_REQUEST | risk_pricing@1 | pricing.premium_estimate@1.0.0 | premium_linear@1 | QUOTE_RESPONSE, REFER_ACTUARY |
+
+Each binding declares its model's ordered `input_features` vector; the signal resolver builds that vector from the shared feature map and fails with MISSING_INPUT if the model's schema names a feature the product did not require. Model input order is therefore configuration, not a shared code constant — premium_linear consumes `txn.amount` plus claimant features while the classifiers consume the four feature aggregate, and none of this requires a service branch.
+
+Signals are typed by contract, not by "probability": `pricing.premium_estimate` is a currency-amount scalar (`value_schema.premium`), and the ruleset applies rating-band thresholds (`min_auto_quote`/`max_auto_quote`) with out-of-band results routing to REVIEW. Underwriting reuses the APPROVE/REVIEW/DECLINE shape — REVIEW maps to `ASSIGN_UNDERWRITER`, a durable queue adapter, not an autonomous bind.
+
+All three products share the same aggregation contract (DECLINE > REVIEW > APPROVE within a product) and the same fail-closed semantics: a missing required signal yields the product's declared missing-signal outcome, and cross-product authority is never decided by iteration order.
 ### Aggregation and authority
 For the demonstration, use DECLINE > REVIEW > APPROVE only within the single claim-fraud decision domain. Across multiple products, define explicit authority, exclusivity, and composition: advisory scores cannot overrule an authoritative compliance decline, and billing flags cannot determine risk policy.
 The original highest-priority-enrolled-product rule is no longer an assumed universal default. Preserve it only as an optional named aggregation strategy after business confirmation. Conflicting authoritative actions produce a configured conflict outcome, never iteration-order-dependent behavior.

@@ -1,5 +1,5 @@
 == G1 e2e decision path ==
-  tenant_a -> DECISION_APPROVE | tenant_b -> DECISION_APPROVE | digests differ | idempotent | conflict rejected
+  tenant_a -> DECISION_APPROVE | tenant_b -> DECISION_APPROVE | digests differ | idempotent | conflict rejected | routed ['CLAIM_SUBMISSION', 'POLICY_APPLICATION', 'QUOTE_REQUEST']
 == G2 tenant isolation ==
   payload spoof ignored; decision_fact tenant_a; dedup key tenant-scoped
 == G3 config-only change ==
@@ -8,8 +8,10 @@
   rejected: SEMANTIC_INCOMPATIBLE: binding claim-fraud-primary@3 emits claim.fraud_probability@9.9.9, ruleset accepts claim.fraud_probability@['1.1.0'] [claim_decisioning]
   rejected: SEMANTIC_INCOMPATIBLE: binding claim-fraud-primary@3 emits no.such.contract@1.0.0, ruleset accepts claim.fraud_probability@['1.1.0'] [claim_decisioning]
 == G5 stream recovery ==
-  job c352c3f9cc3a recovered; tile count == 3 exactly
+  job ddc8dccf6e9c recovered; tile count == 3 exactly
 == G6 model parity ==
-  256 probes, max |dp| = 1.388e-16
+  claim_fraud_logistic: 256 probes, max |d| = 1.665e-16
+  uw_eligibility_logistic: 256 probes, max |d| = 1.665e-16
+  premium_linear: 256 probes, max |d| = 0.000e+00
 == G7 action ambiguity ==
-  gate-amb-1790487732791 -> UNKNOWN (ref timeoutsim:42860f0a538a7), never ACKNOWLEDGED
+  gate-amb-1790555584411 -> UNKNOWN (ref timeoutsim:f15f63eff9c79), never ACKNOWLEDGED

@@ -1,10 +1,10 @@
 # Platform-owned product definition. Synthetic demo configuration only.
-product_id: claim_decisioning
+product_id: underwriting_decisioning
 version: 1
 owner_scope: platform
-runtime_profile: claim_submission
+runtime_profile: policy_application
 routing:
-  event_types: [CLAIM_SUBMISSION]
+  event_types: [POLICY_APPLICATION]
   channels: [PORTAL, BROKER]
 execution:
   total_deadline_ms: 100
@@ -14,20 +14,20 @@ execution:
     - provider_claim_count_1h@1
     - provider_amount_sum_1h@1
   signals:
-    fraud:
-      contract: claim.fraud_probability
-      accepted_contracts: ["1.1.0"]
-      binding: claim-fraud-primary@3
+    uw:
+      contract: underwriting.eligibility_probability
+      accepted_contracts: ["1.0.0"]
+      binding: uw-eligibility-primary@1
       timeout_ms: 40
       required: true
-  ruleset: claim_fraud_policy@5
+  ruleset: uw_policy@1
   missing_required_signal: REVIEW
   aggregation: decision_precedence@1
 thresholds:
-  review_probability: 0.70
-  decline_probability: 0.90
-  velocity_decline_count: 12
-action_policy: claim_actions@2
+  bind_probability: 0.75
+  decline_probability: 0.35
+  velocity_decline_count: 8
+action_policy: uw_actions@1
 rollout:
   mode: LIVE
   cohort: champion

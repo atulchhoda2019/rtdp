@@ -10,7 +10,9 @@ import json
 import sys
 import time
 import urllib.request
+from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[2]
 INGRESS = "http://localhost:8080"
 
 
@@ -70,6 +72,24 @@ def main():
                                                txn["transaction_id"] + "_b"})
     assert status == 200, f"tenant_b decision failed: {b}"
     print(f"tenant_b -> {b['outcome']} ({b['decision_id']})")
+
+    # Multi-product routing: each event type pins its own product bundle.
+    activations = json.loads(
+        (ROOT / "build/bundles/activations.json").read_text())
+    product_by_digest = {
+        a["bundle_digest"]: a["bundle"]["product_id"]
+        for a in activations if a["tenant_id"] == "tenant_a"}
+    for ev_type, expected in (("CLAIM_SUBMISSION", "claim_decisioning"),
+                              ("POLICY_APPLICATION", "underwriting_decisioning"),
+                              ("QUOTE_REQUEST", "risk_pricing")):
+        status, r = decide_retry("demo-client-a", {
+            **txn, "transaction_id": f"{txn['transaction_id']}_{ev_type}",
+            "event_type": ev_type})
+        assert status == 200, f"{ev_type} decision failed: {r}"
+        actual = product_by_digest.get(r["bundle_digest"])
+        assert actual == expected, \
+            f"{ev_type} routed to {actual}, want {expected}"
+        print(f"{ev_type} -> {r['outcome']} via {actual}")
 
     # Same id + same payload => same decision (idempotent retry).
     status, a2 = decide_retry("demo-client-a", {**txn, "transaction_id":
