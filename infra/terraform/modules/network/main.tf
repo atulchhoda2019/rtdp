@@ -57,16 +57,17 @@ resource "aws_internet_gateway" "this" {
   tags   = merge(var.tags, { Name = "rtdp-igw" })
 }
 
+# Sandbox sizing: single NAT (~$32/mo saved x2). Restore count=3 for HA.
 resource "aws_eip" "nat" {
-  count  = 3
+  count  = 1
   domain = "vpc"
   tags   = merge(var.tags, { Name = "rtdp-nat-${count.index}" })
 }
 
 resource "aws_nat_gateway" "this" {
-  count         = 3
-  allocation_id = aws_eip.nat[count.index].id
-  subnet_id     = aws_subnet.public[count.index].id
+  count         = 1
+  allocation_id = aws_eip.nat[0].id
+  subnet_id     = aws_subnet.public[0].id
   tags          = merge(var.tags, { Name = "rtdp-nat-${count.index}" })
 }
 
@@ -88,7 +89,7 @@ resource "aws_route_table" "private" {
   vpc_id = aws_vpc.this.id
   route {
     cidr_block     = "0.0.0.0/0"
-    nat_gateway_id = aws_nat_gateway.this[count.index].id
+    nat_gateway_id = aws_nat_gateway.this[0].id
   }
   tags = merge(var.tags, { Name = "rtdp-private-${count.index}" })
 }
@@ -105,20 +106,23 @@ resource "aws_route_table_association" "data" {
 # --- VPC endpoints: keep traffic off the internet (spec section 4) ---
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.this.id
-  service_name      = "com.amazonaws.${data.aws_region.current.region}.s3"
+  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = aws_route_table.private[*].id
   tags              = var.tags
 }
+# Sandbox sizing: interface endpoints in a single AZ (~$7.30/mo each per AZ).
+# private_dns_enabled resolves VPC-wide, so single-AZ placement still works.
+# Deferred until Stage C/D needs them: "elasticache", "kafka", "rds", "eks".
 resource "aws_vpc_endpoint" "interface" {
   for_each = toset([
     "ecr.api", "ecr.dkr", "sts", "secretsmanager", "kms", "logs",
-    "monitoring", "elasticache", "kafka", "rds", "eks",
+    "monitoring",
   ])
   vpc_id              = aws_vpc.this.id
-  service_name        = "com.amazonaws.${data.aws_region.current.region}.${each.key}"
+  service_name        = "com.amazonaws.${data.aws_region.current.name}.${each.key}"
   vpc_endpoint_type   = "Interface"
-  subnet_ids          = aws_subnet.private[*].id
+  subnet_ids          = [aws_subnet.private[0].id]
   security_group_ids  = [aws_security_group.endpoints.id]
   private_dns_enabled = true
   tags                = var.tags

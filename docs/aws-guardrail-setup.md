@@ -5,13 +5,15 @@ Account-level pieces need administrator credentials — Devin cannot create them
 without defeating the point of the guardrails.
 
 **Current status (2025-09-29): Stage A COMPLETE — all five bootstrap checks pass.**
-Account `003524518972`, region `us-east-1`. Zero infrastructure applied. Evidence:
+Account `079457921611`, region `us-east-1`. Zero infrastructure applied. Evidence:
 `docs/validation/aws/stage-a-bootstrap.md`.
 
-Deviation from the original plan: `organizations:CreateAccount` hit
-`ACCOUNT_NUMBER_LIMIT_EXCEEDED` (new-org quota), so the sandbox runs **in this
-account directly**. Region lock is enforced by the permission boundary instead
-of an SCP (SCPs don't apply to management accounts anyway).
+Dedicated sandbox account `079457921611` (new AWS account, Paid plan, ~$200
+signup credits). Standalone for now — org `o-k5z0u6kfv3` membership is blocked
+by the new-org account quota (increase request pending, case filed
+2025-09-29). Region lock is enforced by the permission boundary; the SCP layer
+can be added if/when the account joins the org. Management account
+`003524518972` now holds only billing/org admin.
 
 ## As-built topology
 
@@ -22,15 +24,18 @@ aws sso login --profile rtdp-sso        # rtdpuser @ IAM Identity Center
   -> RTDPDevinRole                      # RTDPDevinPolicy + RTDPDevinPermissionBoundary
 ```
 
-- `rtdp` profile (`aws login`, root-backed) — **bootstrap/admin only**, not for
-  runtime work. Used for: boundary, role, policy, Identity Center, budget.
+- `rtdp-new` profile (`aws login`, root-backed, sandbox acct) —
+  **bootstrap/admin only**. Used for: boundary, role, policy, Identity Center,
+  budget.
+- `rtdp` profile (`aws login`, root-backed, mgmt acct `003524518972`) —
+  org/billing admin only.
 - `rtdp-sso` profile — Identity Center user, powers limited to assuming the role.
 - `rtdp-devin` profile — the actual working credential. All Terraform and
   deployment operations run under this.
 
 ## 1. Account
 
-Standalone account `003524518972` (Organization `o-k5z0u6kfv3` auto-created by
+Standalone account `079457921611` (Organization `o-k5z0u6kfv3` auto-created by
 Identity Center; member-account creation blocked by new-org quota — revisit if
 a dedicated member account is wanted later).
 
@@ -41,7 +46,7 @@ denies non-global API calls where `aws:RequestedRegion != us-east-1`.
 
 ## 3. Permission boundary (DEPLOYED — v2)
 
-`arn:aws:iam::003524518972:policy/RTDPDevinPermissionBoundary`. Caps what any
+`arn:aws:iam::079457921611:policy/RTDPDevinPermissionBoundary`. Caps what any
 role Devin creates can ever do. The `AllowWithinGuardrails` statement is
 required — a deny-only boundary intersects to *nothing*.
 
@@ -90,14 +95,14 @@ required — a deny-only boundary intersects to *nothing*.
         "iam:DeleteUserPermissionsBoundary", "iam:PutRolePermissionsBoundary"],
       "Resource": "*",
       "Condition": {"StringNotEquals": {"iam:PermissionsBoundary":
-        "arn:aws:iam::003524518972:policy/RTDPDevinPermissionBoundary"}}
+        "arn:aws:iam::079457921611:policy/RTDPDevinPermissionBoundary"}}
     },
     {
       "Sid": "DenyRemoveThisBoundary",
       "Effect": "Deny",
       "Action": ["iam:DeletePolicyVersion", "iam:DeletePolicy",
         "iam:SetDefaultPolicyVersion"],
-      "Resource": "arn:aws:iam::003524518972:policy/RTDPDevinPermissionBoundary"
+      "Resource": "arn:aws:iam::079457921611:policy/RTDPDevinPermissionBoundary"
     }
   ]
 }
@@ -108,15 +113,15 @@ pre-created before the boundary denied `iam:CreateServiceLinkedRole`.
 
 ## 4. Devin's role (DEPLOYED)
 
-`arn:aws:iam::003524518972:role/RTDPDevinRole` — boundary attached, policy
+`arn:aws:iam::079457921611:role/RTDPDevinRole` — boundary attached, policy
 `RTDPDevinPolicy` v2 (RTDP service scope: ec2/eks/kafka/rds/elasticache/memorydb/
 s3/kms/secretsmanager/ecr/flink/aps/cloudwatch/logs/elb/wafv2/sns/acm/
 autoscaling/tag/ssm-read/ce-read/budgets-read/iam-role-mgmt; `iam:PassRole`
 scoped to `rtdp-*` roles; `RolesMustCarryBoundary` forces the boundary on any
 role creation).
 
-Authentication: IAM Identity Center user `rtdpuser` (store `d-906661b088`,
-portal `https://d-906661b088.awsapps.com/start`) holds permission set
+Authentication: IAM Identity Center user `rtdpuser` (store `d-9a675f84e3`,
+portal `https://d-9a675f84e3.awsapps.com/start`) holds permission set
 `RTDPDevin` — **only** `sts:AssumeRole` on `RTDPDevinRole`, nothing else.
 
 ```bash
@@ -126,7 +131,7 @@ aws sts get-caller-identity --profile rtdp-devin     # assumed-role/RTDPDevinRol
 
 ## 5. Terraform state bucket (DEPLOYED)
 
-`rtdp-tfstate-003524518972` — versioning enabled, AES256 SSE, all public access
+`rtdp-tfstate-079457921611` — versioning enabled, AES256 SSE, all public access
 blocked. S3 native state locking (`use_lockfile = true`) — no DynamoDB needed.
 
 ## 6. Budget (DEPLOYED)
@@ -157,11 +162,11 @@ has no state backend.
 
 | Item | tfvars key | Value | Status |
 |---|---|---|---|
-| Account ID | `expected_account_id` | `003524518972` | ✅ |
+| Account ID | `expected_account_id` | `079457921611` | ✅ |
 | Region | `expected_region` | `us-east-1` | ✅ |
-| Devin role ARN | `devin_role_arn` | `arn:aws:iam::003524518972:role/RTDPDevinRole` | ✅ |
-| State bucket | `state_bucket` | `rtdp-tfstate-003524518972` | ✅ |
-| Permission boundary ARN | `permission_boundary_arn` | `arn:aws:iam::003524518972:policy/RTDPDevinPermissionBoundary` | ✅ |
+| Devin role ARN | `devin_role_arn` | `arn:aws:iam::079457921611:role/RTDPDevinRole` | ✅ |
+| State bucket | `state_bucket` | `rtdp-tfstate-079457921611` | ✅ |
+| Permission boundary ARN | `permission_boundary_arn` | `arn:aws:iam::079457921611:policy/RTDPDevinPermissionBoundary` | ✅ |
 | Monthly budget cap | `monthly_budget_name` | `rtdp-monthly-cap` ($200) | ✅ |
 | Credentials working | — | `rtdp-devin` profile (SSO → role chain) | ✅ |
 | Approval contact | — | this conversation | ✅ |

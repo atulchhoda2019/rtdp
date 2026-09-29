@@ -5,7 +5,7 @@
 terraform {
   required_version = ">= 1.9"
   backend "s3" {
-    bucket       = "rtdp-tfstate-REPLACE_WITH_ACCOUNT_ID"
+    bucket       = "rtdp-tfstate-079457921611"
     key          = "sandbox/terraform.tfstate"
     region       = "us-east-1"
     use_lockfile = true
@@ -76,8 +76,8 @@ module "observability" {
   tags        = local.tags
   alarm_email = var.alarm_email
 }
-# Stage C: data services
-module "msk" {
+# Stage C: data services — commented until Stage C is approved
+/*module "msk" {
   source      = "../../modules/msk"
   tags        = local.tags
   vpc_id      = module.network.vpc_id
@@ -97,9 +97,9 @@ module "elasticache" {
   vpc_id      = module.network.vpc_id
   subnet_ids  = module.network.data_subnet_ids
   kms_key_arn = module.kms.data_key_arn
-}
-# Stage D: compute
-module "eks" {
+}*/
+# Stage D: compute — commented until Stage D is approved
+/*module "eks" {
   source             = "../../modules/eks"
   tags               = local.tags
   vpc_id             = module.network.vpc_id
@@ -123,4 +123,4 @@ module "flink" {
   security_group_ids = [module.msk.security_group_id]
   checkpoint_bucket  = module.s3.bucket_names.checkpoints
   jar_bucket         = module.s3.bucket_names.artifacts
-}
+}*/
