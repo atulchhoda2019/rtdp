@@ -1,0 +1,17 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rtdp.name" . }}
+  labels: {{- include "rtdp.labels" . | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector: {{- include "rtdp.labels" . | nindent 4 }}
+  ports:
+    {{- if .Values.service.port }}
+    - name: svc
+      port: {{ .Values.service.port }}
+      targetPort: svc
+    {{- end }}
+    - name: metrics
+      port: {{ .Values.service.metricsPort }}
+      targetPort: metrics

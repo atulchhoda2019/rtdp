@@ -1,0 +1,20 @@
+# App-of-apps: syncs every Application in deploy/argocd/apps.
+# kubectl apply -f deploy/argocd/project.yaml && kubectl apply -f deploy/argocd/root-app.yaml
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: rtdp-apps
+  namespace: argocd
+spec:
+  project: rtdp
+  source:
+    repoURL: https://github.com/atulchhoda2019/rtdp.git
+    targetRevision: main
+    path: deploy/argocd/apps
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: argocd
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true

@@ -3,6 +3,15 @@
 variable "tags" {
   type = map(string)
 }
+variable "permission_boundary_arn" {
+  type = string
+}
+variable "system_nodes" {
+  default = 1 # sandbox: 1; HA wants 2
+}
+variable "inference_nodes" {
+  default = 1 # sandbox: 1; HA wants 2
+}
 variable "cluster_name" {
   default = "rtdp-sandbox"
 }
@@ -29,8 +38,9 @@ resource "aws_eks_cluster" "this" {
   tags                      = var.tags
 }
 resource "aws_iam_role" "cluster" {
-  name               = "rtdp-eks-cluster"
-  assume_role_policy = data.aws_iam_policy_document.eks_assume.json
+  name                 = "rtdp-eks-cluster"
+  assume_role_policy   = data.aws_iam_policy_document.eks_assume.json
+  permissions_boundary = var.permission_boundary_arn
   tags               = var.tags
 }
 data "aws_iam_policy_document" "eks_assume" {
@@ -47,8 +57,9 @@ resource "aws_iam_role_policy_attachment" "cluster" {
   policy_arn = "arn:aws:iam::aws:policy/AmazonEKSClusterPolicy"
 }
 resource "aws_iam_role" "nodes" {
-  name               = "rtdp-eks-nodes"
-  assume_role_policy = data.aws_iam_policy_document.ec2_assume.json
+  name                 = "rtdp-eks-nodes"
+  assume_role_policy   = data.aws_iam_policy_document.ec2_assume.json
+  permissions_boundary = var.permission_boundary_arn
   tags               = var.tags
 }
 data "aws_iam_policy_document" "ec2_assume" {
@@ -77,8 +88,8 @@ resource "aws_eks_node_group" "system" {
   subnet_ids      = var.private_subnet_ids
   instance_types  = ["t3.large"]
   scaling_config {
-    desired_size = 2
-    min_size     = 2
+    desired_size = var.system_nodes
+    min_size     = 1
     max_size     = 4
   }
   labels = { "rtdp.io/pool" = "system"
@@ -92,7 +103,7 @@ resource "aws_eks_node_group" "inference" {
   subnet_ids      = var.private_subnet_ids
   instance_types  = ["c7i.xlarge"] # compute-optimized for ONNX per spec section 3
   scaling_config {
-    desired_size = 2
+    desired_size = var.inference_nodes
     min_size     = 1
     max_size     = 6
   }

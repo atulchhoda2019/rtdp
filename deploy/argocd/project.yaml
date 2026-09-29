@@ -1,0 +1,15 @@
+apiVersion: argoproj.io/v1alpha1
+kind: AppProject
+metadata:
+  name: rtdp
+  namespace: argocd
+spec:
+  description: RTDP platform services — digest-pinned, ArgoCD is the sole deployer
+  sourceRepos:
+    - https://github.com/atulchhoda2019/rtdp.git
+  destinations:
+    - server: https://kubernetes.default.svc
+      namespace: rtdp
+    - server: https://kubernetes.default.svc
+      namespace: argocd
+  clusterResourceWhitelist: [] # namespace-scoped only

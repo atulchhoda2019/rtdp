@@ -3,6 +3,9 @@
 variable "tags" {
   type = map(string)
 }
+variable "permission_boundary_arn" {
+  type = string
+}
 variable "name" {
   default = "rtdp-features-sandbox"
 }
@@ -26,6 +29,13 @@ variable "jar_key" {
 }
 variable "runtime" {
   default = "FLINK-1_20"
+}
+variable "kms_key_arns" {
+  type    = list(string)
+  default = [] # data + artifacts CMKs; needed to read KMS-encrypted jar/checkpoints
+}
+variable "parallelism" {
+  default = 1 # sandbox: 1 KPU; production: 4+
 }
 resource "aws_kinesisanalyticsv2_application" "features" {
   name                   = var.name
@@ -73,7 +83,7 @@ resource "aws_kinesisanalyticsv2_application" "features" {
       }
       parallelism_configuration {
         configuration_type   = "CUSTOM"
-        parallelism          = 4
+        parallelism          = var.parallelism
         parallelism_per_kpu  = 1
         auto_scaling_enabled = true
       }
@@ -87,8 +97,9 @@ resource "aws_kinesisanalyticsv2_application" "features" {
   tags = var.tags
 }
 resource "aws_iam_role" "flink" {
-  name               = "rtdp-flink-sandbox"
-  assume_role_policy = data.aws_iam_policy_document.flink_assume.json
+  name                 = "rtdp-flink-sandbox"
+  assume_role_policy   = data.aws_iam_policy_document.flink_assume.json
+  permissions_boundary = var.permission_boundary_arn
   tags               = var.tags
 }
 data "aws_iam_policy_document" "flink_assume" {
@@ -124,6 +135,11 @@ resource "aws_iam_role_policy" "flink" {
         Effect   = "Allow"
         Action   = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents", "logs:DescribeLogGroups", "logs:DescribeLogStreams"]
         Resource = "*"
+      },
+      { # KMS for SSE-encrypted jar + checkpoint buckets
+        Effect = "Allow"
+        Action = ["kms:Decrypt", "kms:DescribeKey", "kms:GenerateDataKey", "kms:GenerateDataKeyWithoutPlaintext"]
+        Resource = var.kms_key_arns
       },
       { # MSK IAM auth (cluster-level; topic ARNs scoped by iam-workloads)
         Effect   = "Allow"

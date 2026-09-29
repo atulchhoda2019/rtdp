@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: orchestrator
+  namespace: argocd
+spec:
+  project: rtdp
+  source:
+    repoURL: https://github.com/atulchhoda2019/rtdp.git
+    targetRevision: main
+    path: deploy/helm/rtdp-service
+    helm:
+      values: |
+        image:
+          repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/orchestrator
+          digest: "sha256:SET_BY_CI_OR_STAGE_F"
+        service:
+          port: 50055
+        env:
+          RTDP_POSTGRES_DSN_SECRET: "rtdp-db"   # resolved via External Secrets at Stage F
+          RTDP_KAFKA_BROKERS: 'SET_AT_STAGE_F'
+          RTDP_REDIS_ADDR: 'SET_AT_STAGE_F'
+          RTDP_FEATURE_ADDR: 'feature-service.rtdp.svc.cluster.local:50052'
+          RTDP_RULES_ADDR: 'rules-service.rtdp.svc.cluster.local:50053'
+          RTDP_RESOLVER_ADDR: 'signal-resolver.rtdp.svc.cluster.local:50054'
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rtdp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+      - CreateNamespace=true

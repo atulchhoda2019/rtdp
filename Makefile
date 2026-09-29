@@ -94,3 +94,10 @@ e2e: ## End-to-end synthetic transaction -> decision -> action
 
 load: ## Load test (make load TPS=500 DURATION=5m)
 	$(PY) tests/performance/load.py --tps $(or $(TPS),500) --duration $(or $(DURATION),5m)
+
+aws-sleep:    ## stop metered compute (aurora, flink, eks nodes) — ~$270/mo residual
+	tools/aws/sleep.sh
+aws-wake:     ## restore compute after sleep ("Devin wake up")
+	tools/aws/wake.sh
+aws-teardown: ## destroy Stage C+D entirely (needs CONFIRM=teardown) — ~$85/mo floor
+	CONFIRM=teardown tools/aws/teardown.sh

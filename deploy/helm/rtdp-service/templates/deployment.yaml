@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "rtdp.name" . }}
+  labels: {{- include "rtdp.labels" . | nindent 4 }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels: {{- include "rtdp.labels" . | nindent 6 }}
+  template:
+    metadata:
+      labels: {{- include "rtdp.labels" . | nindent 8 }}
+      annotations:
+        prometheus.io/scrape: "true"
+        prometheus.io/port: "{{ .Values.service.metricsPort }}"
+    spec:
+      serviceAccountName: {{ include "rtdp.saName" . }}
+      {{- if .Values.nodeSelector }}
+      nodeSelector: {{- toYaml .Values.nodeSelector | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: app
+          image: "{{ .Values.image.repository }}@{{ .Values.image.digest }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            {{- if .Values.service.port }}
+            - name: svc
+              containerPort: {{ .Values.service.port }}
+            {{- end }}
+            - name: metrics
+              containerPort: {{ .Values.service.metricsPort }}
+          env:
+            - name: RTDP_ENV
+              value: "aws-sandbox"
+            {{- range $k, $v := .Values.env }}
+            - name: {{ $k }}
+              value: {{ $v | quote }}
+            {{- end }}
+          {{- if .Values.envFromSecrets }}
+          envFrom:
+            {{- range .Values.envFromSecrets }}
+            - secretRef: { name: {{ .name }} }
+            {{- end }}
+          {{- end }}
+          resources: {{- toYaml .Values.resources | nindent 12 }}
+          {{- if .Values.probe.httpPath }}
+          livenessProbe:
+            httpGet: { path: {{ .Values.probe.httpPath }}, port: svc }
+            initialDelaySeconds: 5
+          readinessProbe:
+            httpGet: { path: {{ .Values.probe.httpPath }}, port: svc }
+            initialDelaySeconds: 3
+          {{- else if .Values.service.port }}
+          livenessProbe:
+            tcpSocket: { port: svc }
+            initialDelaySeconds: 5
+          readinessProbe:
+            tcpSocket: { port: svc }
+            initialDelaySeconds: 3
+          {{- end }}

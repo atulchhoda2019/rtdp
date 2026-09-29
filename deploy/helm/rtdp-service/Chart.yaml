@@ -1,0 +1,6 @@
+apiVersion: v2
+name: rtdp-service
+description: Generic RTDP workload — Deployment + Service + ServiceAccount. All services deploy by image digest.
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

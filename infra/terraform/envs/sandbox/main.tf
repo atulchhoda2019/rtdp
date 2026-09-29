@@ -68,9 +68,9 @@ module "s3" {
   account_id = var.account_id
 }
 module "ecr" {
-  source       = "../../modules/ecr"
-  tags         = local.tags
-  kms_key_arn  = module.kms.artifacts_key_arn
+  source      = "../../modules/ecr"
+  tags        = local.tags
+  kms_key_arn = module.kms.artifacts_key_arn
 }
 module "observability" {
   source      = "../../modules/observability"
@@ -78,12 +78,13 @@ module "observability" {
   alarm_email = var.alarm_email
 }
 # Stage C: data services — commented until Stage C is approved
-/*module "msk" {
-  source      = "../../modules/msk"
-  tags        = local.tags
-  vpc_id      = module.network.vpc_id
-  subnet_ids  = module.network.data_subnet_ids
-  kms_key_arn = module.kms.data_key_arn
+module "msk" {
+  source          = "../../modules/msk"
+  tags            = local.tags
+  vpc_id          = module.network.vpc_id
+  subnet_ids      = module.network.data_subnet_ids
+  kms_key_arn     = module.kms.data_key_arn
+  broker_instance = "kafka.t3.small" # sandbox sizing; prod: kafka.m7g.large
 }
 module "aurora" {
   source      = "../../modules/aurora"
@@ -98,13 +99,15 @@ module "elasticache" {
   vpc_id      = module.network.vpc_id
   subnet_ids  = module.network.data_subnet_ids
   kms_key_arn = module.kms.data_key_arn
-}*/
+  node_type   = "cache.t4g.micro" # sandbox sizing; prod: cache.t4g.medium+
+}
 # Stage D: compute — commented until Stage D is approved
-/*module "eks" {
-  source             = "../../modules/eks"
-  tags               = local.tags
-  vpc_id             = module.network.vpc_id
-  private_subnet_ids = module.network.private_subnet_ids
+module "eks" {
+  source                  = "../../modules/eks"
+  tags                    = local.tags
+  vpc_id                  = module.network.vpc_id
+  private_subnet_ids      = module.network.private_subnet_ids
+  permission_boundary_arn = var.permission_boundary_arn
 }
 module "iam_workloads" {
   source                  = "../../modules/iam-workloads"
@@ -117,11 +120,13 @@ module "iam_workloads" {
   permission_boundary_arn = var.permission_boundary_arn
 }
 module "flink" {
-  source             = "../../modules/flink"
-  tags               = local.tags
-  vpc_id             = module.network.vpc_id
-  subnet_ids         = module.network.data_subnet_ids
-  security_group_ids = [module.msk.security_group_id]
-  checkpoint_bucket  = module.s3.bucket_names.checkpoints
-  jar_bucket         = module.s3.bucket_names.artifacts
-}*/
+  source                  = "../../modules/flink"
+  tags                    = local.tags
+  permission_boundary_arn = var.permission_boundary_arn
+  kms_key_arns            = [module.kms.data_key_arn, module.kms.artifacts_key_arn]
+  vpc_id                  = module.network.vpc_id
+  subnet_ids              = module.network.data_subnet_ids
+  security_group_ids      = [module.msk.security_group_id]
+  checkpoint_bucket       = module.s3.bucket_names.checkpoints
+  jar_bucket              = module.s3.bucket_names.artifacts
+}

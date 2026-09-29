@@ -15,6 +15,13 @@ variable "subnet_ids" {
 variable "kms_key_arn" {
   type = string
 }
+variable "reader_enabled" {
+  type    = bool
+  default = false # sandbox: writer only; set true for HA
+}
+variable "engine_version" {
+  default = "16.15" # 16.4 doesn't exist in us-east-1; pick current minor
+}
 variable "instance_class" {
   default = "db.t4g.medium"
 }
@@ -40,7 +47,7 @@ resource "aws_db_subnet_group" "this" {
 resource "aws_rds_cluster" "this" {
   cluster_identifier                  = var.cluster_name
   engine                              = "aurora-postgresql"
-  engine_version                      = "16.4"
+  engine_version                      = var.engine_version
   database_name                       = var.database_name
   master_username                     = "rtdp_admin"
   manage_master_user_password         = true # secret lands in Secrets Manager
@@ -67,6 +74,7 @@ resource "aws_rds_cluster_instance" "writer" {
   tags                = var.tags
 }
 resource "aws_rds_cluster_instance" "reader" {
+  count               = var.reader_enabled ? 1 : 0
   identifier          = "${var.cluster_name}-reader"
   cluster_identifier  = aws_rds_cluster.this.id
   instance_class      = var.instance_class

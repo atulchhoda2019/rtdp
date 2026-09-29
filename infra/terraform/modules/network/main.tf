@@ -113,11 +113,12 @@ resource "aws_vpc_endpoint" "s3" {
 }
 # Sandbox sizing: interface endpoints in a single AZ (~$7.30/mo each per AZ).
 # private_dns_enabled resolves VPC-wide, so single-AZ placement still works.
-# Deferred until Stage C/D needs them: "elasticache", "kafka", "rds", "eks".
 resource "aws_vpc_endpoint" "interface" {
+  # Note: no "kafka" endpoint — MSK is reached directly in-VPC; its endpoint
+  # service requires PrivateLink acceptance (not self-service).
   for_each = toset([
     "ecr.api", "ecr.dkr", "sts", "secretsmanager", "kms", "logs",
-    "monitoring",
+    "monitoring", "elasticache", "rds", "eks",
   ])
   vpc_id              = aws_vpc.this.id
   service_name        = "com.amazonaws.${data.aws_region.current.name}.${each.key}"

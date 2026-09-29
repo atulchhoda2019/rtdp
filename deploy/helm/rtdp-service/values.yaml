@@ -1,0 +1,27 @@
+# Base values — every key is overridable per-service via ArgoCD Application helm.values.
+replicaCount: 1
+
+image:
+  repository: ""   # e.g. 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/orchestrator
+  digest: ""       # REQUIRED — deploys are digest-pinned, never tags
+  pullPolicy: IfNotPresent
+
+serviceAccount:
+  name: ""         # defaults to Release.Name; Pod Identity association per iam-workloads
+
+service:
+  port: null       # gRPC/HTTP service port (null = headless-none, worker only)
+  metricsPort: 9090
+
+probe:
+  httpPath: ""     # e.g. /healthz (ingress); empty => tcpSocket on service.port
+  grpcPort: null   # tcp probe on this port when httpPath empty
+
+env: {}            # rendered verbatim; secrets come via envFrom/secretRef per service
+envFromSecrets: [] # list of {name: <k8s secret name>} for External Secrets
+
+resources:
+  requests: { cpu: 100m, memory: 128Mi }
+  limits:   { cpu: 500m, memory: 512Mi }
+
+nodeSelector: {}   # inference-service => rtdp.io/pool: cpu-inference

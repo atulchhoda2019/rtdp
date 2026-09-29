@@ -12,6 +12,10 @@ variable "vpc_id" {
 variable "subnet_ids" {
   type = list(string)
 }
+variable "num_nodes" {
+  type    = number
+  default = 1 # sandbox: no replica
+}
 variable "node_type" {
   default = "cache.t4g.medium"
 }
@@ -56,9 +60,9 @@ resource "aws_elasticache_replication_group" "this" {
   engine                     = "valkey"
   engine_version             = var.engine_version
   node_type                  = var.node_type
-  num_cache_clusters         = 2
-  automatic_failover_enabled = true
-  multi_az_enabled           = true
+  num_cache_clusters         = var.num_nodes
+  automatic_failover_enabled = var.num_nodes > 1
+  multi_az_enabled           = var.num_nodes > 1
   parameter_group_name       = aws_elasticache_parameter_group.this.name
   subnet_group_name          = aws_elasticache_subnet_group.this.name
   security_group_ids         = [aws_security_group.valkey.id]
