@@ -14,6 +14,7 @@ Usage: train.py [model_id ...]  (default: all)
 
 import hashlib
 import json
+import os
 import sys
 from pathlib import Path
 
@@ -130,7 +131,8 @@ def _probe(model_id: str, X: np.ndarray):
 
 def train(model_id: str):
     spec = MODELS[model_id]
-    X, y = spec["data"](20000, np.random.default_rng(42))
+    seed = int(os.environ.get("RTDP_TRAIN_SEED", "42"))
+    X, y = spec["data"](20000, np.random.default_rng(seed))
     est = spec["estimator"]()
     est.fit(X, y)
 
@@ -173,7 +175,7 @@ def train(model_id: str):
     provenance = {
         "kind": "synthetic",
         "generator": "ml/seed-model/train.py",
-        "training_seed": 42,
+        "training_seed": seed,
     }
     if hasattr(est, "coef_"):
         provenance["sklearn_coefficients"] = np.atleast_2d(

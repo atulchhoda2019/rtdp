@@ -1,0 +1,18 @@
+binding_id: claim-fraud-primary
+version: 4
+owner_scope: platform
+provider: grpc_inference
+endpoint_ref: inference-local
+model: claim_fraud_logistic@3
+input_schema_digest: sha256:f9d6ecfe1586091a6fb3e930c24a6e589bff54cf3a456926c6954b8bf53d6c6d
+preprocessing_digest: sha256:16f815d56f2ab7b35ae4c44d306f26ee56a3a5bfa8c5f210b970d59050fc6af7
+output_contract: claim.fraud_probability@1.1.0
+input_features:
+- claimant_claim_count_1h
+- claimant_amount_sum_24h
+- provider_claim_count_1h
+- provider_amount_sum_1h
+maximum_age_ms: 50
+required_quality:
+  allow_stale_required_features: false
+model_digest: sha256:9c3f72daa399a57864439fba6c51e857563e76d98149ef4b4d1918fad6d5d8b7
