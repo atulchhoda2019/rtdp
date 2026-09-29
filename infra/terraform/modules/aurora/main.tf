@@ -19,6 +19,10 @@ variable "reader_enabled" {
   type    = bool
   default = false # sandbox: writer only; set true for HA
 }
+variable "deletion_protection" {
+  type    = bool
+  default = true # keep true for prod; sandbox env sets false for teardown
+}
 variable "engine_version" {
   default = "16.15" # 16.4 doesn't exist in us-east-1; pick current minor
 }
@@ -57,7 +61,7 @@ resource "aws_rds_cluster" "this" {
   kms_key_id                          = var.kms_key_arn
   backup_retention_period             = 7
   preferred_backup_window             = "03:00-04:00"
-  deletion_protection                 = true
+  deletion_protection                 = var.deletion_protection
   skip_final_snapshot                 = false
   final_snapshot_identifier           = "${var.cluster_name}-final"
   enabled_cloudwatch_logs_exports     = ["postgresql"]

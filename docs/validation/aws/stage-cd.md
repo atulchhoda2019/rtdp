@@ -39,3 +39,28 @@ Post-apply `terraform plan`: **no changes** (zero drift).
 
 ~$530/mo for C+D (~$615 all-in with B), right-sized from ~$1,150.
 Signup credits (~$200) absorb initial burn; budget cap alerts at 50/80/100%.
+
+## Teardown (user-requested, CONFIRM=teardown)
+
+Ran `make aws-teardown` after C+D verification. Two passes:
+
+1. Pass 1 destroyed 69 resources; failed on Aurora cluster (`deletion_protection=true`).
+2. Fixed: `rds modify-db-cluster --no-deletion-protection`, then made
+   `deletion_protection` a module var (default `true`; sandbox env sets `false`)
+   so future teardowns are clean. Also fixed `$85` shell-expansion bug in
+   `teardown.sh` echo. Pass 2 destroyed remaining 3 resources.
+
+### Post-teardown state (verified via AWS APIs, profile rtdp-devin)
+
+| Expectation | Result |
+|---|---|
+| MSK / EKS / Aurora / ElastiCache / Flink | all gone — list/describe calls return empty |
+| Terraform state | 84 resources, all in network/kms/s3/ecr/observability — zero C+D modules |
+| VPC `vpc-06a082a87cae062bd`, NAT, 7 interface + 1 S3 endpoint | present |
+| S3 buckets (4 workload + tfstate) | present |
+| ECR repos | 10 present |
+| KMS aliases `rtdp-sandbox-{data,artifacts}` | present |
+| Budget `rtdp-monthly-cap` ($200) | present |
+
+Residual burn: ~$85/mo Stage B floor. Reprovision = `terraform apply` (C+D
+modules remain uncommented in config; next apply recreates ~72 resources).

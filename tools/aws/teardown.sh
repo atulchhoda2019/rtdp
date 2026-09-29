@@ -24,4 +24,4 @@ AWS_PROFILE="$PROFILE" terraform destroy -auto-approve \
   -target='module.network.aws_vpc_endpoint.interface["elasticache"]' \
   -target='module.network.aws_vpc_endpoint.interface["eks"]'
 
-echo "[teardown] done — Stage B floor only (~$85/mo). Wake via terraform apply."
+echo "[teardown] done — Stage B floor only (~\$85/mo). Wake via terraform apply."

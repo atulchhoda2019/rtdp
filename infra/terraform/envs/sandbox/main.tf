@@ -87,11 +87,12 @@ module "msk" {
   broker_instance = "kafka.t3.small" # sandbox sizing; prod: kafka.m7g.large
 }
 module "aurora" {
-  source      = "../../modules/aurora"
-  tags        = local.tags
-  vpc_id      = module.network.vpc_id
-  subnet_ids  = module.network.data_subnet_ids
-  kms_key_arn = module.kms.data_key_arn
+  source              = "../../modules/aurora"
+  tags                = local.tags
+  deletion_protection = false # sandbox: teardown must be able to destroy
+  vpc_id              = module.network.vpc_id
+  subnet_ids          = module.network.data_subnet_ids
+  kms_key_arn         = module.kms.data_key_arn
 }
 module "elasticache" {
   source      = "../../modules/elasticache"
