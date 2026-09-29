@@ -105,7 +105,7 @@ resource "aws_route_table_association" "data" {
 # --- VPC endpoints: keep traffic off the internet (spec section 4) ---
 resource "aws_vpc_endpoint" "s3" {
   vpc_id            = aws_vpc.this.id
-  service_name      = "com.amazonaws.${data.aws_region.current.name}.s3"
+  service_name      = "com.amazonaws.${data.aws_region.current.region}.s3"
   vpc_endpoint_type = "Gateway"
   route_table_ids   = aws_route_table.private[*].id
   tags              = var.tags
@@ -116,7 +116,7 @@ resource "aws_vpc_endpoint" "interface" {
     "monitoring", "elasticache", "kafka", "rds", "eks",
   ])
   vpc_id              = aws_vpc.this.id
-  service_name        = "com.amazonaws.${data.aws_region.current.name}.${each.key}"
+  service_name        = "com.amazonaws.${data.aws_region.current.region}.${each.key}"
   vpc_endpoint_type   = "Interface"
   subnet_ids          = aws_subnet.private[*].id
   security_group_ids  = [aws_security_group.endpoints.id]

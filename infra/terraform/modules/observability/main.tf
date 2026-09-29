@@ -53,7 +53,7 @@ resource "aws_cloudwatch_dashboard" "rtdp" {
           title = "Decision latency (target p95 < 150ms)"
           metrics = [["rtdp", "decision_latency_ms", {
           stat = "p95" }]]
-          region = data.aws_region.current.name
+          region = data.aws_region.current.region
           period = 60
         }
       },
@@ -63,7 +63,7 @@ resource "aws_cloudwatch_dashboard" "rtdp" {
           title = "Throughput (target 500 TPS)"
           metrics = [["rtdp", "decisions_total", {
           stat = "Sum" }]]
-          region = data.aws_region.current.name
+          region = data.aws_region.current.region
           period = 60
         }
       },

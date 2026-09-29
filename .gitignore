@@ -47,3 +47,6 @@ tmp/
 *.log
 !docs/validation/*.log
 coverage/
+
+# Terraform variable files may contain account-specific values
+**/terraform.tfvars

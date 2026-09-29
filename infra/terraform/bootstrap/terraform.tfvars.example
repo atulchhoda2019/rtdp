@@ -1,0 +1,22 @@
+# Stage A bootstrap inputs — copy to terraform.tfvars and fill in.
+# Every value comes from the guardrail setup in docs/aws-guardrail-setup.md.
+# This module CREATES NOTHING — it only verifies the guardrails exist.
+
+# Dedicated sandbox account ID (12 digits).
+expected_account_id = "123456789012"
+
+# Approved region (SCP-locked). Default us-east-1.
+expected_region = "us-east-1"
+
+# Encrypted, versioned S3 bucket for Terraform state (you created it).
+state_bucket = "rtdp-tfstate-123456789012"
+
+# IAM role Devin assumes (OIDC / short-lived creds), WITH the permission
+# boundary attached — the check reads role.permissions_boundary.
+devin_role_arn = "arn:aws:iam::123456789012:role/rtdp-devin"
+
+# Customer-managed policy arn:aws:iam::<acct>:policy/RTDPDevinPermissionBoundary
+permission_boundary_arn = "arn:aws:iam::123456789012:policy/RTDPDevinPermissionBoundary"
+
+# AWS Budgets cap name. Default rtdp-monthly-cap.
+monthly_budget_name = "rtdp-monthly-cap"
