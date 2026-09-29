@@ -68,8 +68,9 @@ module "s3" {
   account_id = var.account_id
 }
 module "ecr" {
-  source = "../../modules/ecr"
-  tags   = local.tags
+  source       = "../../modules/ecr"
+  tags         = local.tags
+  kms_key_arn  = module.kms.artifacts_key_arn
 }
 module "observability" {
   source      = "../../modules/observability"

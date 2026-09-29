@@ -2,6 +2,10 @@
 variable "tags" {
   type = map(string)
 }
+variable "kms_key_arn" {
+  type    = string
+  default = null # artifacts CMK; null falls back to the aws/ecr managed key
+}
 variable "repos" {
   type = list(string)
   default = [
@@ -20,6 +24,7 @@ resource "aws_ecr_repository" "svc" {
   }
   encryption_configuration {
     encryption_type = "KMS"
+    kms_key         = var.kms_key_arn
   }
   tags = var.tags
 }
