@@ -41,7 +41,7 @@ resource "aws_iam_role" "cluster" {
   name                 = "rtdp-eks-cluster"
   assume_role_policy   = data.aws_iam_policy_document.eks_assume.json
   permissions_boundary = var.permission_boundary_arn
-  tags               = var.tags
+  tags                 = var.tags
 }
 data "aws_iam_policy_document" "eks_assume" {
   statement {
@@ -60,7 +60,7 @@ resource "aws_iam_role" "nodes" {
   name                 = "rtdp-eks-nodes"
   assume_role_policy   = data.aws_iam_policy_document.ec2_assume.json
   permissions_boundary = var.permission_boundary_arn
-  tags               = var.tags
+  tags                 = var.tags
 }
 data "aws_iam_policy_document" "ec2_assume" {
   statement {

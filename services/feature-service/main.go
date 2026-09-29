@@ -17,10 +17,10 @@ import (
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/redis/go-redis/v9"
 	"google.golang.org/grpc"
 
 	rtdpv1 "github.com/rtdp/rtdp/gen/go/rtdp/v1"
+	"github.com/rtdp/rtdp/internal/redisx"
 	"github.com/rtdp/rtdp/internal/store"
 )
 
@@ -108,7 +108,7 @@ func (s *server) ResolveFeatures(ctx context.Context,
 }
 
 func main() {
-	rdb := redis.NewClient(&redis.Options{Addr: envOr("RTDP_REDIS_ADDR", "localhost:6379")})
+	rdb := redisx.New()
 	s := &server{t1: store.NewTier1(rdb), t2: store.NewTier2(rdb)}
 
 	go func() {

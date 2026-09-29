@@ -57,11 +57,18 @@ PRODUCTS = {
     "document_intake": ROOT / "assets/seed/platform/products/document_intake/1.yaml",
 }
 
-S3_ENDPOINT = os.environ.get("RTDP_S3_ENDPOINT", "http://localhost:9099")
+# RTDP_SEED_AWS=1: in-cluster bootstrap — real S3 via pod identity, topics via
+# the rtdp-topics binary, no docker exec, no Flink REST submit (Managed Flink
+# owns the job), Ollama/services reached at in-cluster DNS.
+AWS_MODE = os.environ.get("RTDP_SEED_AWS") == "1"
+S3_ENDPOINT = os.environ.get("RTDP_S3_ENDPOINT",
+                            "" if AWS_MODE else "http://localhost:9099")
 S3_KEY = os.environ.get("RTDP_S3_ACCESS_KEY", "minioadmin")
 S3_SECRET = os.environ.get("RTDP_S3_SECRET_KEY", "minioadmin")
-ARTIFACT_BUCKET = "rtdp-artifacts"
+ARTIFACT_BUCKET = os.environ.get("RTDP_BUCKET_ARTIFACTS", "rtdp-artifacts")
+BUNDLE_BUCKET = os.environ.get("RTDP_BUCKET_BUNDLES", "rtdp-bundles")
 KAFKA_CONTAINER = "kafka"
+OLLAMA_ADDR = os.environ.get("RTDP_OLLAMA_ADDR", "http://localhost:11434")
 INFERENCE_ADDR = os.environ.get("RTDP_INFERENCE_ADDR", "localhost:50051")
 SLM_ADDR = os.environ.get("RTDP_SLM_ADDR", "localhost:50056")
 FLINK_REST = os.environ.get("RTDP_FLINK_REST", "http://localhost:8081")
@@ -81,7 +88,20 @@ def sh(cmd, **kw):
     return subprocess.run(cmd, check=True, capture_output=True, text=True, **kw)
 
 
+def s3_client():
+    import boto3
+    if AWS_MODE:
+        return boto3.client("s3")  # pod identity / default credential chain
+    return boto3.client("s3", endpoint_url=S3_ENDPOINT,
+                        aws_access_key_id=S3_KEY,
+                        aws_secret_access_key=S3_SECRET)
+
+
 def ensure_topics():
+    if AWS_MODE:
+        sh(["rtdp-topics"])  # SASL_IAM via env; entrypoint also runs it
+        print("topics: ensured via rtdp-topics")
+        return
     for t in TOPICS:
         sh(["docker", "compose", "exec", "-T", KAFKA_CONTAINER,
             "/opt/kafka/bin/kafka-topics.sh", "--bootstrap-server",
@@ -90,13 +110,23 @@ def ensure_topics():
     print(f"topics: {len(TOPICS)} ensured")
 
 
+def sync_bundles():
+    """Push compiled bundles + activation manifest to the bundles bucket —
+    orchestrator initContainers `aws s3 sync` them to disk on pod start."""
+    if not AWS_MODE:
+        return
+    s3 = s3_client()
+    n = 0
+    for p in sorted((BUILD / "bundles").iterdir()):
+        s3.upload_file(str(p), BUNDLE_BUCKET, f"bundles/{p.name}")
+        n += 1
+    print(f"bundles synced: {n} objects -> s3://{BUNDLE_BUCKET}/bundles/")
+
+
 def upload_model(model_id: str) -> dict:
-    import boto3
     mdir = BUILD / "models" / model_id / MODELS[model_id]["version"]
     meta = json.loads((mdir / "metadata.json").read_text())
-    s3 = boto3.client("s3", endpoint_url=S3_ENDPOINT,
-                      aws_access_key_id=S3_KEY,
-                      aws_secret_access_key=S3_SECRET)
+    s3 = s3_client()
     ver = MODELS[model_id]["version"]
     for name in ("model.onnx", "input_schema.json", "preprocessing.json",
                  "metadata.json", "golden_vectors.json"):
@@ -123,12 +153,11 @@ def setup_slm() -> dict:
     digest, stage + upload the prompt/schema artifacts, patch the binding.
     The weights digest comes from the runtime itself — the binding pins
     what is actually served, not what we hoped was pulled."""
-    import boto3
-
     # Idempotent pull (init container also does this; seed may run standalone)
-    sh(["docker", "exec", "rtdp-ollama-1", "ollama", "pull", SLM_TAG])
+    if not AWS_MODE:
+        sh(["docker", "exec", "rtdp-ollama-1", "ollama", "pull", SLM_TAG])
     req = urllib.request.Request(
-        "http://localhost:11434/api/show",
+        f"{OLLAMA_ADDR}/api/show",
         data=json.dumps({"model": SLM_TAG}).encode(),
         headers={"Content-Type": "application/json"}, method="POST")
     with urllib.request.urlopen(req, timeout=15) as r:
@@ -163,9 +192,7 @@ def setup_slm() -> dict:
     }
     (mdir / "metadata.json").write_text(json.dumps(meta, indent=2))
 
-    s3 = boto3.client("s3", endpoint_url=S3_ENDPOINT,
-                      aws_access_key_id=S3_KEY,
-                      aws_secret_access_key=S3_SECRET)
+    s3 = s3_client()
     for name in ("input_schema.json", "prompt_template.json",
                  "metadata.json"):
         s3.upload_file(str(mdir / name), ARTIFACT_BUCKET,
@@ -235,6 +262,9 @@ def compile_tenants():
 
 
 def submit_flink():
+    if AWS_MODE:
+        print("flink submit skipped — Managed Flink runs the app continuously")
+        return
     if not (ROOT / JAR).exists():
         print(f"flink jar missing ({JAR}) — run `make flink-jar` first; skipping submit")
         return
@@ -336,6 +366,7 @@ def main():
         metas[model_id] = meta
     slm_meta = setup_slm()
     activations = compile_tenants()
+    sync_bundles()
     submit_flink()
     for model_id, meta in metas.items():
         warm_inference(model_id, meta)

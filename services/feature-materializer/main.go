@@ -12,12 +12,12 @@ import (
 	"os"
 
 	"github.com/prometheus/client_golang/prometheus/promhttp"
-	"github.com/redis/go-redis/v9"
 	"github.com/twmb/franz-go/pkg/kgo"
 	"google.golang.org/protobuf/proto"
 
 	rtdpv1 "github.com/rtdp/rtdp/gen/go/rtdp/v1"
 	"github.com/rtdp/rtdp/internal/kafkax"
+	"github.com/rtdp/rtdp/internal/redisx"
 )
 
 func envOr(k, d string) string {
@@ -28,8 +28,7 @@ func envOr(k, d string) string {
 }
 
 func main() {
-	rdb := redis.NewClient(&redis.Options{
-		Addr: envOr("RTDP_REDIS_ADDR", "localhost:6379")})
+	rdb := redisx.New()
 	consumer, err := kafkax.NewReader("rtdp-materializer",
 		kafkax.TopicFeatureUpdates)
 	if err != nil {

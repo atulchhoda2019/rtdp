@@ -1,28 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: signal-resolver
+  name: rtdp-bootstrap
   namespace: argocd
 spec:
   project: rtdp
   sources:
     - repoURL: https://github.com/atulchhoda2019/rtdp.git
       targetRevision: main
-      path: deploy/helm/rtdp-service
+      path: deploy/helm/rtdp-bootstrap
       helm:
         valueFiles:
           - $values/deploy/argocd/values/sandbox.yaml
-        values: |
-          image:
-            repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/signal-resolver
-            digest: "sha256:SET_BY_PUSH_IMAGES"
-          service:
-            port: 50054
-          env:
-            RTDP_RESOLVER_PORT: "50054"
-            RTDP_INFERENCE_ADDR: inference-service.rtdp.svc.cluster.local:50051
-            RTDP_SLM_ADDR: slm-service.rtdp.svc.cluster.local:50056
-
     - repoURL: https://github.com/atulchhoda2019/rtdp.git
       targetRevision: main
       ref: values

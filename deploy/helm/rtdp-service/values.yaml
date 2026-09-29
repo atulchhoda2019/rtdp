@@ -25,3 +25,14 @@ resources:
   limits:   { cpu: 500m, memory: 512Mi }
 
 nodeSelector: {}   # inference-service => rtdp.io/pool: cpu-inference
+
+initContainers: [] # rendered verbatim (generic escape hatch)
+volumes: []        # pod-level volumes (emptyDir for bundle/artifact staging)
+volumeMounts: []   # mounted into the app container
+
+# Orchestrator bundle staging: initContainer syncs s3://<bucket>/bundles into
+# an emptyDir mounted at /bundles. bucket comes from the env values file.
+bundleSync:
+  enabled: false
+  bucket: ""                                        # set in sandbox.yaml
+  image: public.ecr.aws/aws-cli/aws-cli:2.31.28    # pinned tag

@@ -5,21 +5,25 @@ metadata:
   namespace: argocd
 spec:
   project: rtdp
-  source:
-    repoURL: https://github.com/atulchhoda2019/rtdp.git
-    targetRevision: main
-    path: deploy/helm/rtdp-service
-    helm:
-      values: |
-        image:
-          repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/feature-service
-          digest: "sha256:SET_BY_CI_OR_STAGE_F"
-        service:
-          port: 50052
-        env:
-          RTDP_POSTGRES_DSN_SECRET: "rtdp-db"   # resolved via External Secrets at Stage F
-          RTDP_KAFKA_BROKERS: 'SET_AT_STAGE_F'
-          RTDP_REDIS_ADDR: 'SET_AT_STAGE_F'
+  sources:
+    - repoURL: https://github.com/atulchhoda2019/rtdp.git
+      targetRevision: main
+      path: deploy/helm/rtdp-service
+      helm:
+        valueFiles:
+          - $values/deploy/argocd/values/sandbox.yaml
+        values: |
+          image:
+            repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/feature-service
+            digest: "sha256:SET_BY_PUSH_IMAGES"
+          service:
+            port: 50052
+          env:
+            RTDP_FEATURE_PORT: "50052"
+
+    - repoURL: https://github.com/atulchhoda2019/rtdp.git
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: rtdp

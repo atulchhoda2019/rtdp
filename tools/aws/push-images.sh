@@ -1,0 +1,45 @@
+#!/usr/bin/env bash
+# Build + push every RTDP service image (and the tools image) to ECR, then
+# stamp real sha256 digests into the ArgoCD app manifests and values file.
+# Requires: docker (colima), AWS_PROFILE with ecr push perms (rtdp-devin).
+set -euo pipefail
+PROFILE="${AWS_PROFILE:-rtdp-devin}"
+REGION="${AWS_REGION:-us-east-1}"
+ACCOUNT=079457921611
+REGISTRY="$ACCOUNT.dkr.ecr.$REGION.amazonaws.com"
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
+cd "$ROOT"
+
+aws ecr get-login-password --profile "$PROFILE" --region "$REGION" \
+  | docker login --username AWS --password-stdin "$REGISTRY" >/dev/null
+
+TAG="git-$(git rev-parse --short HEAD)"
+
+# name -> dockerfile
+SERVICES="ingress orchestrator feature-service signal-resolver rules-service \
+inference-service slm-service feature-materializer action-dispatcher projector"
+declare -A DOCKERFILE
+for s in $SERVICES; do DOCKERFILE[$s]="services/$s/Dockerfile"; done
+DOCKERFILE[tools]="tools/seed/Dockerfile"
+
+for s in $SERVICES tools; do
+  img="$REGISTRY/rtdp/$s"
+  echo "[images] build+push $s:$TAG"
+  docker build -f "${DOCKERFILE[$s]}" -t "$img:$TAG" .
+  docker push "$img:$TAG" >/dev/null
+  digest=$(docker buildx imagetools inspect "$img:$TAG" --format '{{.Manifest.Digest}}')
+  echo "[images]   -> $digest"
+  if [ "$s" = "tools" ]; then
+    sed -i '' "s|toolsImage: \".*\"|toolsImage: \"$img@$digest\"|" \
+      deploy/argocd/values/sandbox.yaml
+  else
+    sed -i '' "s|digest: \"sha256:.*\"|digest: \"$digest\"|" "deploy/argocd/apps/$s.yaml"
+  fi
+done
+
+# Ollama: pin the upstream image by digest (no copy to ECR needed).
+DIG=$(docker buildx imagetools inspect ollama/ollama:0.12.6 --format '{{.Manifest.Digest}}')
+sed -i '' "s|ollama/ollama@sha256:SET_BY_PUSH_IMAGES|ollama/ollama@$DIG|; s|repository: ollama/ollama$|repository: ollama/ollama|" deploy/argocd/apps/ollama.yaml
+sed -i '' "s|digest: \"sha256:SET_BY_PUSH_IMAGES\"|digest: \"$DIG\"|" deploy/argocd/apps/ollama.yaml
+echo "[images] ollama -> $DIG"
+echo "[images] done — commit the stamped manifests"

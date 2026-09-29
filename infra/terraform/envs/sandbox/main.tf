@@ -119,6 +119,7 @@ module "iam_workloads" {
   kms_data_key_arn        = module.kms.data_key_arn
   kms_artifacts_key_arn   = module.kms.artifacts_key_arn
   permission_boundary_arn = var.permission_boundary_arn
+  secret_arns             = [module.aurora.master_secret_arn]
 }
 module "flink" {
   source                  = "../../modules/flink"
@@ -130,4 +131,5 @@ module "flink" {
   security_group_ids      = [module.msk.security_group_id]
   checkpoint_bucket       = module.s3.bucket_names.checkpoints
   jar_bucket              = module.s3.bucket_names.artifacts
+  kafka_bootstrap         = module.msk.bootstrap_brokers_iam
 }

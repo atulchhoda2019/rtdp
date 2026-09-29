@@ -5,14 +5,17 @@ package kafkax
 
 import (
 	"context"
+	"crypto/tls"
 	"fmt"
 	"os"
 	"strings"
 	"sync"
 	"time"
 
+	awsconfig "github.com/aws/aws-sdk-go-v2/config"
 	"github.com/twmb/franz-go/pkg/kadm"
 	"github.com/twmb/franz-go/pkg/kgo"
+	saslaws "github.com/twmb/franz-go/pkg/sasl/aws"
 )
 
 func Brokers() []string {
@@ -21,6 +24,34 @@ func Brokers() []string {
 		b = "localhost:9092"
 	}
 	return strings.Split(b, ",")
+}
+
+// authOpts returns TLS + SASL AWS_MSK_IAM opts when RTDP_KAFKA_AUTH=iam (MSK),
+// nil otherwise (local plaintext). Credentials resolve through the default
+// AWS chain — Pod Identity / IRSA in-cluster, AWS_PROFILE locally.
+func authOpts() ([]kgo.Opt, error) {
+	if os.Getenv("RTDP_KAFKA_AUTH") != "iam" {
+		return nil, nil
+	}
+	cfg, err := awsconfig.LoadDefaultConfig(context.Background())
+	if err != nil {
+		return nil, fmt.Errorf("aws config: %w", err)
+	}
+	creds := cfg.Credentials
+	return []kgo.Opt{
+		kgo.DialTLSConfig(&tls.Config{MinVersion: tls.VersionTLS12}),
+		kgo.SASL(saslaws.ManagedStreamingIAM(func(ctx context.Context) (saslaws.Auth, error) {
+			c, err := creds.Retrieve(ctx)
+			if err != nil {
+				return saslaws.Auth{}, err
+			}
+			return saslaws.Auth{
+				AccessKey:    c.AccessKeyID,
+				SecretKey:    c.SecretAccessKey,
+				SessionToken: c.SessionToken,
+			}, nil
+		})),
+	}, nil
 }
 
 // Topics from design.md topic contracts.
@@ -49,35 +80,47 @@ var AllTopics = []string{
 // in one Kafka transaction. Transactional producers are idempotent by
 // construction.
 func NewTransacter(id string) (*kgo.Client, error) {
-	return kgo.NewClient(
+	opts, err := authOpts()
+	if err != nil {
+		return nil, err
+	}
+	return kgo.NewClient(append([]kgo.Opt{
 		kgo.SeedBrokers(Brokers()...),
 		kgo.TransactionalID(id),
 		kgo.TransactionTimeout(time.Minute),
 		kgo.RequiredAcks(kgo.AllISRAcks()),
 		kgo.ProducerLinger(0),
-	)
+	}, opts...)...)
 }
 
 // NewReader returns a read_committed consumer for downstream consumers.
 func NewReader(group string, topics ...string) (*kgo.Client, error) {
-	return kgo.NewClient(
+	opts, err := authOpts()
+	if err != nil {
+		return nil, err
+	}
+	return kgo.NewClient(append([]kgo.Opt{
 		kgo.SeedBrokers(Brokers()...),
 		kgo.ConsumerGroup(group),
 		kgo.ConsumeTopics(topics...),
 		kgo.FetchIsolationLevel(kgo.ReadCommitted()),
 		kgo.DisableAutoCommit(),
-	)
+	}, opts...)...)
 }
 
 // NewProducer returns a non-transactional idempotent producer for services
 // that publish facts outside the orchestrator's commit boundary (e.g. the
 // action outbox relay).
 func NewProducer() (*kgo.Client, error) {
-	return kgo.NewClient(
+	opts, err := authOpts()
+	if err != nil {
+		return nil, err
+	}
+	return kgo.NewClient(append([]kgo.Opt{
 		kgo.SeedBrokers(Brokers()...),
 		kgo.RequiredAcks(kgo.AllISRAcks()),
 		kgo.ProducerLinger(0),
-	)
+	}, opts...)...)
 }
 
 // BeginTxn wraps f in a Kafka transaction. Commit errors surface to the
@@ -191,13 +234,19 @@ func (p *TxnPool) Close() {
 }
 
 // EnsureTopics creates declared topics if missing (seed tooling).
-func EnsureTopics(ctx context.Context, partitions int32) error {
-	cl, err := kgo.NewClient(kgo.SeedBrokers(Brokers()...))
+func EnsureTopics(ctx context.Context, partitions int32, rf int16) error {
+	opts, err := authOpts()
+	if err != nil {
+		return err
+	}
+	cl, err := kgo.NewClient(append([]kgo.Opt{
+		kgo.SeedBrokers(Brokers()...),
+	}, opts...)...)
 	if err != nil {
 		return err
 	}
 	defer cl.Close()
 	adm := kadm.NewClient(cl)
-	_, err = adm.CreateTopics(ctx, partitions, 1, nil, AllTopics...)
+	_, err = adm.CreateTopics(ctx, partitions, rf, nil, AllTopics...)
 	return err
 }

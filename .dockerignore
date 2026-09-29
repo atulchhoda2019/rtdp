@@ -1,0 +1,15 @@
+.git
+.terraform
+**/.terraform
+.venv
+venv
+node_modules
+__pycache__
+**/__pycache__
+build
+target
+*.egg-info
+.devin
+docs/validation
+streaming/flink-features/target
+tools/**/__pycache__

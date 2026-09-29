@@ -1,0 +1,14 @@
+bootstrap:
+  auroraSecretArn: ""     # rendered by tools/aws/render-env.sh
+  auroraEndpoint: ""      # writer endpoint, e.g. rtdp-sandbox.cluster-xxx.us-east-1.rds.amazonaws.com
+  databaseName: rtdp
+  toolsImage: ""          # <acct>.dkr.ecr.../rtdp/tools@sha256:...
+  kafkaBrokers: ""        # MSK SASL/IAM bootstrap brokers
+  bundlesBucket: ""
+  artifactsBucket: ""
+  ingressAddr: "http://ingress.rtdp.svc.cluster.local:8080"
+  inferenceAddr: "inference-service.rtdp.svc.cluster.local:50051"
+  slmAddr: "slm-service.rtdp.svc.cluster.local:50056"
+  ollamaAddr: "http://ollama.rtdp.svc.cluster.local:11434"
+  topicPartitions: 6
+  topicReplicationFactor: 2

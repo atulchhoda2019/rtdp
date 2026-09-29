@@ -1,0 +1,23 @@
+# GENERATED — tools/aws/render-env.sh rewrites this from terraform outputs at
+# provision time. Committed so ArgoCD (git-sourced) can resolve it. These are
+# endpoints/ARNs, never secrets.
+env:
+  RTDP_KAFKA_AUTH: "iam"
+  RTDP_KAFKA_BROKERS: "SET_AT_PROVISION"   # MSK SASL/IAM bootstrap (:9098)
+  RTDP_REDIS_ADDR: "SET_AT_PROVISION"      # Valkey primary endpoint:6379
+  RTDP_REDIS_TLS: "true"
+  RTDP_BUCKET_ARTIFACTS: "rtdp-artifacts-079457921611"
+  RTDP_BUCKET_BUNDLES: "rtdp-bundles-079457921611"
+  AWS_REGION: "us-east-1"
+
+bundleSync:
+  bucket: "rtdp-bundles-079457921611"      # merged into orchestrator app
+
+bootstrap:
+  auroraSecretArn: "SET_AT_PROVISION"
+  auroraEndpoint: "SET_AT_PROVISION"
+  databaseName: rtdp
+  toolsImage: "SET_BY_PUSH_IMAGES"         # .../rtdp/tools@sha256:...
+  kafkaBrokers: "SET_AT_PROVISION"
+  bundlesBucket: "rtdp-bundles-079457921611"
+  artifactsBucket: "rtdp-artifacts-079457921611"

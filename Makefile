@@ -101,3 +101,9 @@ aws-wake:     ## restore compute after sleep ("Devin wake up")
 	tools/aws/wake.sh
 aws-teardown: ## destroy Stage C+D entirely (needs CONFIRM=teardown) — ~$85/mo floor
 	CONFIRM=teardown tools/aws/teardown.sh
+aws-images:   ## build + push all service images to ECR, stamp digests into apps
+	tools/aws/push-images.sh
+aws-render:   ## regenerate deploy/argocd/values/sandbox.yaml from terraform outputs
+	tools/aws/render-env.sh
+aws-provision: ## full bring-up: apply -> render -> argocd+ESO -> app-of-apps
+	tools/aws/provision.sh

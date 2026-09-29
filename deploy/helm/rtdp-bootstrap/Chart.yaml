@@ -1,0 +1,4 @@
+apiVersion: v2
+name: rtdp-bootstrap
+description: RTDP platform bootstrap — ESO secret wiring, schema migration, seed Job
+version: 0.1.0

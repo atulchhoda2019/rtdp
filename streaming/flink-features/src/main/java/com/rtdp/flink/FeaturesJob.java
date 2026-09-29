@@ -22,8 +22,11 @@ import org.apache.flink.streaming.api.windowing.windows.TimeWindow;
 import org.apache.flink.util.Collector;
 import org.apache.flink.util.OutputTag;
 
+import com.amazonaws.services.kinesisanalytics.runtime.KinesisAnalyticsRuntime;
+
 import java.io.IOException;
 import java.time.Duration;
+import java.util.Map;
 import java.util.Properties;
 
 /**
@@ -45,13 +48,30 @@ public class FeaturesJob {
         new OutputTag<>("late-contributions") {};
 
     public static void main(String[] args) throws Exception {
-        String brokers = envOr("RTDP_KAFKA_BROKERS", "kafka:9092");
+        // Config precedence: KDA application property group "rtdp.features"
+        // (Managed Flink) -> env (local compose) -> defaults.
+        Properties app = appProperties();
+        String brokers = prop(app, "kafka.bootstrap",
+            envOr("RTDP_KAFKA_BROKERS", "kafka:9092"));
+        boolean iam = "iam".equalsIgnoreCase(
+            prop(app, "kafka.auth", envOr("RTDP_KAFKA_AUTH", "")));
+
+        Properties iamProps = new Properties();
+        if (iam) {
+            iamProps.setProperty("security.protocol", "SASL_SSL");
+            iamProps.setProperty("sasl.mechanism", "AWS_MSK_IAM");
+            iamProps.setProperty("sasl.jaas.config",
+                "software.amazon.msk.auth.iam.IAMLoginModule required;");
+            iamProps.setProperty("sasl.client.callback.handler.class",
+                "software.amazon.msk.auth.iam.IAMClientCallbackHandler");
+        }
 
         StreamExecutionEnvironment env = StreamExecutionEnvironment.getExecutionEnvironment();
         env.enableCheckpointing(60000);
 
         KafkaSource<FeatureContribution> source = KafkaSource.<FeatureContribution>builder()
             .setBootstrapServers(brokers)
+            .setProperties(iamProps)
             .setTopics("rtdp.feature.contrib.v1")
             .setGroupId("rtdp-flink-features")
             .setStartingOffsets(OffsetsInitializer.committedOffsets(
@@ -82,6 +102,7 @@ public class FeaturesJob {
 
         // Transactional sink: absolute tile values, committed with checkpoints.
         Properties txnProps = new Properties();
+        txnProps.putAll(iamProps);
         KafkaSink<FeatureUpdate> sink = KafkaSink.<FeatureUpdate>builder()
             .setBootstrapServers(brokers)
             .setRecordSerializer(KafkaRecordSerializationSchema
@@ -107,6 +128,7 @@ public class FeaturesJob {
                 .setValueSerializationSchema(new ContributionSerializer())
                 .build())
             .setDeliveryGuarantee(DeliveryGuarantee.AT_LEAST_ONCE)
+            .setKafkaProducerConfig(iamProps)
             .build();
         late.sinkTo(lateSink).name("late-contributions");
 
@@ -174,6 +196,23 @@ public class FeaturesJob {
 
     static String envOr(String k, String d) {
         String v = System.getenv(k);
+        return v == null ? d : v;
+    }
+
+    /** KDA application property group; empty locally where env wins. */
+    static Properties appProperties() {
+        try {
+            Map<String, Properties> m =
+                KinesisAnalyticsRuntime.getApplicationProperties();
+            Properties p = m.get("rtdp.features");
+            return p == null ? new Properties() : p;
+        } catch (Throwable t) {
+            return new Properties();
+        }
+    }
+
+    static String prop(Properties p, String k, String d) {
+        String v = p.getProperty(k);
         return v == null ? d : v;
     }
 }

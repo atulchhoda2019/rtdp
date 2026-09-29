@@ -1,0 +1,30 @@
+# Schema migration — PostSync so it re-runs after every app sync.
+# Migrations are idempotent (IF NOT EXISTS).
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rtdp-migrate
+  namespace: rtdp
+  labels:
+    app.kubernetes.io/part-of: rtdp
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 3
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      serviceAccountName: rtdp-bootstrap
+      restartPolicy: Never
+      containers:
+        - name: migrate
+          image: {{ .Values.bootstrap.toolsImage | quote }}
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "psql \"$RTDP_POSTGRES_DSN\" -v ON_ERROR_STOP=1 -f /app/migrations/001_init.sql"]
+          envFrom:
+            - secretRef: { name: rtdp-db }
+          resources:
+            requests: { cpu: 100m, memory: 128Mi }
+            limits: { cpu: 500m, memory: 256Mi }

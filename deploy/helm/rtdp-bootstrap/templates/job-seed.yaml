@@ -1,0 +1,43 @@
+# Platform seed — PostSync, after migrate (sync-wave ordering).
+# Topics (rtdp-topics, SASL/IAM) -> model artifacts -> bundles -> warms.
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: rtdp-seed
+  namespace: rtdp
+  labels:
+    app.kubernetes.io/part-of: rtdp
+    app.kubernetes.io/managed-by: argocd
+  annotations:
+    argocd.argoproj.io/hook: PostSync
+    argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+spec:
+  backoffLimit: 2
+  ttlSecondsAfterFinished: 3600
+  template:
+    spec:
+      serviceAccountName: rtdp-bootstrap
+      restartPolicy: Never
+      containers:
+        - name: seed
+          image: {{ .Values.bootstrap.toolsImage | quote }}
+          imagePullPolicy: IfNotPresent
+          command: ["sh", "-c", "exec python tools/seed/seed.py"]
+          env:
+            - { name: RTDP_SEED_AWS, value: "1" }
+            - { name: RTDP_KAFKA_AUTH, value: "iam" }
+            - { name: RTDP_KAFKA_BROKERS, value: {{ .Values.bootstrap.kafkaBrokers | quote }} }
+            - { name: RTDP_TOPIC_PARTITIONS, value: {{ .Values.bootstrap.topicPartitions | quote }} }
+            - { name: RTDP_TOPIC_RF, value: {{ .Values.bootstrap.topicReplicationFactor | quote }} }
+            - { name: RTDP_BUCKET_ARTIFACTS, value: {{ .Values.bootstrap.artifactsBucket | quote }} }
+            - { name: RTDP_BUCKET_BUNDLES, value: {{ .Values.bootstrap.bundlesBucket | quote }} }
+            - { name: RTDP_OLLAMA_ADDR, value: {{ .Values.bootstrap.ollamaAddr | quote }} }
+            - { name: RTDP_INFERENCE_ADDR, value: {{ .Values.bootstrap.inferenceAddr | quote }} }
+            - { name: RTDP_SLM_ADDR, value: {{ .Values.bootstrap.slmAddr | quote }} }
+            - { name: RTDP_INGRESS, value: {{ .Values.bootstrap.ingressAddr | quote }} }
+            - { name: AWS_REGION, value: "us-east-1" }
+          envFrom:
+            - secretRef: { name: rtdp-db }
+          resources:
+            requests: { cpu: 250m, memory: 512Mi }
+            limits: { cpu: "1", memory: 1Gi }

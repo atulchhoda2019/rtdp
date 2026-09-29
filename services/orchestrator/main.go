@@ -32,6 +32,7 @@ import (
 	rtdpv1 "github.com/rtdp/rtdp/gen/go/rtdp/v1"
 	"github.com/rtdp/rtdp/internal/bundle"
 	"github.com/rtdp/rtdp/internal/kafkax"
+	"github.com/rtdp/rtdp/internal/redisx"
 )
 
 var (
@@ -442,7 +443,7 @@ func main() {
 		resolver: rtdpv1.NewSignalResolverClient(conn(envOr("RTDP_RESOLVER_ADDR", "localhost:50054"))),
 		rules:    rtdpv1.NewRulesServiceClient(conn(envOr("RTDP_RULES_ADDR", "localhost:50053"))),
 		txnPool:  txnPool,
-		rdb:      redis.NewClient(&redis.Options{Addr: envOr("RTDP_REDIS_ADDR", "localhost:6379")}),
+		rdb:      redisx.New(),
 	}
 	go func() {
 		http.Handle("/metrics", promhttp.Handler())

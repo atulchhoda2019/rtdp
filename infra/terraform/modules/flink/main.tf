@@ -34,6 +34,14 @@ variable "kms_key_arns" {
   type    = list(string)
   default = [] # data + artifacts CMKs; needed to read KMS-encrypted jar/checkpoints
 }
+variable "kafka_bootstrap" {
+  type    = string
+  default = "" # SASL/IAM bootstrap brokers; empty leaves placeholder
+}
+variable "kafka_auth" {
+  type    = string
+  default = "iam" # FeaturesJob reads kafka.auth from the rtdp.features group
+}
 variable "parallelism" {
   default = 1 # sandbox: 1 KPU; production: 4+
 }
@@ -56,7 +64,8 @@ resource "aws_kinesisanalyticsv2_application" "features" {
       property_group {
         property_group_id = "rtdp.features"
         property_map = {
-          "kafka.bootstrap"     = "SET_BY_ARGO_OR_SSM"
+          "kafka.bootstrap"     = var.kafka_bootstrap != "" ? var.kafka_bootstrap : "SET_BY_ARGO_OR_SSM"
+          "kafka.auth"          = var.kafka_auth
           "kafka.topics.input"  = "rtdp.events.raw.v1"
           "kafka.topics.output" = "rtdp.features.contributions.v1"
           "checkpoint.dir"      = "s3://${var.checkpoint_bucket}/features/checkpoints"
@@ -100,7 +109,7 @@ resource "aws_iam_role" "flink" {
   name                 = "rtdp-flink-sandbox"
   assume_role_policy   = data.aws_iam_policy_document.flink_assume.json
   permissions_boundary = var.permission_boundary_arn
-  tags               = var.tags
+  tags                 = var.tags
 }
 data "aws_iam_policy_document" "flink_assume" {
   statement {
@@ -137,8 +146,8 @@ resource "aws_iam_role_policy" "flink" {
         Resource = "*"
       },
       { # KMS for SSE-encrypted jar + checkpoint buckets
-        Effect = "Allow"
-        Action = ["kms:Decrypt", "kms:DescribeKey", "kms:GenerateDataKey", "kms:GenerateDataKeyWithoutPlaintext"]
+        Effect   = "Allow"
+        Action   = ["kms:Decrypt", "kms:DescribeKey", "kms:GenerateDataKey", "kms:GenerateDataKeyWithoutPlaintext"]
         Resource = var.kms_key_arns
       },
       { # MSK IAM auth (cluster-level; topic ARNs scoped by iam-workloads)

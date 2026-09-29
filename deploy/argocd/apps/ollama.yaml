@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: signal-resolver
+  name: ollama
   namespace: argocd
 spec:
   project: rtdp
@@ -14,14 +14,22 @@ spec:
           - $values/deploy/argocd/values/sandbox.yaml
         values: |
           image:
-            repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/signal-resolver
+            repository: ollama/ollama
             digest: "sha256:SET_BY_PUSH_IMAGES"
           service:
-            port: 50054
+            port: 11434
           env:
-            RTDP_RESOLVER_PORT: "50054"
-            RTDP_INFERENCE_ADDR: inference-service.rtdp.svc.cluster.local:50051
-            RTDP_SLM_ADDR: slm-service.rtdp.svc.cluster.local:50056
+            OLLAMA_HOST: 0.0.0.0
+          initContainers:
+            - name: model-pull
+              image: ollama/ollama@sha256:SET_BY_PUSH_IMAGES
+              command: ["sh", "-c", "ollama serve & for i in $(seq 60); do ollama list >/dev/null 2>&1 && break; sleep 1; done; ollama pull qwen2.5:0.5b && pkill -f 'ollama serve' || true"]
+              volumeMounts: [{name: models, mountPath: /root/.ollama}]
+          volumes: [{name: models, emptyDir: {}}]
+          volumeMounts: [{name: models, mountPath: /root/.ollama}]
+          resources:
+            requests: { cpu: 500m, memory: 1Gi }
+            limits: { cpu: "2", memory: 2Gi }
 
     - repoURL: https://github.com/atulchhoda2019/rtdp.git
       targetRevision: main

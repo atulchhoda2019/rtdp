@@ -11,7 +11,7 @@ variable "repos" {
   default = [
     "ingress", "orchestrator", "feature-service", "signal-resolver",
     "rules-service", "inference-service", "feature-materializer",
-    "action-dispatcher", "projector", "event-api",
+    "action-dispatcher", "projector", "tools",
   ]
 }
 

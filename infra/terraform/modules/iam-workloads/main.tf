@@ -24,7 +24,21 @@ variable "kms_artifacts_key_arn" {
 variable "permission_boundary_arn" {
   type = string
 }
+variable "secret_arns" {
+  type        = list(string)
+  default     = []
+  description = "Secrets Manager ARNs the external-secrets identity may read"
+}
 locals {
+  # MSK IAM resource ARNs are type-prefixed off the cluster name/uuid —
+  # :topic/<cluster>/<uuid>/<topic>, :group/..., :transactional-id/... —
+  # NOT <cluster-arn>/*.
+  msk_topic_arns = "${replace(var.msk_cluster_arn, ":cluster/", ":topic/")}/rtdp.*"
+  msk_group_arns = "${replace(var.msk_cluster_arn, ":cluster/", ":group/")}/rtdp-*"
+  msk_txn_arns   = "${replace(var.msk_cluster_arn, ":cluster/", ":transactional-id/")}/rtdp-*"
+  msk_all_arns   = "${replace(var.msk_cluster_arn, ":cluster/", ":topic/")}/*"
+  msk_all_groups = "${replace(var.msk_cluster_arn, ":cluster/", ":group/")}/*"
+  msk_all_txn    = "${replace(var.msk_cluster_arn, ":cluster/", ":transactional-id/")}/*"
   # service_account -> which capabilities it needs
   services = {
     ingress              = ["kafka-write-events"]
@@ -36,7 +50,9 @@ locals {
     feature-materializer = ["kafka-read-features", "valkey"]
     action-dispatcher    = ["kafka-txn", "pg-connect"]
     projector            = ["kafka-read-decisions", "pg-connect"]
-    event-api            = ["pg-connect", "kafka-read-decisions"]
+    # Bootstrap Job identity: topic admin + seed uploads (models, bundles).
+    rtdp-bootstrap = ["kafka-admin", "s3-artifacts-write", "s3-bundles-write", "pg-connect"]
+    # event-api: no implementation yet — add back when the service exists.
   }
 }
 
@@ -87,41 +103,54 @@ resource "aws_iam_role_policy" "kafka" {
           "kafka-cluster:CreateTopic", "kafka-cluster:AlterGroup", "kafka-cluster:DescribeGroup",
           "kafka-cluster:DescribeTransactionId", "kafka-cluster:WriteTransactionId",
         "kafka-cluster:WriteDataIdempotently"]
-        Resource = ["${var.msk_cluster_arn}/*"]
+        Resource = [local.msk_topic_arns, local.msk_group_arns, local.msk_txn_arns]
       }] : [],
       contains(each.value, "kafka-write-events") ? [{
         Effect   = "Allow"
         Action   = ["kafka-cluster:WriteData", "kafka-cluster:DescribeTopic", "kafka-cluster:WriteDataIdempotently"]
-        Resource = ["${var.msk_cluster_arn}/topic/rtdp/events/*"]
+        Resource = [local.msk_topic_arns]
       }] : [],
       contains(each.value, "kafka-read-features") ? [{
         Effect = "Allow"
         Action = ["kafka-cluster:ReadData", "kafka-cluster:DescribeTopic",
         "kafka-cluster:AlterGroup", "kafka-cluster:DescribeGroup"]
-        Resource = ["${var.msk_cluster_arn}/topic/rtdp/features/*", "${var.msk_cluster_arn}/group/rtdp/*"]
+        Resource = [local.msk_topic_arns, local.msk_group_arns]
       }] : [],
       contains(each.value, "kafka-read-decisions") ? [{
         Effect = "Allow"
         Action = ["kafka-cluster:ReadData", "kafka-cluster:DescribeTopic",
         "kafka-cluster:AlterGroup", "kafka-cluster:DescribeGroup"]
-        Resource = ["${var.msk_cluster_arn}/topic/rtdp/decisions/*", "${var.msk_cluster_arn}/group/rtdp/*"]
+        Resource = [local.msk_topic_arns, local.msk_group_arns]
+      }] : [],
+      contains(each.value, "kafka-admin") ? [{
+        Effect = "Allow"
+        Action = ["kafka-cluster:CreateTopic", "kafka-cluster:DescribeTopic", "kafka-cluster:AlterTopic",
+          "kafka-cluster:ReadData", "kafka-cluster:WriteData", "kafka-cluster:AlterGroup",
+          "kafka-cluster:DescribeGroup", "kafka-cluster:DescribeConfigs", "kafka-cluster:AlterConfigs",
+          "kafka-cluster:WriteDataIdempotently", "kafka-cluster:DescribeTransactionId",
+        "kafka-cluster:WriteTransactionId"]
+        Resource = [local.msk_all_arns, local.msk_all_groups, local.msk_all_txn]
       }] : []
     )
   })
 }
 
 resource "aws_iam_role_policy" "s3" {
-  for_each = { for s, caps in local.services : s => caps if length(setintersection(caps,
-  ["s3-bundles-read", "s3-artifacts-read"])) > 0 }
+  for_each = { for s, caps in local.services : s => caps
+  if length([for c in caps : c if can(regex("^s3-", c))]) > 0 }
   name = "rtdp-s3"
   role = aws_iam_role.svc[each.key].id
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       for cap in each.value : {
-        Effect   = "Allow"
-        Action   = ["s3:GetObject", "s3:GetObjectVersion", "s3:ListBucket"]
-        Resource = cap == "s3-bundles-read" ? [var.bucket_arns.bundles, "${var.bucket_arns.bundles}/*"] : [var.bucket_arns.artifacts, "${var.bucket_arns.artifacts}/*"]
+        Effect = "Allow"
+        Action = (endswith(cap, "-write") ?
+          ["s3:PutObject", "s3:GetObject", "s3:ListBucket", "s3:AbortMultipartUpload"] :
+        ["s3:GetObject", "s3:GetObjectVersion", "s3:ListBucket"])
+        Resource = (can(regex("bundles", cap)) ?
+          [var.bucket_arns.bundles, "${var.bucket_arns.bundles}/*"] :
+        [var.bucket_arns.artifacts, "${var.bucket_arns.artifacts}/*"])
       } if can(regex("^s3-", cap))
     ]
   })
@@ -134,9 +163,43 @@ resource "aws_iam_role_policy" "kms" {
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = ["kms:Decrypt", "kms:DescribeKey"]
+      Effect = "Allow"
+      Action = (length([for c in each.value : c if can(regex("-write$", c))]) > 0 ?
+        ["kms:Decrypt", "kms:DescribeKey", "kms:Encrypt", "kms:GenerateDataKey"] :
+      ["kms:Decrypt", "kms:DescribeKey"])
       Resource = [var.kms_data_key_arn, var.kms_artifacts_key_arn]
+    }]
+  })
+}
+
+# External Secrets Operator: pod identity in its own namespace, reads only
+# the declared secret ARNs (Aurora managed master secret + rtdp/* secrets).
+resource "aws_iam_role" "external_secrets" {
+  count                = length(var.secret_arns) > 0 ? 1 : 0
+  name                 = "rtdp-external-secrets"
+  assume_role_policy   = data.aws_iam_policy_document.pod_assume.json
+  permissions_boundary = var.permission_boundary_arn
+  tags                 = merge(var.tags, { service = "external-secrets" })
+}
+
+resource "aws_eks_pod_identity_association" "external_secrets" {
+  count           = length(var.secret_arns) > 0 ? 1 : 0
+  cluster_name    = var.cluster_name
+  namespace       = "external-secrets"
+  service_account = "external-secrets"
+  role_arn        = aws_iam_role.external_secrets[0].arn
+}
+
+resource "aws_iam_role_policy" "external_secrets" {
+  count = length(var.secret_arns) > 0 ? 1 : 0
+  name  = "rtdp-secrets-read"
+  role  = aws_iam_role.external_secrets[0].id
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect   = "Allow"
+      Action   = ["secretsmanager:GetSecretValue", "secretsmanager:DescribeSecret"]
+      Resource = var.secret_arns
     }]
   })
 }
