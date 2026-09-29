@@ -1,0 +1,20 @@
+action_policy_id: intake_actions
+version: 1
+owner_scope: platform
+allowed_actions: [INTAKE_RESPONSE, OPEN_SIU_CASE]
+adapters:
+  INTAKE_RESPONSE: local_intake_simulator@1
+  OPEN_SIU_CASE: local_siu_case_adapter@1
+authoritative_decision_domain: document_intake
+action_rules:
+  INTAKE_RESPONSE: [APPROVE, REVIEW, DECLINE]
+  OPEN_SIU_CASE: [REVIEW]
+intent_ttl_ms:
+  INTAKE_RESPONSE: 100
+  OPEN_SIU_CASE: 300000
+retries:
+  OPEN_SIU_CASE:
+    maximum_attempts: 3
+    strategy: bounded_exponential
+on_unknown_outcome: RECONCILE
+live_effects_allowed: false

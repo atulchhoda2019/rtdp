@@ -38,6 +38,14 @@ type Feature struct {
 	Scope       []string       `json:"scope"`
 }
 
+// ValueField is one field of a signal contract's value_schema.
+type ValueField struct {
+	Type     string   `json:"type"`
+	Required bool     `json:"required"`
+	Minimum  *float64 `json:"minimum"`
+	Maximum  *float64 `json:"maximum"`
+}
+
 type Signal struct {
 	Alias             string   `json:"alias"`
 	Contract          string   `json:"contract"`
@@ -55,6 +63,10 @@ type Signal struct {
 	PreprocDigest     string   `json:"preprocessing_digest"`
 	MaxAgeMs          int      `json:"maximum_age_ms"`
 	InputFeatures     []string `json:"input_features"`
+	// ValueSchema is the pinned contract's value map: field -> type/required/
+	// range. The resolver validates envelopes against it — no hardcoded
+	// "probability" assumption (regressions and extraction scores differ).
+	ValueSchema map[string]ValueField `json:"value_schema"`
 }
 
 type Ruleset struct {

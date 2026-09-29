@@ -1,0 +1,32 @@
+# Platform-owned product definition. Synthetic demo configuration only.
+# Document-intake is a generative/SLM path — a deliberately looser deadline
+# profile than the 100ms decisioning bound (see DEADLINE_CAP_BY_PROFILE).
+product_id: document_intake
+version: 1
+owner_scope: platform
+runtime_profile: document_intake
+routing:
+  event_types: [CLAIM_DOCUMENT_INTAKE]
+  channels: [PORTAL, BROKER]
+execution:
+  total_deadline_ms: 15000
+  required_features:
+    - claimant_claim_count_1h@1
+    - claimant_amount_sum_24h@1
+  signals:
+    intake:
+      contract: claim.narrative_consistency
+      accepted_contracts: ["1.0.0"]
+      binding: slm-narrative-primary@1
+      timeout_ms: 12000
+      required: true
+  ruleset: document_intake_policy@1
+  missing_required_signal: REVIEW
+  aggregation: decision_precedence@1
+thresholds:
+  refer_below: 0.5
+  auto_accept: 0.75
+action_policy: intake_actions@1
+rollout:
+  mode: LIVE
+  cohort: champion

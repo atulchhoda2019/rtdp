@@ -41,7 +41,7 @@ def test_multi_product_contracts_validate():
 
 def test_all_products_compile():
     for pid in ("claim_decisioning", "underwriting_decisioning",
-                "risk_pricing"):
+                "risk_pricing", "document_intake"):
         product = yaml.safe_load(
             (ROOT / f"assets/seed/platform/products/{pid}/1.yaml").read_text())
         b = compile_bundle(REG, product, None, "tenant_a")

@@ -20,7 +20,11 @@ from .registry import ContractError, ContractRegistry
 
 # Hard ceiling from the design budget table (design.md "Proposed engineering
 # budgets"); bundles exceeding it are rejected at compile time.
+# Deadline caps per runtime profile. Decisioning paths hold the 100ms
+# contract bound; document/generative intake is a distinct profile with an
+# explicit, auditable looser bound (SLM generation cannot fit in 100ms).
 MAX_TOTAL_DEADLINE_MS = 100
+DEADLINE_CAP_BY_PROFILE = {"document_intake": 30000}
 
 
 def _ref(spec: str) -> tuple[str, int]:
@@ -64,9 +68,12 @@ def compile_bundle(registry: ContractRegistry, product: dict,
 
     execution = eff.get("execution", {})
     deadline = int(execution.get("total_deadline_ms", MAX_TOTAL_DEADLINE_MS))
-    if deadline > MAX_TOTAL_DEADLINE_MS:
+    cap = DEADLINE_CAP_BY_PROFILE.get(
+        eff.get("runtime_profile"), MAX_TOTAL_DEADLINE_MS)
+    if deadline > cap:
         raise ContractError("BUDGET", f"total_deadline_ms {deadline} exceeds "
-                            f"{MAX_TOTAL_DEADLINE_MS}", pid)
+                            f"{cap}ms cap for profile "
+                            f"{eff.get('runtime_profile')!r}", pid)
 
     # --- features ---
     features = []
@@ -113,6 +120,7 @@ def compile_bundle(registry: ContractRegistry, product: dict,
         signals.append({"alias": name, "contract": contract_name,
                         "accepted_contracts": accepted,
                         "contract_digest": contract["_digest"],
+                        "value_schema": contract["value_schema"],
                         "binding": bind_ref, "binding_digest": binding["_digest"],
                         "binding_def": binding,
                         "timeout_ms": timeout,

@@ -1,0 +1,5 @@
+{
+  "prompt": "You are an insurance claim intake reviewer. A claim was submitted with: claimed amount ${txn.amount} USD, claimant filings in last hour {claimant_claim_count_1h}, claimant claimed amount in last 24h ${claimant_amount_sum_24h} USD. The intake narrative states: 'Standard claim for {txn.amount} USD; claimant has filed {claimant_claim_count_1h} claims recently totalling {claimant_amount_sum_24h} USD.' Score whether the narrative is consistent with the structured fields, considering magnitude mismatches and contradictions. Reply with JSON only: {\"consistency\": <0.0-1.0>, \"reason\": \"<short>\"}",
+  "decode": {"num_predict": 80},
+  "golden_input": {"txn.amount": 2500.0, "claimant_claim_count_1h": 1, "claimant_amount_sum_24h": 2500.0}
+}

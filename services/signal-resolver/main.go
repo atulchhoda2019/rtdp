@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"log"
 	"net"
 	"net/http"
@@ -31,6 +32,9 @@ var resolved = promauto.NewCounterVec(prometheus.CounterOpts{
 // arbitrary URLs.
 var endpointCatalog = map[string]string{
 	"inference-local": envOr("RTDP_INFERENCE_ADDR", "localhost:50051"),
+	// Generative/SLM provider: same InferenceService contract, different
+	// endpoint. Administrator-approved; tenant config cannot add endpoints.
+	"slm-local": envOr("RTDP_SLM_ADDR", "localhost:50056"),
 }
 
 type server struct {
@@ -144,6 +148,14 @@ func (s *server) ResolveSignals(ctx context.Context,
 				return
 			}
 			rs.Envelope = sr.Envelope
+			var vschema map[string]bundle.ValueField
+			if len(spec.ValueSchemaJson) > 0 {
+				if err := json.Unmarshal(spec.ValueSchemaJson, &vschema); err != nil {
+					rs.RejectCode = "BAD_SCHEMA"
+					resolved.WithLabelValues("reject").Inc()
+					return
+				}
+			}
 			sig := bundle.Signal{
 				Alias:             spec.Alias,
 				Contract:          spec.Contract,
@@ -151,6 +163,7 @@ func (s *server) ResolveSignals(ctx context.Context,
 				ContractDigest:    spec.ContractDigest,
 				Binding:           spec.Binding,
 				ModelDigest:       spec.ModelDigest,
+				ValueSchema:       vschema,
 			}
 			if err := envelope.Validate(sr.Envelope, sig, req.TenantId,
 				req.Environment, req.Mode, req.TransactionId,

@@ -48,6 +48,7 @@ private static final long serialVersionUID = 0L;
     preprocessingDigest_ = "";
     inputFeatures_ =
         com.google.protobuf.LazyStringArrayList.emptyList();
+    valueSchemaJson_ = com.google.protobuf.ByteString.EMPTY;
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
@@ -655,6 +656,23 @@ private static final long serialVersionUID = 0L;
     return inputFeatures_.getByteString(index);
   }
 
+  public static final int VALUE_SCHEMA_JSON_FIELD_NUMBER = 17;
+  private com.google.protobuf.ByteString valueSchemaJson_ = com.google.protobuf.ByteString.EMPTY;
+  /**
+   * <pre>
+   * Canonical JSON of the pinned contract's value_schema (field -&gt;
+   * {type, required, minimum, maximum}). The resolver validates envelope
+   * values against it — the contract governs, not a hardcoded field name.
+   * </pre>
+   *
+   * <code>bytes value_schema_json = 17 [json_name = "valueSchemaJson"];</code>
+   * @return The valueSchemaJson.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString getValueSchemaJson() {
+    return valueSchemaJson_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -716,6 +734,9 @@ private static final long serialVersionUID = 0L;
     }
     for (int i = 0; i < inputFeatures_.size(); i++) {
       com.google.protobuf.GeneratedMessage.writeString(output, 16, inputFeatures_.getRaw(i));
+    }
+    if (!valueSchemaJson_.isEmpty()) {
+      output.writeBytes(17, valueSchemaJson_);
     }
     getUnknownFields().writeTo(output);
   }
@@ -787,6 +808,10 @@ private static final long serialVersionUID = 0L;
       size += dataSize;
       size += 2 * getInputFeaturesList().size();
     }
+    if (!valueSchemaJson_.isEmpty()) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeBytesSize(17, valueSchemaJson_);
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -834,6 +859,8 @@ private static final long serialVersionUID = 0L;
         != other.getMaximumAgeMs()) return false;
     if (!getInputFeaturesList()
         .equals(other.getInputFeaturesList())) return false;
+    if (!getValueSchemaJson()
+        .equals(other.getValueSchemaJson())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -884,6 +911,8 @@ private static final long serialVersionUID = 0L;
       hash = (37 * hash) + INPUT_FEATURES_FIELD_NUMBER;
       hash = (53 * hash) + getInputFeaturesList().hashCode();
     }
+    hash = (37 * hash) + VALUE_SCHEMA_JSON_FIELD_NUMBER;
+    hash = (53 * hash) + getValueSchemaJson().hashCode();
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -1038,6 +1067,7 @@ private static final long serialVersionUID = 0L;
       maximumAgeMs_ = 0L;
       inputFeatures_ =
           com.google.protobuf.LazyStringArrayList.emptyList();
+      valueSchemaJson_ = com.google.protobuf.ByteString.EMPTY;
       return this;
     }
 
@@ -1120,6 +1150,9 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00008000) != 0)) {
         inputFeatures_.makeImmutable();
         result.inputFeatures_ = inputFeatures_;
+      }
+      if (((from_bitField0_ & 0x00010000) != 0)) {
+        result.valueSchemaJson_ = valueSchemaJson_;
       }
     }
 
@@ -1218,6 +1251,9 @@ private static final long serialVersionUID = 0L;
           inputFeatures_.addAll(other.inputFeatures_);
         }
         onChanged();
+      }
+      if (!other.getValueSchemaJson().isEmpty()) {
+        setValueSchemaJson(other.getValueSchemaJson());
       }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
@@ -1327,6 +1363,11 @@ private static final long serialVersionUID = 0L;
               inputFeatures_.add(s);
               break;
             } // case 130
+            case 138: {
+              valueSchemaJson_ = input.readBytes();
+              bitField0_ |= 0x00010000;
+              break;
+            } // case 138
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -2584,6 +2625,56 @@ private static final long serialVersionUID = 0L;
       ensureInputFeaturesIsMutable();
       inputFeatures_.add(value);
       bitField0_ |= 0x00008000;
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.ByteString valueSchemaJson_ = com.google.protobuf.ByteString.EMPTY;
+    /**
+     * <pre>
+     * Canonical JSON of the pinned contract's value_schema (field -&gt;
+     * {type, required, minimum, maximum}). The resolver validates envelope
+     * values against it — the contract governs, not a hardcoded field name.
+     * </pre>
+     *
+     * <code>bytes value_schema_json = 17 [json_name = "valueSchemaJson"];</code>
+     * @return The valueSchemaJson.
+     */
+    @java.lang.Override
+    public com.google.protobuf.ByteString getValueSchemaJson() {
+      return valueSchemaJson_;
+    }
+    /**
+     * <pre>
+     * Canonical JSON of the pinned contract's value_schema (field -&gt;
+     * {type, required, minimum, maximum}). The resolver validates envelope
+     * values against it — the contract governs, not a hardcoded field name.
+     * </pre>
+     *
+     * <code>bytes value_schema_json = 17 [json_name = "valueSchemaJson"];</code>
+     * @param value The valueSchemaJson to set.
+     * @return This builder for chaining.
+     */
+    public Builder setValueSchemaJson(com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      valueSchemaJson_ = value;
+      bitField0_ |= 0x00010000;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * Canonical JSON of the pinned contract's value_schema (field -&gt;
+     * {type, required, minimum, maximum}). The resolver validates envelope
+     * values against it — the contract governs, not a hardcoded field name.
+     * </pre>
+     *
+     * <code>bytes value_schema_json = 17 [json_name = "valueSchemaJson"];</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearValueSchemaJson() {
+      bitField0_ = (bitField0_ & ~0x00010000);
+      valueSchemaJson_ = getDefaultInstance().getValueSchemaJson();
       onChanged();
       return this;
     }

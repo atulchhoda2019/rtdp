@@ -20,6 +20,7 @@ policy — routed by `event_type`:
 | `CLAIM_SUBMISSION` | `claim_decisioning@1` | `claim.fraud_probability@1.1.0` → `claim_fraud_logistic@2` | `CLAIM_RESPONSE`, `OPEN_SIU_CASE` |
 | `POLICY_APPLICATION` | `underwriting_decisioning@1` | `underwriting.eligibility_probability@1.0.0` → `uw_eligibility_logistic@1` | `POLICY_RESPONSE`, `ASSIGN_UNDERWRITER` |
 | `QUOTE_REQUEST` | `risk_pricing@1` | `pricing.premium_estimate@1.0.0` → `premium_linear@1` (numeric, not a probability) | `QUOTE_RESPONSE`, `REFER_ACTUARY` |
+| `CLAIM_DOCUMENT_INTAKE` | `document_intake@1` | `claim.narrative_consistency@1.0.0` → `slm_narrative@1` (local Ollama SLM, digest-pinned) | `INTAKE_RESPONSE`, `OPEN_SIU_CASE` |
 
 All actions are simulated adapters (`local_*_simulator`, durable
 `*_queue_adapter`/`local_siu_case_adapter`); provider timeouts yield
@@ -36,8 +37,8 @@ All actions are simulated adapters (`local_*_simulator`, durable
 | Outcomes | `APPROVE` / `REVIEW` / `DECLINE` |
 
 Request path: `ingress → orchestrator → feature-service → signal-resolver
-→ inference (ONNX) → rules-service (CEL) → Kafka transactional commit →
-action-dispatcher (simulated effects)`.
+→ inference (ONNX) / slm-service (Ollama) → rules-service (CEL) → Kafka
+transactional commit → action-dispatcher (simulated effects)`.
 
 ## Stack
 
@@ -49,6 +50,7 @@ action-dispatcher (simulated effects)`.
 | Artifacts | adobe/s3mock:4.9.1 | S3 (+KMS, versioning) |
 | Streaming compute | flink:1.20.0 | Managed Service for Apache Flink |
 | Inference | onnxruntime (Python gRPC) | ONNX on EKS CPU nodes |
+| SLM | ollama (qwen2.5:0.5b, local) | Bedrock / SageMaker endpoint |
 | Orchestration | Go services | EKS + ArgoCD |
 
 ## Quick start

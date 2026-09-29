@@ -18,14 +18,31 @@ pinned product bundle via `event_type` routing.
 | `CLAIM_SUBMISSION` | `claim_decisioning@1` | `claim.fraud_probability@1.1.0` | `claim_fraud_logistic@2` | `CLAIM_RESPONSE`, `OPEN_SIU_CASE` |
 | `POLICY_APPLICATION` | `underwriting_decisioning@1` | `underwriting.eligibility_probability@1.0.0` | `uw_eligibility_logistic@1` | `POLICY_RESPONSE`, `ASSIGN_UNDERWRITER` |
 | `QUOTE_REQUEST` | `risk_pricing@1` | `pricing.premium_estimate@1.0.0` | `premium_linear@1` | `QUOTE_RESPONSE`, `REFER_ACTUARY` |
+| `CLAIM_DOCUMENT_INTAKE` | `document_intake@1` | `claim.narrative_consistency@1.0.0` | `slm_narrative@1` (Ollama `qwen2.5:0.5b`) | `INTAKE_RESPONSE`, `OPEN_SIU_CASE` |
 
 Signals are typed by contract, not by shape: `claim.fraud_probability` and
 `underwriting.eligibility_probability` carry a bounded `probability` value;
 `pricing.premium_estimate` carries a `premium` currency-amount scalar
-produced by a regression model. Rulesets interpret them per-product —
-underwriting uses eligibility bands (bind / refer / decline), pricing
-applies rating bounds (`min_auto_quote` / `max_auto_quote`) with
-out-of-band results routing to `REVIEW`.
+produced by a regression model; `claim.narrative_consistency` carries a
+`consistency` score produced by a pinned small language model. The
+compiled bundle carries each contract's `value_schema`; the resolver
+validates required fields, value kinds, and numeric ranges against it —
+no field name is hardcoded in the validator. Rulesets interpret signals
+per-product — underwriting uses eligibility bands (bind / refer /
+decline), pricing applies rating bounds (`min_auto_quote` /
+`max_auto_quote`), intake applies consistency bands (`refer_below` /
+`auto_accept`) — with out-of-band results routing to `REVIEW`.
+
+The SLM service implements the same `InferenceService` gRPC surface as
+the ONNX service (`Warm`/`Score` keyed by digest), so the resolver routes
+to it via a different `endpoint_ref` with no code change. The artifact is
+an `ollama://` tag pinned by blob digest plus a digest-pinned
+`prompt_template.json`; warm replays a golden input and requires a
+parseable, in-range completion. Generative output is validated before it
+becomes signal evidence (INVALID_INPUT, never fabricated). The intake
+product's deadlines are sized for token generation
+(`total_deadline_ms: 15000`), separate from the 100ms synchronous
+products — the SLM path never sits inside a latency-critical envelope.
 
 ## 2. Request path
 
@@ -33,6 +50,7 @@ out-of-band results routing to `REVIEW`.
 client ── HTTP /v1/decide ──► ingress ──► orchestrator ──► feature-service (Tier1 Lua + Tier2 read)
                               │                │
                               │                ├─► signal-resolver ──► inference-service (ONNX)
+                              │                │                  └─► slm-service (Ollama)
                               │                │
                               │                ├─► rules-service (CEL)
                               │                │
@@ -62,6 +80,11 @@ client ── HTTP /v1/decide ──► ingress ──► orchestrator ──►
 5. **Inference service** (`services/inference-service`): ONNX Runtime;
    serves only warmed, digest-pinned artifacts; wraps the scalar output in
    the canonical `SignalEnvelope` named by the model's `output_contract`.
+   **SLM service** (`services/slm-service`) implements the same
+   `InferenceService` gRPC surface over Ollama: the pinned artifact is an
+   `ollama://` tag (weights verified by blob digest) plus a digest-pinned
+   prompt template; unparseable or out-of-range completions return
+   `INVALID_INPUT` — never a fabricated value.
 6. **Rules service** (`services/rules-service`): verifies the ruleset spec
    against its digest, compiles CEL once per digest, evaluates, and
    aggregates with `DECLINE > REVIEW > APPROVE` precedence.

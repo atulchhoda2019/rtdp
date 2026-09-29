@@ -24,7 +24,7 @@ def decide(client_id, txn):
                  "X-RTDP-Client-Id": client_id},
         method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with urllib.request.urlopen(req, timeout=30) as r:  # SLM intake path can take seconds
             return r.status, json.loads(r.read())
     except urllib.error.HTTPError as e:
         return e.code, json.loads(e.read())
@@ -81,7 +81,8 @@ def main():
         for a in activations if a["tenant_id"] == "tenant_a"}
     for ev_type, expected in (("CLAIM_SUBMISSION", "claim_decisioning"),
                               ("POLICY_APPLICATION", "underwriting_decisioning"),
-                              ("QUOTE_REQUEST", "risk_pricing")):
+                              ("QUOTE_REQUEST", "risk_pricing"),
+                              ("CLAIM_DOCUMENT_INTAKE", "document_intake")):
         status, r = decide_retry("demo-client-a", {
             **txn, "transaction_id": f"{txn['transaction_id']}_{ev_type}",
             "event_type": ev_type})

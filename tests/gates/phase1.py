@@ -62,7 +62,7 @@ def decide(client_id, txn):
         headers={"Content-Type": "application/json",
                  "X-RTDP-Client-Id": client_id}, method="POST")
     try:
-        with urllib.request.urlopen(req, timeout=10) as r:
+        with urllib.request.urlopen(req, timeout=30) as r:  # SLM intake path
             return r.status, json.loads(r.read())
     except urllib.error.HTTPError as e:
         return e.code, json.loads(e.read())
@@ -194,7 +194,8 @@ def g1_e2e_path(ev):
     routing = {}
     for ev_type, expected in (("CLAIM_SUBMISSION", "claim_decisioning"),
                               ("POLICY_APPLICATION", "underwriting_decisioning"),
-                              ("QUOTE_REQUEST", "risk_pricing")):
+                              ("QUOTE_REQUEST", "risk_pricing"),
+                              ("CLAIM_DOCUMENT_INTAKE", "document_intake")):
         r = decide_ok("demo-client-a", {
             **txn, "transaction_id":
             f"{txn['transaction_id']}_{ev_type}", "event_type": ev_type})
@@ -350,6 +351,7 @@ def g5_stream_recovery(ev):
     assert len(jobs_before) == 1, f"expected 1 running job: {jobs_before}"
     job_id = jobs_before[0]["id"]
 
+    restart_at = time.time()
     sh("docker restart rtdp-flink-taskmanager-1", timeout=180)
 
     deadline = time.time() + 180
@@ -364,6 +366,28 @@ def g5_stream_recovery(ev):
     else:
         raise AssertionError("Flink job did not recover")
 
+    # RUNNING alone doesn't prove the redeployed pipeline is consuming —
+    # wait for a checkpoint completed after the restart, so the flush
+    # contribution isn't stranded while the source still re-registers.
+    def checkpointed_after(ts):
+        with urllib.request.urlopen(
+                f"http://localhost:8081/jobs/{job_id}/checkpoints") as r:
+            latest = (json.loads(r.read()).get("latest") or {})
+            done = latest.get("completed") or {}
+            trig = done.get("trigger_timestamp") or 0
+            return trig / 1000 > ts
+
+    deadline = time.time() + 180
+    while time.time() < deadline:
+        try:
+            if checkpointed_after(restart_at):
+                break
+        except Exception:
+            pass
+        time.sleep(5)
+    else:
+        raise AssertionError("no post-restart checkpoint completed")
+
     # Close the window: one contribution past window end + out-of-orderness.
     contrib("flush", base + 90)
     p.flush()
@@ -374,8 +398,8 @@ def g5_stream_recovery(ev):
     tile = (f"rtdp:t2:{{tenant_a:LIVE}}:provider_claim_count_1h@1:"
             f"{provider}:USD:{base // 60}")
     count = None
-    deadline = time.time() + 480  # TM restart + redeploy + 60s checkpoint
-    while time.time() < deadline:  # commit + materializer consume lag
+    deadline = time.time() + 480  # 60s checkpoint commit + materializer lag
+    while time.time() < deadline:
         val = redis_get(tile)
         if val:
             count = int(float(val))

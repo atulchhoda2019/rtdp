@@ -1,24 +1,24 @@
 {
-  "run_at": "2026-09-28T00:32:28Z",
+  "run_at": "2026-09-29T00:48:50Z",
   "gates": {
     "g1_e2e_path": {
       "status": "pass",
-      "seconds": 0.1,
+      "seconds": 3.2,
       "evidence": {
         "unauthorized_status": 401,
         "tenant_a": {
           "action_intents": 1,
-          "bundle_digest": "sha256:c4658fc25ae6a72cce2681cf59bb8c86baa22fca66ca3351f00dd4a9c4d021a6",
-          "decision_id": "2de914b5-ec29-4f1d-a7df-8dac6e3ca8f6",
-          "manifest_epoch": 1790555034,
+          "bundle_digest": "sha256:4b385163bd80de433a56f8b9d05f1f1e8fb7a7f661c8b2551eda6e0d2d6e13b3",
+          "decision_id": "da65c726-1b3c-45bc-9e7e-71596b5d7941",
+          "manifest_epoch": 1790641770,
           "outcome": "DECISION_APPROVE",
           "reason_codes": null
         },
         "tenant_b": {
           "action_intents": 1,
-          "bundle_digest": "sha256:455aa38b7f49a94b047b882b9e60a302d52a48ece12c0bad00cf4a527d3ff4e2",
-          "decision_id": "412df66b-66a2-47b0-823f-f2e1cfffb8dc",
-          "manifest_epoch": 1790555159,
+          "bundle_digest": "sha256:0dd671d03534ab57e92bef97c594da9ac2b635b0a697babf35397cab8a4d93cf",
+          "decision_id": "7af74bdf-7108-4106-b015-365114656756",
+          "manifest_epoch": 1790642142,
           "outcome": "DECISION_APPROVE",
           "reason_codes": null
         },
@@ -35,6 +35,10 @@
           },
           "QUOTE_REQUEST": {
             "product": "risk_pricing",
+            "outcome": "DECISION_APPROVE"
+          },
+          "CLAIM_DOCUMENT_INTAKE": {
+            "product": "document_intake",
             "outcome": "DECISION_REVIEW"
           }
         }
@@ -42,44 +46,44 @@
     },
     "g2_tenant_isolation": {
       "status": "pass",
-      "seconds": 0.9,
+      "seconds": 0.1,
       "evidence": {
         "spoofed_payload_tenant": "tenant_b",
-        "effective_bundle_digest": "sha256:c4658fc25ae6a72cce2681cf59bb8c86baa22fca66ca3351f00dd4a9c4d021a6",
+        "effective_bundle_digest": "sha256:4b385163bd80de433a56f8b9d05f1f1e8fb7a7f661c8b2551eda6e0d2d6e13b3",
         "decision_fact_tenant": "tenant_a",
-        "dedup_key": "rtdp:dedup:{tenant_a:LIVE}:txn_g2spoof_1790555548799:1"
+        "dedup_key": "rtdp:dedup:{tenant_a:LIVE}:txn_g2spoof_1790642933641:1"
       }
     },
     "g3_config_only": {
       "status": "pass",
-      "seconds": 2.0,
+      "seconds": 2.2,
       "evidence": {
         "before": {
           "action_intents": 1,
-          "bundle_digest": "sha256:455aa38b7f49a94b047b882b9e60a302d52a48ece12c0bad00cf4a527d3ff4e2",
-          "decision_id": "bc5c7fd6-83c7-46e2-adfa-0965f083fc6a",
-          "manifest_epoch": 1790555159,
+          "bundle_digest": "sha256:0dd671d03534ab57e92bef97c594da9ac2b635b0a697babf35397cab8a4d93cf",
+          "decision_id": "317b4a6e-1d2b-4d9f-96de-217bea78b818",
+          "manifest_epoch": 1790642142,
           "outcome": "DECISION_APPROVE",
           "reason_codes": null
         },
         "after": {
           "action_intents": 1,
-          "bundle_digest": "sha256:8f11a554d76bb03a9a5e853ee6ad9aff88e2a96fde760a05d848de1d03d2890e",
-          "decision_id": "2ed0cfe4-89ca-4e87-86d3-25256d07efd3",
-          "manifest_epoch": 1790555550,
+          "bundle_digest": "sha256:90845d40aa3b5a30be1a07007ed2cea394daebe2654f45e29b670c4141526c60",
+          "decision_id": "5ecf9ddc-c1a4-446b-b0f7-89bac167bf37",
+          "manifest_epoch": 1790642934,
           "outcome": "DECISION_DECLINE",
           "reason_codes": [
             "MODEL_HIGH_RISK"
           ]
         },
-        "new_bundle_digest": "sha256:8f11a554d76bb03a9a5e853ee6ad9aff88e2a96fde760a05d848de1d03d2890e",
+        "new_bundle_digest": "sha256:90845d40aa3b5a30be1a07007ed2cea394daebe2654f45e29b670c4141526c60",
         "images_unchanged": true,
         "schema_hash": "sha256:33a56e1f62d43352b0bc81fc4b14af1717d8df1c6fd22fa37d71f60bc12857ab"
       }
     },
     "g4_semantic_incompat": {
       "status": "pass",
-      "seconds": 0.0,
+      "seconds": 0.1,
       "evidence": {
         "compiler_error": "SEMANTIC_INCOMPATIBLE: binding claim-fraud-primary@3 emits claim.fraud_probability@9.9.9, ruleset accepts claim.fraud_probability@['1.1.0'] [claim_decisioning]",
         "missing_contract_error": "SEMANTIC_INCOMPATIBLE: binding claim-fraud-primary@3 emits no.such.contract@1.0.0, ruleset accepts claim.fraud_probability@['1.1.0'] [claim_decisioning]"
@@ -87,11 +91,11 @@
     },
     "g5_stream_recovery": {
       "status": "pass",
-      "seconds": 31.2,
+      "seconds": 106.7,
       "evidence": {
-        "job_id": "ddc8dccf6e9c0e6e44aa8022eb9a599f",
-        "provider": "prv_rec_1790555551",
-        "tile": "rtdp:t2:{tenant_a:LIVE}:provider_claim_count_1h@1:prv_rec_1790555551:USD:29842592",
+        "job_id": "ec354cb25a0cbd303b0b2ef4095060ca",
+        "provider": "prv_rec_1790642936",
+        "tile": "rtdp:t2:{tenant_a:LIVE}:provider_claim_count_1h@1:prv_rec_1790642936:USD:29844048",
         "tile_count": 3
       }
     },
@@ -128,11 +132,11 @@
     },
     "g7_action_ambiguity": {
       "status": "pass",
-      "seconds": 3.2,
+      "seconds": 3.4,
       "evidence": {
-        "idempotency_key": "gate-amb-1790555584411",
+        "idempotency_key": "gate-amb-1790643044215",
         "final_state": "UNKNOWN",
-        "provider_reference": "timeoutsim:f15f63eff9c79"
+        "provider_reference": "timeoutsim:abdc8018c59d7"
       }
     }
   }

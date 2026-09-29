@@ -7,6 +7,7 @@ write the activation manifest, submit the Flink job, warm inference, and
 wait for readiness (design.md: `make seed` contract).
 """
 
+import hashlib
 import json
 import os
 import subprocess
@@ -43,10 +44,17 @@ MODELS = {
         "binding": ROOT / "assets/seed/platform/bindings/premium-linear-primary/1.yaml",
     },
 }
+# Generative model: GGUF served by the Ollama runtime, pinned by blob sha256.
+SLM_MODEL_ID = "slm_narrative"
+SLM_VERSION = "1"
+SLM_TAG = "qwen2.5:0.5b"
+SLM_SRC = ROOT / "ml/slm-narrative"
+SLM_BINDING = ROOT / "assets/seed/platform/bindings/slm-narrative-primary/1.yaml"
 PRODUCTS = {
     "claim_decisioning": ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml",
     "underwriting_decisioning": ROOT / "assets/seed/platform/products/underwriting_decisioning/1.yaml",
     "risk_pricing": ROOT / "assets/seed/platform/products/risk_pricing/1.yaml",
+    "document_intake": ROOT / "assets/seed/platform/products/document_intake/1.yaml",
 }
 
 S3_ENDPOINT = os.environ.get("RTDP_S3_ENDPOINT", "http://localhost:9099")
@@ -55,6 +63,7 @@ S3_SECRET = os.environ.get("RTDP_S3_SECRET_KEY", "minioadmin")
 ARTIFACT_BUCKET = "rtdp-artifacts"
 KAFKA_CONTAINER = "kafka"
 INFERENCE_ADDR = os.environ.get("RTDP_INFERENCE_ADDR", "localhost:50051")
+SLM_ADDR = os.environ.get("RTDP_SLM_ADDR", "localhost:50056")
 FLINK_REST = os.environ.get("RTDP_FLINK_REST", "http://localhost:8081")
 INGRESS = os.environ.get("RTDP_INGRESS", "http://localhost:8080")
 JAR = "streaming/flink-features/target/flink-features-1.0.0.jar"
@@ -107,6 +116,86 @@ def patch_binding(model_id: str, meta: dict):
     doc["preprocessing_digest"] = meta["preprocessing_digest"]
     doc["model_digest"] = meta["model_digest"]
     binding.write_text(yaml.safe_dump(doc, sort_keys=False))
+
+
+def setup_slm() -> dict:
+    """Pull the pinned GGUF into the Ollama runtime, discover its blob
+    digest, stage + upload the prompt/schema artifacts, patch the binding.
+    The weights digest comes from the runtime itself — the binding pins
+    what is actually served, not what we hoped was pulled."""
+    import boto3
+
+    # Idempotent pull (init container also does this; seed may run standalone)
+    sh(["docker", "exec", "rtdp-ollama-1", "ollama", "pull", SLM_TAG])
+    req = urllib.request.Request(
+        "http://localhost:11434/api/show",
+        data=json.dumps({"model": SLM_TAG}).encode(),
+        headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=15) as r:
+        info = json.loads(r.read())
+    blob = None
+    for line in info.get("modelfile", "").splitlines():
+        if line.startswith("FROM ") and "sha256-" in line:
+            blob = "sha256:" + line.split("sha256-", 1)[1].strip()
+    if not blob:
+        raise RuntimeError(f"no weights digest in modelfile: {info}")
+
+    mdir = BUILD / "models" / SLM_MODEL_ID / SLM_VERSION
+    mdir.mkdir(parents=True, exist_ok=True)
+    schema_bytes = (SLM_SRC / "input_schema.json").read_bytes()
+    tmpl_bytes = (SLM_SRC / "prompt_template.json").read_bytes()
+    (mdir / "input_schema.json").write_bytes(schema_bytes)
+    (mdir / "prompt_template.json").write_bytes(tmpl_bytes)
+    schema_digest = "sha256:" + hashlib.sha256(
+        json.dumps(json.loads(schema_bytes), sort_keys=True)
+        .encode()).hexdigest()
+    tmpl_digest = "sha256:" + hashlib.sha256(tmpl_bytes).hexdigest()
+    meta = {
+        "model_id": SLM_MODEL_ID, "model_version": SLM_VERSION,
+        "model_digest": blob, "input_schema_digest": schema_digest,
+        "preprocessing_digest": tmpl_digest,
+        "output_contract": "claim.narrative_consistency@1.0.0",
+        "output_kind": "structured_extraction",
+        "output_value": "consistency",
+        "runtime": SLM_TAG,
+        "provenance": {"kind": "synthetic",
+                       "generator": "ml/slm-narrative/prompt_template.json"},
+    }
+    (mdir / "metadata.json").write_text(json.dumps(meta, indent=2))
+
+    s3 = boto3.client("s3", endpoint_url=S3_ENDPOINT,
+                      aws_access_key_id=S3_KEY,
+                      aws_secret_access_key=S3_SECRET)
+    for name in ("input_schema.json", "prompt_template.json",
+                 "metadata.json"):
+        s3.upload_file(str(mdir / name), ARTIFACT_BUCKET,
+                       f"{SLM_MODEL_ID}/{SLM_VERSION}/{name}")
+
+    doc = yaml.safe_load(SLM_BINDING.read_text())
+    doc["model"] = f"{SLM_MODEL_ID}@{SLM_VERSION}"
+    doc["input_schema_digest"] = schema_digest
+    doc["preprocessing_digest"] = tmpl_digest
+    doc["model_digest"] = blob
+    SLM_BINDING.write_text(yaml.safe_dump(doc, sort_keys=False))
+    print(f"slm artifact pinned: {SLM_TAG} {blob[:23]}")
+    meta["artifact_uri"] = f"ollama://{SLM_TAG}"
+    return meta
+
+
+def warm_slm(meta: dict):
+    ch = grpc.insecure_channel(SLM_ADDR)
+    stub = services_pb2_grpc.InferenceServiceStub(ch)
+    resp = stub.Warm(services_pb2.WarmRequest(
+        model_id=SLM_MODEL_ID, model_version=SLM_VERSION,
+        model_digest=meta["model_digest"],
+        artifact_uri=meta["artifact_uri"],
+        input_schema_digest=meta["input_schema_digest"],
+        preprocessing_digest=meta["preprocessing_digest"],
+        output_contract=meta["output_contract"].split("@")[0],
+        contract_version=meta["output_contract"].split("@")[1]))
+    if not resp.ready:
+        raise RuntimeError(f"slm warm failed: {resp.error}")
+    print(f"slm warm: {resp.model_digest[:23]}")
 
 
 def compile_tenants():
@@ -204,7 +293,7 @@ def warm_pipeline():
     warm-readiness contract)."""
     for client_id in ("demo-client-a", "demo-client-b"):
         for event_type in ("CLAIM_SUBMISSION", "POLICY_APPLICATION",
-                           "QUOTE_REQUEST"):
+                           "QUOTE_REQUEST", "CLAIM_DOCUMENT_INTAKE"):
             for attempt in range(40):
                 req = urllib.request.Request(
                     f"{INGRESS}/v1/decide",
@@ -226,7 +315,7 @@ def warm_pipeline():
                              "X-RTDP-Client-Id": client_id},
                     method="POST")
                 try:
-                    with urllib.request.urlopen(req, timeout=10) as r:
+                    with urllib.request.urlopen(req, timeout=30) as r:
                         json.loads(r.read())
                         print(f"pipeline warm: {client_id} {event_type} ok "
                               f"(attempt {attempt + 1})")
@@ -245,10 +334,12 @@ def main():
         meta = upload_model(model_id)
         patch_binding(model_id, meta)
         metas[model_id] = meta
+    slm_meta = setup_slm()
     activations = compile_tenants()
     submit_flink()
     for model_id, meta in metas.items():
         warm_inference(model_id, meta)
+    warm_slm(slm_meta)
     warm_pipeline()
     print("seed complete")
 

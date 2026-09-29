@@ -13,6 +13,10 @@ subscriptions:
     product: risk_pricing@1
     revision: 1
     status: ACTIVE
+  - subscription_id: sub_b_intake
+    product: document_intake@1
+    revision: 1
+    status: ACTIVE
 overlays:
   - overlay_id: ovl_b_decline
     version: 1

@@ -115,7 +115,7 @@ func payloadMap(m map[string]*rtdpv1.TypedValue) map[string]any {
 func adapterFor(ref string, db *pgxpool.Pool) adapter {
 	switch ref {
 	case "local_claim_simulator@1", "local_policy_simulator@1",
-		"local_quote_simulator@1":
+		"local_quote_simulator@1", "local_intake_simulator@1":
 		return responseSimulator{}
 	case "local_siu_case_adapter@1", "local_uw_queue_adapter@1",
 		"local_actuarial_queue_adapter@1":

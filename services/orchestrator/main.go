@@ -6,6 +6,7 @@ package main
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
@@ -75,6 +76,8 @@ func dial(addr string) *grpc.ClientConn {
 func tvf(x float64) *rtdpv1.TypedValue {
 	return &rtdpv1.TypedValue{Kind: &rtdpv1.TypedValue_DoubleValue{DoubleValue: x}}
 }
+
+func mustJSON(v any) []byte { b, _ := json.Marshal(v); return b }
 func tvi(x int64) *rtdpv1.TypedValue {
 	return &rtdpv1.TypedValue{Kind: &rtdpv1.TypedValue_IntValue{IntValue: x}}
 }
@@ -208,6 +211,7 @@ func (s *server) Decide(ctx context.Context,
 			PreprocessingDigest: sig.PreprocDigest,
 			MaximumAgeMs:        int64(sig.MaxAgeMs),
 			InputFeatures:       sig.InputFeatures,
+			ValueSchemaJson:     mustJSON(sig.ValueSchema),
 		})
 	}
 	remaining := time.Until(deadline).Milliseconds()

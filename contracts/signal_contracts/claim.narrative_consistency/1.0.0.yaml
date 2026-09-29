@@ -1,0 +1,23 @@
+signal_name: claim.narrative_consistency
+version: 1.0.0
+value_schema:
+  consistency:
+    type: float64
+    required: true
+    minimum: 0.0
+    maximum: 1.0
+semantics:
+  meaning: >-
+    SLM-judged consistency between a claim's structured submission fields
+    and its intake narrative; 1.0 = fully consistent
+  population: synthetic_claim_document_intakes_v1
+  target_label: synthetic_consistent_claim_label_v1
+  label_observation_horizon: P30D
+  unit: consistency_score
+  higher_means: more_consistent
+  calibration_contract: synthetic_slm_rubric_v1
+scope: transaction_revision
+allowed_statuses: [OK, UNAVAILABLE, INVALID_INPUT, TIMED_OUT]
+compatibility:
+  additive_optional_values: allowed_after_validation
+  semantic_change: new_major_required

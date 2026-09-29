@@ -265,4 +265,16 @@ public interface SignalSpecOrBuilder extends
    */
   com.google.protobuf.ByteString
       getInputFeaturesBytes(int index);
+
+  /**
+   * <pre>
+   * Canonical JSON of the pinned contract's value_schema (field -&gt;
+   * {type, required, minimum, maximum}). The resolver validates envelope
+   * values against it — the contract governs, not a hardcoded field name.
+   * </pre>
+   *
+   * <code>bytes value_schema_json = 17 [json_name = "valueSchemaJson"];</code>
+   * @return The valueSchemaJson.
+   */
+  com.google.protobuf.ByteString getValueSchemaJson();
 }

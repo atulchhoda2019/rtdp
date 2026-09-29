@@ -1,0 +1,17 @@
+binding_id: slm-narrative-primary
+version: 1
+owner_scope: platform
+provider: grpc_inference
+endpoint_ref: slm-local
+model: slm_narrative@1
+input_schema_digest: sha256:b7ba56dfffa194f787c1441fe8052367ede83ac18683370843bd4e23fb106122
+preprocessing_digest: sha256:e6ddd42b5511fb45dff952853b4e10dec8caf2d682495ef61301d56de8cb3684
+output_contract: claim.narrative_consistency@1.0.0
+input_features:
+- txn.amount
+- claimant_claim_count_1h
+- claimant_amount_sum_24h
+maximum_age_ms: 5000
+required_quality:
+  allow_stale_required_features: false
+model_digest: sha256:c5396e06af294bd101b30dce59131a76d2b773e76950acc870eda801d3ab0515

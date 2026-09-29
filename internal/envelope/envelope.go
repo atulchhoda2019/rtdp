@@ -74,9 +74,44 @@ func Validate(env *rtdpv1.SignalEnvelope, sig bundle.Signal,
 		return bad("FUTURE", "event_time impossibly far in the future")
 	}
 	if env.Status == rtdpv1.SignalStatus_SIGNAL_STATUS_OK {
-		v, present := env.Values["probability"]
-		if !present || v.GetDoubleValue() < 0 || v.GetDoubleValue() > 1 {
-			return bad("VALUE", "probability missing or out of [0,1]")
+		// Validate each value against the pinned contract's value_schema —
+		// required fields present, numeric fields in their declared range.
+		// The contract governs, not a hardcoded probability check.
+		for field, spec := range sig.ValueSchema {
+			v, present := env.Values[field]
+			if spec.Required && !present {
+				return bad("VALUE",
+					fmt.Sprintf("required value %q missing", field))
+			}
+			if !present {
+				continue
+			}
+			if spec.Type == "float64" || spec.Type == "int64" {
+				var val float64
+				switch k := v.Kind.(type) {
+				case *rtdpv1.TypedValue_DoubleValue:
+					if spec.Type == "int64" {
+						return bad("VALUE",
+							fmt.Sprintf("%s has double, want int64", field))
+					}
+					val = k.DoubleValue
+				case *rtdpv1.TypedValue_IntValue:
+					val = float64(k.IntValue)
+				default:
+					return bad("VALUE",
+						fmt.Sprintf("%s has non-numeric kind", field))
+				}
+				if spec.Minimum != nil && val < *spec.Minimum {
+					return bad("VALUE",
+						fmt.Sprintf("%s=%v below minimum %v", field, val,
+							*spec.Minimum))
+				}
+				if spec.Maximum != nil && val > *spec.Maximum {
+					return bad("VALUE",
+						fmt.Sprintf("%s=%v above maximum %v", field, val,
+							*spec.Maximum))
+				}
+			}
 		}
 	}
 	return nil

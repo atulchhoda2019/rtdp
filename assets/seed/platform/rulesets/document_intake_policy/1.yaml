@@ -1,0 +1,24 @@
+ruleset_id: document_intake_policy
+version: 1
+owner_scope: platform
+requires:
+  - signal: claim.narrative_consistency
+    contract: "1.0.0"
+    alias: intake
+    optional: false
+evaluation: all_match
+rules:
+  - id: inconsistent_refer
+    when: "signals.intake.consistency < cfg.refer_below"
+    outcome: {decision: REVIEW, reason: NARRATIVE_INCONSISTENT}
+    requires_signals: [intake]
+  - id: consistent_accept
+    when: "signals.intake.consistency >= cfg.auto_accept"
+    outcome: {decision: APPROVE, reason: NARRATIVE_CONSISTENT}
+    requires_signals: [intake]
+  - id: borderline_refer
+    when: "signals.intake.consistency >= cfg.refer_below && signals.intake.consistency < cfg.auto_accept"
+    outcome: {decision: REVIEW, reason: NARRATIVE_BORDERLINE}
+    requires_signals: [intake]
+default_outcome: REVIEW
+missing_required_signal_outcome: REVIEW

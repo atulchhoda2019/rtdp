@@ -13,4 +13,8 @@ subscriptions:
     product: risk_pricing@1
     revision: 1
     status: ACTIVE
+  - subscription_id: sub_a_intake
+    product: document_intake@1
+    revision: 1
+    status: ACTIVE
 overlays: []

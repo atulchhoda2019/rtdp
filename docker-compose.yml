@@ -234,8 +234,10 @@ services:
       <<: *common-env
       RTDP_RESOLVER_PORT: "50054"
       RTDP_INFERENCE_ADDR: inference-service:50051
+      RTDP_SLM_ADDR: slm-service:50056
     depends_on:
       - inference-service
+      - slm-service
 
   orchestrator:
     build:
@@ -313,9 +315,43 @@ services:
       postgres:
         condition: service_healthy
 
+  # ---------- SLM runtime (generative inference; separate surface) ----------
+  # Ollama serves the pinned GGUF on CPU. slm-service is the gRPC shim that
+  # presents the same InferenceService contract as the ONNX path — the
+  # resolver routes by endpoint_ref, not provider type.
+  ollama:
+    image: ollama/ollama:0.12.6
+    volumes:
+      - ollama-data:/root/.ollama
+    ports:
+      - "11434:11434"
+
+  slm-model-init:
+    image: ollama/ollama:0.12.6
+    environment:
+      OLLAMA_HOST: http://ollama:11434
+    entrypoint: ["sh", "-c", "until ollama list >/dev/null 2>&1; do sleep 2; done; ollama pull qwen2.5:0.5b"]
+    depends_on:
+      - ollama
+
+  slm-service:
+    build:
+      context: .
+      dockerfile: services/slm-service/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_SLM_PORT: "50056"
+      RTDP_OLLAMA_ADDR: http://ollama:11434
+    depends_on:
+      - ollama
+      - minio-init
+    ports:
+      - "50056:50056"
+
 volumes:
   kafka-data:
   postgres-data:
   redis-data:
   minio-data:
   flink-checkpoints:
+  ollama-data:

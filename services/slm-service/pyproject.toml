@@ -1,0 +1,17 @@
+[build-system]
+requires = ["setuptools>=68"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "rtdp-slm-service"
+version = "0.1.0"
+description = "RTDP SLM inference service (SignalProvider: grpc_inference, generative)"
+requires-python = ">=3.11"
+dependencies = [
+  "protobuf>=6.33,<7",
+  "grpcio>=1.68,<2",
+  "boto3>=1.35,<2",
+]
+
+[tool.setuptools.packages.find]
+include = ["rtdp_slm*"]

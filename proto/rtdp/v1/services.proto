@@ -121,6 +121,10 @@ message SignalSpec {
   // binding's input_features). Values resolve from the shared feature map;
   // "txn.*" names read from the transaction itself.
   repeated string input_features = 16;
+  // Canonical JSON of the pinned contract's value_schema (field ->
+  // {type, required, minimum, maximum}). The resolver validates envelope
+  // values against it — the contract governs, not a hardcoded field name.
+  bytes value_schema_json = 17;
 }
 
 message ResolveSignalsRequest {
