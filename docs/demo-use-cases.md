@@ -8,6 +8,13 @@ raw responses to `docs/validation/aws/` when run against the sandbox.
 All data is synthetic: tenants (`demo-client-a` → `tenant_a`,
 `demo-client-b` → `tenant_b`), claimants, providers, models, actions.
 
+The embedded demo page (`GET /` on the ingress) exposes one-click buttons
+for the nine headline scenarios — velocity attack, duplicate retry,
+tampered replay, tenant bundle comparison, SLM document intake,
+underwriting band, quote pricing, rogue tenant, standard claim — with a
+streaming run log showing each request's outcome, reasons, digest, and
+latency.
+
 ## UC-01 — Fast-path claim decision
 
 `POST /v1/decide`, `CLAIM_SUBMISSION`, fresh claimant.
