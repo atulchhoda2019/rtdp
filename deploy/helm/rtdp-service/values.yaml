@@ -25,6 +25,7 @@ resources:
   limits:   { cpu: 500m, memory: 512Mi }
 
 nodeSelector: {}   # inference-service => rtdp.io/pool: cpu-inference
+tolerations: []    # inference-service => tolerate rtdp.io/inference=cpu taint
 
 initContainers: [] # rendered verbatim (generic escape hatch)
 volumes: []        # pod-level volumes (emptyDir for bundle/artifact staging)

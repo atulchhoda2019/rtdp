@@ -12,3 +12,9 @@ bootstrap:
   ollamaAddr: "http://ollama.rtdp.svc.cluster.local:11434"
   topicPartitions: 6
   topicReplicationFactor: 2
+  # one-shot jobs may land on the inference node (system node is packed)
+  tolerations:
+    - key: rtdp.io/inference
+      operator: Equal
+      value: cpu
+      effect: NoSchedule

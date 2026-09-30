@@ -18,6 +18,9 @@ spec:
     spec:
       serviceAccountName: rtdp-bootstrap
       restartPolicy: Never
+      {{- with .Values.bootstrap.tolerations }}
+      tolerations: {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: seed
           image: {{ .Values.bootstrap.toolsImage | quote }}
