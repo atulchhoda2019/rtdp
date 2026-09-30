@@ -250,7 +250,8 @@ def compile_tenants():
             bundle["subscription_revision"] = s["revision"]
             path = write_bundle(bundle, BUILD / "bundles")
             activations.append({
-                "tenant_id": tenant, "environment": "work",
+                "tenant_id": tenant,
+                "environment": os.environ.get("RTDP_ENV", "work"),
                 "cohort": "champion", "epoch": epoch,
                 "bundle_digest": bundle["digest"], "bundle": bundle,
             })

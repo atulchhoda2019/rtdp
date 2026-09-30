@@ -28,6 +28,7 @@ spec:
           command: ["sh", "-c", "exec python tools/seed/seed.py"]
           env:
             - { name: RTDP_SEED_AWS, value: "1" }
+            - { name: RTDP_ENV, value: "aws-sandbox" }
             - { name: RTDP_KAFKA_AUTH, value: "iam" }
             - { name: RTDP_KAFKA_BROKERS, value: {{ .Values.bootstrap.kafkaBrokers | quote }} }
             - { name: RTDP_TOPIC_PARTITIONS, value: {{ .Values.bootstrap.topicPartitions | quote }} }
