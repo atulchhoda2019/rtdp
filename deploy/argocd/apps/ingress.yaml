@@ -18,10 +18,10 @@ spec:
             digest: "sha256:5be479e0213f1af06f8bd0f7678129dc82e932247a81cabac347a6ad3b825ed9"
           service:
             port: 8080
-            public:
-              annotations:
-                service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
-              sourceRanges: ["70.18.235.134/32"] # operator IP — demo endpoint
+            # service.public (NLB) is intentionally unset: the permission
+            # boundary denies iam:CreateServiceLinkedRole, so no ELB can be
+            # provisioned in this account. Demo access = port-forward or a
+            # local tunnel (cloudflared/ngrok) on top of it.
           probe:
             httpPath: /healthz
           env:
