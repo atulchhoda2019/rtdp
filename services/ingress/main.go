@@ -5,6 +5,7 @@ package main
 
 import (
 	"context"
+	_ "embed"
 	"encoding/json"
 	"log"
 	"net"
@@ -41,6 +42,9 @@ type decideReq struct {
 	Amount              float64 `json:"amount"`
 	EventTime           string  `json:"event_time"`
 }
+
+//go:embed demo.html
+var demoPage []byte
 
 // decideTimeout is an upper bound only — the orchestrator enforces the
 // product-level deadline internally (document_intake's SLM path needs up
@@ -128,6 +132,11 @@ func main() {
 			"manifest_epoch": res.ManifestEpoch,
 			"action_intents": len(res.ActionIntents),
 		})
+	})
+	// Demo page: same-origin /v1/decide calls, no CORS surface.
+	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "text/html; charset=utf-8")
+		w.Write(demoPage)
 	})
 	mux.HandleFunc("GET /healthz", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(200)
