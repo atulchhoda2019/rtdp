@@ -36,7 +36,7 @@ spec:
             - tunnel
             - --no-autoupdate
             - --metrics
-            - localhost:2000
+            - 0.0.0.0:2000
             - --url
             - http://ingress.rtdp.svc.cluster.local:8080
           ports:
