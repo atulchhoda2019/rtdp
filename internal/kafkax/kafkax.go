@@ -247,6 +247,29 @@ func EnsureTopics(ctx context.Context, partitions int32, rf int16) error {
 	}
 	defer cl.Close()
 	adm := kadm.NewClient(cl)
-	_, err = adm.CreateTopics(ctx, partitions, rf, nil, AllTopics...)
+	// Pin MinISR at the topic level: AWS Health flags RF == MinISR (any single
+	// broker loss stalls writes), and the broker default may drift.
+	minISR := "2"
+	cfg := map[string]*string{"min.insync.replicas": &minISR}
+	_, err = adm.CreateTopics(ctx, partitions, rf, cfg, AllTopics...)
+	return err
+}
+
+// DeleteTopics removes the declared topics — sandbox bootstrap escape hatch
+// for correcting replication factor (RF is immutable post-creation).
+func DeleteTopics(ctx context.Context) error {
+	opts, err := authOpts()
+	if err != nil {
+		return err
+	}
+	cl, err := kgo.NewClient(append([]kgo.Opt{
+		kgo.SeedBrokers(Brokers()...),
+	}, opts...)...)
+	if err != nil {
+		return err
+	}
+	defer cl.Close()
+	adm := kadm.NewClient(cl)
+	_, err = adm.DeleteTopics(ctx, AllTopics...)
 	return err
 }

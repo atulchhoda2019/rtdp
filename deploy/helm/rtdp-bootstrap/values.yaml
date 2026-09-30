@@ -11,7 +11,7 @@ bootstrap:
   slmAddr: "slm-service.rtdp.svc.cluster.local:50056"
   ollamaAddr: "http://ollama.rtdp.svc.cluster.local:11434"
   topicPartitions: 6
-  topicReplicationFactor: 2
+  topicReplicationFactor: 3
   # one-shot jobs may land on the inference node (system node is packed)
   tolerations:
     - key: rtdp.io/inference

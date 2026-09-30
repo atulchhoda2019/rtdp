@@ -28,6 +28,13 @@ func main() {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
+	if os.Getenv("RTDP_TOPIC_DELETE") == "1" {
+		if err := kafkax.DeleteTopics(ctx); err != nil {
+			log.Fatalf("delete topics: %v", err)
+		}
+		log.Printf("topics deleted; waiting for propagation")
+		time.Sleep(15 * time.Second)
+	}
 	if err := kafkax.EnsureTopics(ctx, partitions, rf); err != nil {
 		log.Fatalf("ensure topics: %v", err)
 	}

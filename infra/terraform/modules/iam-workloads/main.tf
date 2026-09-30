@@ -125,7 +125,7 @@ resource "aws_iam_role_policy" "kafka" {
       }] : [],
       contains(each.value, "kafka-admin") ? [{
         Effect = "Allow"
-        Action = ["kafka-cluster:CreateTopic", "kafka-cluster:DescribeTopic", "kafka-cluster:AlterTopic",
+        Action = ["kafka-cluster:CreateTopic", "kafka-cluster:DeleteTopic", "kafka-cluster:DescribeTopic", "kafka-cluster:AlterTopic",
           "kafka-cluster:ReadData", "kafka-cluster:WriteData", "kafka-cluster:AlterGroup",
           "kafka-cluster:DescribeGroup", "kafka-cluster:DescribeConfigs", "kafka-cluster:AlterConfigs",
           "kafka-cluster:WriteDataIdempotently", "kafka-cluster:DescribeTransactionId",

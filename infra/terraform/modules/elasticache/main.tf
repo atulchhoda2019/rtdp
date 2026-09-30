@@ -20,9 +20,9 @@ variable "node_type" {
   default = "cache.t4g.medium"
 }
 variable "engine_version" {
-  # 8.x required: the Tier-1 Lua op uses HEXPIRE (hash-field expiry),
-  # which landed in Valkey 8.0 / Redis 7.4 — 7.2 does not support it.
-  default = "8.0"
+  # 8.1+ required: the Tier-1 Lua op uses HEXPIRE (hash-field expiry),
+  # which landed in Valkey 8.1 / Redis 7.4 — 8.0 does not support it.
+  default = "8.1"
 }
 variable "kms_key_arn" {
   type = string
