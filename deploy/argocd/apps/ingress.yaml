@@ -18,6 +18,10 @@ spec:
             digest: "sha256:53ee36ec90d57f08d767f3efc2e7e769a8ee6b2e84a618bc715b60fb50810218"
           service:
             port: 8080
+            public:
+              annotations:
+                service.beta.kubernetes.io/aws-load-balancer-type: "nlb"
+              sourceRanges: ["70.18.235.134/32"] # operator IP — demo endpoint
           probe:
             httpPath: /healthz
           env:

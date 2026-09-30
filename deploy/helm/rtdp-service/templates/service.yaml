@@ -15,3 +15,24 @@ spec:
     - name: metrics
       port: {{ .Values.service.metricsPort }}
       targetPort: metrics
+{{- if .Values.service.public }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "rtdp.name" . }}-public
+  labels: {{- include "rtdp.labels" . | nindent 4 }}
+  {{- with .Values.service.public.annotations }}
+  annotations: {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: LoadBalancer
+  selector: {{- include "rtdp.labels" . | nindent 4 }}
+  {{- with .Values.service.public.sourceRanges }}
+  loadBalancerSourceRanges: {{- toYaml . | nindent 4 }}
+  {{- end }}
+  ports:
+    - name: svc
+      port: {{ .Values.service.port }}
+      targetPort: svc
+{{- end }}
