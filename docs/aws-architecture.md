@@ -105,8 +105,15 @@ otherwise bump `cluster_version` to 1.35.
 
 ## 8. Console and operator links
 
-All links assume account `079457921611`, region `us-east-1`, signed in via
-the `rtdp-sso` / `RTDPDevinRole` identity.
+All links assume account `079457921611`, region `us-east-1`. **The console
+requires a role switch:** the SSO permission set `RTDPDevin` grants only
+`sts:AssumeRole` on `RTDPDevinRole` — consoles will show zero resources or
+permission errors until you switch. Sign in at
+<https://d-9a675f84e3.awsapps.com/start>, then open
+<https://signin.aws.amazon.com/switchrole?account=079457921611&roleName=RTDPDevinRole&displayName=RTDP>
+(or: account menu → Switch role → account `079457921611`, role
+`RTDPDevinRole`). The switched session carries `RTDPDevinPolicy`, which
+covers every service below.
 
 ### ArgoCD (GitOps — no public URL)
 
@@ -130,7 +137,7 @@ kubectl -n argocd port-forward svc/argocd-server 8080:80
 | Resource | Link |
 |---|---|
 | EKS cluster `rtdp-sandbox` (k8s 1.31) | <https://us-east-1.console.aws.amazon.com/eks/home?region=us-east-1#/clusters/rtdp-sandbox> |
-| Managed Flink app `rtdp-features-sandbox` ¹ | <https://us-east-1.console.aws.amazon.com/flink/home?region=us-east-1#/application/rtdp-features-sandbox> |
+| Managed Flink app `rtdp-features-sandbox` | <https://us-east-1.console.aws.amazon.com/flink/home?region=us-east-1#/application/rtdp-features-sandbox> |
 | ECR repositories `rtdp/*` (digest-pinned images) | <https://us-east-1.console.aws.amazon.com/ecr/repositories?region=us-east-1> |
 
 ### AWS console — data plane
@@ -171,13 +178,6 @@ Per-service roles to inspect (ADR-011: `rtdp-inference-service` and
 | CloudWatch (log groups `/aws/eks/rtdp-sandbox`, `/aws/msk`, app logs) | <https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1> |
 | Cost Explorer (RTDP spend) | <https://us-east-1.console.aws.amazon.com/cost-management/home#/cost-explorer> |
 
-¹ **Console permission caveat:** the Flink console requires
-`kinesisanalytics:*` on the signed-in identity. The SSO permission set
-`RTDPDevin` does not currently grant it — ask the Identity Center
-administrator to attach customer-managed policy
-`arn:aws:iam::079457921611:policy/RTDPDevinPolicy` to the `RTDPDevin`
-permission set (gives the console parity with the CLI role). It cannot be
-patched from inside the account: `RolesMustCarryBoundary` denies
-`iam:AttachRolePolicy`/`PutRolePolicy` on the reserved SSO role.
-Fallback: `aws --profile rtdp-devin kinesisanalyticsv2
-describe-application --application-name rtdp-features-sandbox`.
+Note: detail-page URL fragments (e.g. `#database:id=…`) are the least
+stable console links — if a deep link 404s, use the list page and click
+the `rtdp-*` resource.
