@@ -134,7 +134,9 @@ func main() {
 		})
 	})
 	// Demo page: same-origin /v1/decide calls, no CORS surface.
-	mux.HandleFunc("GET /", func(w http.ResponseWriter, r *http.Request) {
+	// "{$}" is exact-match — a bare "GET /" subtree pattern conflicts
+	// with the method-agnostic /metrics and /v1/decide registrations.
+	mux.HandleFunc("GET /{$}", func(w http.ResponseWriter, r *http.Request) {
 		w.Header().Set("Content-Type", "text/html; charset=utf-8")
 		w.Write(demoPage)
 	})
