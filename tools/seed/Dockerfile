@@ -9,7 +9,7 @@ COPY internal ./internal
 COPY cmd ./cmd
 RUN CGO_ENABLED=0 go build -o /out/rtdp-topics ./cmd/rtdp-topics
 
-FROM python:3.12-bookworm AS models
+FROM python:3.12-slim-bookworm AS models
 WORKDIR /app
 RUN pip install --no-cache-dir \
     "numpy>=2.0,<3" "scikit-learn>=1.5,<2" "skl2onnx>=1.17,<2" "onnxruntime>=1.19,<2"

@@ -21,6 +21,10 @@ variable "kubernetes_version" {
 variable "vpc_id" {
   type = string
 }
+variable "public_access_cidrs" {
+  type    = list(string)
+  default = [] # empty = private-only API; set to e.g. ["1.2.3.4/32"] for sandbox kubectl
+}
 variable "private_subnet_ids" {
   type = list(string)
 }
@@ -32,7 +36,8 @@ resource "aws_eks_cluster" "this" {
   vpc_config {
     subnet_ids              = var.private_subnet_ids
     endpoint_private_access = true
-    endpoint_public_access  = false # private-only API; kubectl via VPN/bastion
+    endpoint_public_access  = length(var.public_access_cidrs) > 0
+    public_access_cidrs     = var.public_access_cidrs
   }
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
   tags                      = var.tags

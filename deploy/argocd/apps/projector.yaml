@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/projector
-            digest: "sha256:9c5ed32ad8ee347111b96fa63de6afc249be050e227e852a9f43b5481e868bfb"
+            digest: "sha256:3b1c4f8e637ce56db62c78681ca9dac00cb7076413332b20b54e03907b2fe642"
           service:
             port: null
           envFromSecrets:

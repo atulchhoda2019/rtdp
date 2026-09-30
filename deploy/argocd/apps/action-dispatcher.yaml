@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/action-dispatcher
-            digest: "sha256:42b3434552ee9ce60d75a144ed6d6f94c0ec8116a4bab0c2f85de93c5868099b"
+            digest: "sha256:1d92358fc77e91aa856d9d4cd6fabcf312480906e162c26691f3e1ec36c13fc6"
           service:
             port: null
           envFromSecrets:

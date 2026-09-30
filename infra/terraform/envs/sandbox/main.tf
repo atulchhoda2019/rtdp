@@ -109,6 +109,7 @@ module "eks" {
   vpc_id                  = module.network.vpc_id
   private_subnet_ids      = module.network.private_subnet_ids
   permission_boundary_arn = var.permission_boundary_arn
+  public_access_cidrs     = ["70.18.235.134/32"] # operator IP — sandbox kubectl
 }
 module "iam_workloads" {
   source                  = "../../modules/iam-workloads"

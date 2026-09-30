@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/rules-service
-            digest: "sha256:045fd53ea2b23fd96ef3a9bb64292b53da29a4bdf5a51406bb429189c04c7041"
+            digest: "sha256:3292a7e11e7f548a90d50ba72e20a09736e4a7c8a3961e11344dee6c5b03062b"
           service:
             port: 50053
           env:

@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/inference-service
-            digest: "sha256:2a89caf7212fe99c55a57c38f93c49a16a14890e246b51d56764c1e9e3c040e5"
+            digest: "sha256:ac138b8aa62cb4141627a0ceb669bede30a37e9039b737ae5bb04db024efc0d8"
           service:
             port: 50051
           env:

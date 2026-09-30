@@ -30,8 +30,8 @@ dockerfile_for() {
 for s in $SERVICES; do
   img="$REGISTRY/rtdp/$s"
   echo "[images] build+push $s:$TAG"
-  docker build -f "$(dockerfile_for "$s")" -t "$img:$TAG" .
-  docker push "$img:$TAG" >/dev/null
+  docker buildx build --platform linux/amd64 --push \
+    -f "$(dockerfile_for "$s")" -t "$img:$TAG" . >/dev/null
   digest=$(aws ecr describe-images --profile "$PROFILE" --region "$REGION" \
     --repository-name "rtdp/$s" --image-ids imageTag="$TAG" \
     --query 'imageDetails[0].imageDigest' --output text)
