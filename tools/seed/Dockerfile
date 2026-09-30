@@ -1,6 +1,6 @@
 # rtdp-tools: in-cluster bootstrap image — topics admin, schema migrations,
 # platform seed. Models are trained at build time (deterministic seeds).
-FROM golang:1.25-bookworm AS gobuild
+FROM golang:1.27-bookworm AS gobuild
 WORKDIR /src
 COPY go.mod go.sum ./
 COPY gen/go ./gen/go
