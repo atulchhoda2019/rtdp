@@ -95,6 +95,9 @@ e2e: ## End-to-end synthetic transaction -> decision -> action
 e2e-cases: ## Demo use-case suite (docs/demo-use-cases.md); RTDP_INGRESS=base
 	$(PY) tests/e2e/test_use_cases.py
 
+e2e-benefits: ## Benefits use-case suite (docs/demo-benefits.md); RTDP_INGRESS=base
+	$(PY) tests/e2e/test_benefits_use_cases.py
+
 load: ## Load test (make load TPS=500 DURATION=5m)
 	$(PY) tests/performance/load.py --tps $(or $(TPS),500) --duration $(or $(DURATION),5m)
 

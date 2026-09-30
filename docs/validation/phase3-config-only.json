@@ -1,0 +1,47 @@
+{
+  "run_at": "2026-09-30T14:56:11Z",
+  "change": "tenant_b hsa_reimbursement thresholds.auto_approve_limit 250 -> 400 -> 250",
+  "scope": "configuration only: tenant overlay -> compiled bundle -> activation epoch",
+  "baseline": {
+    "outcome": "DECISION_REVIEW",
+    "reason_codes": [
+      "OVER_AUTO_APPROVE_LIMIT"
+    ],
+    "bundle_digest": "sha256:2279365dfcd64a3be4005b7917fc5b56dd3e50c8bbfe8ddea5522e669137f6bf",
+    "manifest_epoch": 1790780170
+  },
+  "after_change": {
+    "outcome": "DECISION_APPROVE",
+    "reason_codes": [
+      "AUTO_ADJUDICATED"
+    ],
+    "bundle_digest": "sha256:a3de1fb7f8f4f2758fa03db4ba65f4ff697023d5949fd397c8a7c2f892f03c92",
+    "manifest_epoch": 1790780172
+  },
+  "no_rebuild_proof": {
+    "image_digests_identical": true,
+    "image_digests": [
+      "rtdp-action-dispatcher:sha256:810322fab4381ba8ef5f40b8e32bff3677d37edb881f4be80a95bb15049ff671",
+      "rtdp-feature-materializer:sha256:8e13f693ce65011f3df6dbb8eb3e665d9791509a5c1871d30d2f2b71d88fa641",
+      "rtdp-feature-service:sha256:c3267a2dbbc4de923da004b60fc4547826a74e198dd7e089a040996f8f313233",
+      "rtdp-flink-jobmanager:sha256:b1acf0d881ed68508a9343d6545cc90ed854b9781b8a91e8d480848edad66ebe",
+      "rtdp-flink-taskmanager:sha256:dbb943058bad256a7a80e0fa846fc1f9e08568f8ce63d423fb5629ee551f2716",
+      "rtdp-inference-service:sha256:41325476deeb6cff824191a32bb6dcfd24ec55eb76848f93981eaedd258a6ede",
+      "rtdp-ingress:sha256:53d03abbe08809441b15585179f000caf6a53490c2fa7731c30e7634e4f56cef",
+      "rtdp-orchestrator:sha256:cbc18bf5550a6be8c2d4aaac121249b85cf2a8c085dafcd31b86b4000e88d77d",
+      "rtdp-projector:sha256:9388eb77bcbac2bfbadcd475bd67c58593ce64b64fa4ea5e0734ec0114a0ad20",
+      "rtdp-rules-service:sha256:ed7576b8f40317a866564cbca19303f076cbd638231a9791564158666c2ba684",
+      "rtdp-signal-resolver:sha256:e65bf5d8d86318799c134307f9b151fb7104e7d76536cf145b0f43fc97b64ebd",
+      "rtdp-slm-service:sha256:9769909d37bafd28d394a64979c5a421085499bef80f7a2c735d4f4ee00353a9"
+    ],
+    "migration_set_identical": true,
+    "migration_set": {
+      "001_init.sql": "sha256:84bd812d6f01baf9097e4a78a9d9ee858756dd6c0c2b6b82011753d226ce8a75"
+    }
+  },
+  "rollback": {
+    "outcome": "DECISION_REVIEW",
+    "bundle_digest": "sha256:2279365dfcd64a3be4005b7917fc5b56dd3e50c8bbfe8ddea5522e669137f6bf",
+    "manifest_epoch": 1790780172
+  }
+}

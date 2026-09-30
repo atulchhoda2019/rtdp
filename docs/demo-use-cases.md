@@ -133,3 +133,11 @@ Any successful response.
 | UC-09 | `missing_fields` | 400 |
 | UC-10 | `tenant_bundle_pinning` | digests differ per tenant |
 | UC-11 | `pinned_addressing` | digest + epoch present |
+
+## Benefits domain
+
+A second product family — benefits administration — runs alongside these
+use cases as configuration only: dependent verification (SLM), HSA
+receipt auto-adjudication with per-client limits, live plan changes, and
+contribution-change ambiguous effects. See `docs/demo-benefits.md`
+(BUC-1..BUC-5) and `make e2e-benefits`.
