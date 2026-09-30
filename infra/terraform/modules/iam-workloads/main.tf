@@ -98,17 +98,24 @@ resource "aws_iam_role_policy" "kafka" {
         Action   = ["kafka-cluster:Connect", "kafka-cluster:DescribeCluster"]
         Resource = [var.msk_cluster_arn]
       }],
+      # WriteDataIdempotently is a CLUSTER-level permission — ignored on
+      # topic/group/transactional-id ARNs (MSK IAM auth docs).
+      length([for c in each.value : c
+        if contains(["kafka-txn", "kafka-write-events", "kafka-admin"], c)]) > 0 ? [{
+        Effect   = "Allow"
+        Action   = ["kafka-cluster:WriteDataIdempotently"]
+        Resource = [var.msk_cluster_arn]
+      }] : [],
       contains(each.value, "kafka-txn") ? [{
         Effect = "Allow"
         Action = ["kafka-cluster:ReadData", "kafka-cluster:WriteData", "kafka-cluster:DescribeTopic",
           "kafka-cluster:CreateTopic", "kafka-cluster:AlterGroup", "kafka-cluster:DescribeGroup",
-          "kafka-cluster:DescribeTransactionId", "kafka-cluster:WriteTransactionId",
-        "kafka-cluster:WriteDataIdempotently"]
+        "kafka-cluster:DescribeTransactionalId", "kafka-cluster:AlterTransactionalId"]
         Resource = [local.msk_topic_arns, local.msk_group_arns, local.msk_txn_arns]
       }] : [],
       contains(each.value, "kafka-write-events") ? [{
         Effect   = "Allow"
-        Action   = ["kafka-cluster:WriteData", "kafka-cluster:DescribeTopic", "kafka-cluster:WriteDataIdempotently"]
+        Action   = ["kafka-cluster:WriteData", "kafka-cluster:DescribeTopic"]
         Resource = [local.msk_topic_arns]
       }] : [],
       contains(each.value, "kafka-read-features") ? [{
@@ -128,8 +135,7 @@ resource "aws_iam_role_policy" "kafka" {
         Action = ["kafka-cluster:CreateTopic", "kafka-cluster:DeleteTopic", "kafka-cluster:DescribeTopic", "kafka-cluster:AlterTopic",
           "kafka-cluster:ReadData", "kafka-cluster:WriteData", "kafka-cluster:AlterGroup",
           "kafka-cluster:DescribeGroup", "kafka-cluster:DescribeConfigs", "kafka-cluster:AlterConfigs",
-          "kafka-cluster:WriteDataIdempotently", "kafka-cluster:DescribeTransactionId",
-        "kafka-cluster:WriteTransactionId"]
+        "kafka-cluster:DescribeTransactionalId", "kafka-cluster:AlterTransactionalId"]
         Resource = [local.msk_all_arns, local.msk_all_groups, local.msk_all_txn]
       }] : []
     )
