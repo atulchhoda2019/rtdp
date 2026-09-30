@@ -113,6 +113,14 @@ resource "aws_iam_role_policy" "kafka" {
         Action   = ["kafka-cluster:WriteTxnMarkers"]
         Resource = [var.msk_cluster_arn]
       }] : [],
+      # Cluster dynamic configuration applies to the cluster ARN — ignored on
+      # topic/group/transactional-id ARNs.
+      contains(each.value, "kafka-admin") ? [{
+        Effect   = "Allow"
+        Action   = ["kafka-cluster:DescribeClusterDynamicConfiguration",
+        "kafka-cluster:AlterClusterDynamicConfiguration"]
+        Resource = [var.msk_cluster_arn]
+      }] : [],
       contains(each.value, "kafka-txn") ? [{
         Effect = "Allow"
         Action = ["kafka-cluster:ReadData", "kafka-cluster:WriteData", "kafka-cluster:DescribeTopic",
@@ -141,7 +149,8 @@ resource "aws_iam_role_policy" "kafka" {
         Effect = "Allow"
         Action = ["kafka-cluster:CreateTopic", "kafka-cluster:DeleteTopic", "kafka-cluster:DescribeTopic", "kafka-cluster:AlterTopic",
           "kafka-cluster:ReadData", "kafka-cluster:WriteData", "kafka-cluster:AlterGroup",
-          "kafka-cluster:DescribeGroup", "kafka-cluster:DescribeConfigs", "kafka-cluster:AlterConfigs",
+          "kafka-cluster:DescribeGroup", "kafka-cluster:DescribeTopicDynamicConfiguration",
+          "kafka-cluster:AlterTopicDynamicConfiguration",
         "kafka-cluster:DescribeTransactionalId", "kafka-cluster:AlterTransactionalId"]
         Resource = [local.msk_all_arns, local.msk_all_groups, local.msk_all_txn]
       }] : []
