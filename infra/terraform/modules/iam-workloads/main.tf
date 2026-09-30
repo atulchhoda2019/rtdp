@@ -50,6 +50,7 @@ locals {
     feature-materializer = ["kafka-read-features", "valkey"]
     action-dispatcher    = ["kafka-txn", "pg-connect"]
     projector            = ["kafka-read-decisions", "pg-connect"]
+    slm-service          = ["s3-artifacts-read"] # ADR-011: read-only, nothing else
     # Bootstrap Job identity: topic admin + seed uploads (models, bundles).
     rtdp-bootstrap = ["kafka-admin", "s3-artifacts-write", "s3-bundles-write", "pg-connect"]
     # event-api: no implementation yet — add back when the service exists.

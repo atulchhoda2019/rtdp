@@ -28,6 +28,8 @@ env:
   RTDP_REDIS_TLS: "true"
   RTDP_BUCKET_ARTIFACTS: "$ARTIFACTS"
   RTDP_BUCKET_BUNDLES: "$BUNDLES"
+  RTDP_ARTIFACT_BUCKET: "$ARTIFACTS"      # slm.py reads this name
+  RTDP_S3_REGION: "us-east-1"             # explicit; unset RTDP_S3_* creds -> pod identity
   AWS_REGION: "us-east-1"
 
 bundleSync:
