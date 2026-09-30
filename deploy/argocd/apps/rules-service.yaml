@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/rules-service
-            digest: "sha256:SET_BY_PUSH_IMAGES"
+            digest: "sha256:045fd53ea2b23fd96ef3a9bb64292b53da29a4bdf5a51406bb429189c04c7041"
           service:
             port: 50053
           env:

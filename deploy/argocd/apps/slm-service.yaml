@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/slm-service
-            digest: "sha256:SET_BY_PUSH_IMAGES"
+            digest: "sha256:abaac435b97dc8e8954237b18f2ac67f47eda2f4ffb65a84726aecfa28283b6f"
           service:
             port: 50056
           env:

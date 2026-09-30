@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/feature-materializer
-            digest: "sha256:SET_BY_PUSH_IMAGES"
+            digest: "sha256:c33f1edcee688af06629e30b2fc1d40c969765c0fbb763d985e3460d1ea7af70"
           service:
             port: null
 

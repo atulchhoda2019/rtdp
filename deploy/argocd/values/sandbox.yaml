@@ -17,7 +17,7 @@ bootstrap:
   auroraSecretArn: "SET_AT_PROVISION"
   auroraEndpoint: "SET_AT_PROVISION"
   databaseName: rtdp
-  toolsImage: "SET_BY_PUSH_IMAGES"         # .../rtdp/tools@sha256:...
+  toolsImage: "079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/tools@sha256:107e2ac3829a51f42213003e46b70b924fec1dddf5236378222db20df9295c01"         # .../rtdp/tools@sha256:...
   kafkaBrokers: "SET_AT_PROVISION"
   bundlesBucket: "rtdp-bundles-079457921611"
   artifactsBucket: "rtdp-artifacts-079457921611"

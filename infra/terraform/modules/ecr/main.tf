@@ -10,8 +10,8 @@ variable "repos" {
   type = list(string)
   default = [
     "ingress", "orchestrator", "feature-service", "signal-resolver",
-    "rules-service", "inference-service", "feature-materializer",
-    "action-dispatcher", "projector", "tools",
+    "rules-service", "inference-service", "slm-service",
+    "feature-materializer", "action-dispatcher", "projector", "tools",
   ]
 }
 

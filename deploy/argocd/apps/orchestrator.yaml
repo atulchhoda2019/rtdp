@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/orchestrator
-            digest: "sha256:SET_BY_PUSH_IMAGES"
+            digest: "sha256:49ba1b7ae454a3a9a84599d0cd337bd15390b5dec27be7995b2431e370f9cb92"
           service:
             port: 50055
           env:

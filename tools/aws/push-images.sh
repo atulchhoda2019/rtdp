@@ -15,19 +15,26 @@ aws ecr get-login-password --profile "$PROFILE" --region "$REGION" \
 
 TAG="git-$(git rev-parse --short HEAD)"
 
-# name -> dockerfile
+# name -> dockerfile (bash 3.2 compatible: no assoc arrays)
 SERVICES="ingress orchestrator feature-service signal-resolver rules-service \
-inference-service slm-service feature-materializer action-dispatcher projector"
-declare -A DOCKERFILE
-for s in $SERVICES; do DOCKERFILE[$s]="services/$s/Dockerfile"; done
-DOCKERFILE[tools]="tools/seed/Dockerfile"
+inference-service slm-service feature-materializer action-dispatcher projector \
+tools"
 
-for s in $SERVICES tools; do
+dockerfile_for() {
+  case "$1" in
+    tools) echo "tools/seed/Dockerfile" ;;
+    *)     echo "services/$1/Dockerfile" ;;
+  esac
+}
+
+for s in $SERVICES; do
   img="$REGISTRY/rtdp/$s"
   echo "[images] build+push $s:$TAG"
-  docker build -f "${DOCKERFILE[$s]}" -t "$img:$TAG" .
+  docker build -f "$(dockerfile_for "$s")" -t "$img:$TAG" .
   docker push "$img:$TAG" >/dev/null
-  digest=$(docker buildx imagetools inspect "$img:$TAG" --format '{{.Manifest.Digest}}')
+  digest=$(aws ecr describe-images --profile "$PROFILE" --region "$REGION" \
+    --repository-name "rtdp/$s" --image-ids imageTag="$TAG" \
+    --query 'imageDetails[0].imageDigest' --output text)
   echo "[images]   -> $digest"
   if [ "$s" = "tools" ]; then
     sed -i '' "s|toolsImage: \".*\"|toolsImage: \"$img@$digest\"|" \
@@ -38,7 +45,9 @@ for s in $SERVICES tools; do
 done
 
 # Ollama: pin the upstream image by digest (no copy to ECR needed).
-DIG=$(docker buildx imagetools inspect ollama/ollama:0.12.6 --format '{{.Manifest.Digest}}')
+docker pull ollama/ollama:0.12.6 >/dev/null
+DIG=$(docker inspect ollama/ollama:0.12.6 \
+  --format '{{index .RepoDigests 0}}' | sed 's/.*@//')
 sed -i '' "s|ollama/ollama@sha256:SET_BY_PUSH_IMAGES|ollama/ollama@$DIG|; s|repository: ollama/ollama$|repository: ollama/ollama|" deploy/argocd/apps/ollama.yaml
 sed -i '' "s|digest: \"sha256:SET_BY_PUSH_IMAGES\"|digest: \"$DIG\"|" deploy/argocd/apps/ollama.yaml
 echo "[images] ollama -> $DIG"
