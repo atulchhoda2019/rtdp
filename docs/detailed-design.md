@@ -228,19 +228,22 @@ exercises the UNKNOWN path.
 
 ## 9. Local stack ↔ AWS
 
-| Local | AWS |
+| Local | AWS (deployed) |
 |---|---|
-| kafka 3.9.1 | MSK |
-| postgres 16.6 | Aurora PostgreSQL |
-| redis 7.4.2 | ElastiCache **Valkey 8** (`HEXPIRE` requires ≥7.4/8.x) |
-| s3mock | S3 + KMS + versioning |
-| flink 1.20 | Managed Service for Apache Flink |
+| kafka 3.9.1 | MSK `rtdp-sandbox`, 11 topics rf=3 / min.insync.replicas=2, IAM auth |
+| postgres 16.6 | Aurora PostgreSQL `rtdp-sandbox` |
+| redis 7.4.2 | ElastiCache **Valkey 9.0** (`HEXPIRE` needed server-side 9.0 here) |
+| s3mock | S3 ×4 + KMS + versioning |
+| flink 1.20 | Managed Flink `rtdp-features-sandbox` |
 | onnxruntime gRPC | EKS CPU nodes |
-| go services | EKS + ArgoCD |
+| go services | EKS `rtdp-sandbox` + ArgoCD app-of-apps |
+| local browser | Cloudflare quick tunnel → `edge-tunnel` pod (no ELB — boundary denies `CreateServiceLinkedRole`) |
 
-Terraform modules: `infra/terraform/modules/*`, envs under
+Deployed and validated end-to-end — see `docs/aws-architecture.md` for the
+as-deployed topology and `docs/validation/aws/` for evidence. Terraform
+modules: `infra/terraform/modules/*`, envs under
 `infra/terraform/envs/sandbox`, guardrail bootstrap under
-`infra/terraform/bootstrap`. No `plan`/`apply` has been run.
+`infra/terraform/bootstrap`.
 
 ## 10. Evidence
 
