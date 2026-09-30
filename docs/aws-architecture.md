@@ -115,6 +115,13 @@ permission errors until you switch. Sign in at
 `RTDPDevinRole`). The switched session carries `RTDPDevinPolicy`, which
 covers every service below.
 
+**Region matters:** the access portal drops you into `us-east-2`, but the
+boundary denies every non-`us-east-1` call (`DenyOutsideApprovedRegion`)
+— a wrong-region console shows empty lists or "explicit deny in a
+permissions boundary" on services like Flink. Set the console region
+selector to **N. Virginia (us-east-1)** once; all links below pin
+`region=us-east-1` but the selector persists per session.
+
 ### ArgoCD (GitOps — no public URL)
 
 `argocd-server` is ClusterIP-only (the permission boundary denies ELB
