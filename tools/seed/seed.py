@@ -231,13 +231,6 @@ def compile_tenants():
     registry = ContractRegistry(ROOT / "contracts", ROOT / "assets")
     products = {pid: yaml.safe_load(p.read_text())
                 for pid, p in PRODUCTS.items()}
-    if AWS_MODE:
-        # The 100ms SLO assumes localhost Kafka — an MSK durable commit
-        # (cross-AZ ProduceSync + EndTxn) can't fit inside it even warm.
-        # total_deadline_ms is executable config; tune for the deploy target.
-        for p in products.values():
-            p.setdefault("execution", {})["total_deadline_ms"] = int(
-                os.environ.get("RTDP_TOTAL_DEADLINE_MS", "1000"))
     activations = []
     epoch = int(time.time())
     for tenant_dir in sorted((ROOT / "assets/seed/tenants").iterdir()):

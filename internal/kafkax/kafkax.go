@@ -205,8 +205,10 @@ func (p *TxnPool) Get(ctx context.Context) (*kgo.Client,
 	}
 }
 
-// Warm forces broker connections up front so the request path never pays
-// first-connect latency against the decision deadline.
+// Warm forces broker connections AND transactional producer IDs up front —
+// Ping alone leaves InitProducerId lazy, so the first request per slot would
+// still pay it against the decision deadline. An empty begin+abort acquires
+// the producer ID without writing records.
 func (p *TxnPool) Warm(ctx context.Context) {
 	var wg sync.WaitGroup
 	for i := 0; i < cap(p.ch); i++ {
@@ -214,7 +216,11 @@ func (p *TxnPool) Warm(ctx context.Context) {
 		wg.Add(1)
 		go func(s *txnSlot) {
 			defer wg.Done()
-			s.cl.Ping(ctx)
+			if err := s.cl.BeginTransaction(); err == nil {
+				s.cl.EndTransaction(ctx, kgo.TryAbort) //nolint:errcheck
+			} else {
+				s.cl.Ping(ctx) //nolint:errcheck
+			}
 			p.ch <- s
 		}(s)
 	}

@@ -347,7 +347,13 @@ func (s *server) Decide(ctx context.Context,
 		// each inside the decision budget.
 		return prod.ProduceSync(ctx, recs...).FirstErr()
 	})
-	release(err != nil)
+	// A spent request deadline does not mean the producer is broken —
+	// BeginTxn already aborts on a detached ctx, leaving the client clean.
+	// Recycling it forces metadata + InitProducerId on the next request and
+	// perpetuates deadline misses on high-latency brokers. Only discard on
+	// non-context errors.
+	release(err != nil && !errors.Is(err, context.DeadlineExceeded) &&
+		!errors.Is(err, context.Canceled))
 	if err != nil {
 		decisions.WithLabelValues("commit_error").Inc()
 		return nil, fmt.Errorf("durable commit: %w", err)
