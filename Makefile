@@ -92,6 +92,9 @@ test-resilience: ## Tier1/store failover + fallback gates
 e2e: ## End-to-end synthetic transaction -> decision -> action
 	$(PY) tests/e2e/test_e2e.py
 
+e2e-cases: ## Demo use-case suite (docs/demo-use-cases.md); RTDP_INGRESS=base
+	$(PY) tests/e2e/test_use_cases.py
+
 load: ## Load test (make load TPS=500 DURATION=5m)
 	$(PY) tests/performance/load.py --tps $(or $(TPS),500) --duration $(or $(DURATION),5m)
 
