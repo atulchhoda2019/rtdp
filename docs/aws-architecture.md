@@ -138,7 +138,7 @@ kubectl -n argocd port-forward svc/argocd-server 8080:80
 | Resource | Link |
 |---|---|
 | Amazon MSK `rtdp-sandbox` (11 topics, rf=3/MinISR=2, IAM :9098) | <https://us-east-1.console.aws.amazon.com/msk/home?region=us-east-1#/cluster/arn:aws:kafka:us-east-1:079457921611:cluster/rtdp-sandbox/33890980-7bf3-4061-818b-2b61309f7e4a-19/view> |
-| Aurora PostgreSQL `rtdp-sandbox` | <https://us-east-1.console.aws.amazon.com/rds/home?region=us-east-1#database:id=rtdp-sandbox;is-cluster=true> |
+| Aurora PostgreSQL `rtdp-sandbox` (click the cluster row → writer `rtdp-sandbox-writer`) | <https://us-east-1.console.aws.amazon.com/rds/home?region=us-east-1#databases:> |
 | ElastiCache Valkey 9.0 `rtdp-sandbox` (`HEXPIRE`) | <https://us-east-1.console.aws.amazon.com/elasticache/home?region=us-east-1#/valkey-clusters> |
 | S3 — all `rtdp-*` buckets | <https://s3.console.aws.amazon.com/s3/buckets?region=us-east-1> |
 
