@@ -27,6 +27,13 @@ spec:
               volumeMounts: [{name: models, mountPath: /root/.ollama}]
           volumes: [{name: models, emptyDir: {}}]
           volumeMounts: [{name: models, mountPath: /root/.ollama}]
+          nodeSelector:
+            rtdp.io/pool: cpu-inference
+          tolerations:
+            - key: rtdp.io/inference
+              operator: Equal
+              value: cpu
+              effect: NoSchedule
           resources:
             requests: { cpu: 500m, memory: 1Gi }
             limits: { cpu: "2", memory: 2Gi }
