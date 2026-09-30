@@ -102,3 +102,71 @@ re-seeding is idempotent, not a dedup conflict.
 `make aws-teardown` reduces to ~$85/mo (stops Flink, scales nodes).
 EKS 1.31 extended support ends 2026-11-26 — irrelevant if torn down before;
 otherwise bump `cluster_version` to 1.35.
+
+## 8. Console and operator links
+
+All links assume account `079457921611`, region `us-east-1`, signed in via
+the `rtdp-sso` / `RTDPDevinRole` identity.
+
+### ArgoCD (GitOps — no public URL)
+
+`argocd-server` is ClusterIP-only (the permission boundary denies ELB
+service-linked roles, so no Ingress/LB is possible). To open it:
+
+```bash
+kubectl -n argocd port-forward svc/argocd-server 8080:80
+# → http://localhost:8080
+# user: admin
+# password: kubectl -n argocd get secret argocd-initial-admin-secret \
+#   -o jsonpath='{.data.password}' | base64 -d
+```
+
+- Apps UI after port-forward: <http://localhost:8080/applications>
+- Pipeline definitions (app-of-apps, in this repo): `deploy/argocd/`
+- GitHub source of truth: <https://github.com/atulchhoda2019/rtdp/tree/main/deploy/argocd>
+
+### AWS console — compute and delivery
+
+| Resource | Link |
+|---|---|
+| EKS cluster `rtdp-sandbox` (k8s 1.31) | <https://us-east-1.console.aws.amazon.com/eks/home?region=us-east-1#/clusters/rtdp-sandbox> |
+| Managed Flink app `rtdp-features-sandbox` | <https://us-east-1.console.aws.amazon.com/flink/home?region=us-east-1#/application/rtdp-features-sandbox> |
+| ECR repositories `rtdp/*` (digest-pinned images) | <https://us-east-1.console.aws.amazon.com/ecr/repositories?region=us-east-1> |
+
+### AWS console — data plane
+
+| Resource | Link |
+|---|---|
+| Amazon MSK `rtdp-sandbox` (11 topics, rf=3/MinISR=2, IAM :9098) | <https://us-east-1.console.aws.amazon.com/msk/home?region=us-east-1#/cluster/arn:aws:kafka:us-east-1:079457921611:cluster/rtdp-sandbox/33890980-7bf3-4061-818b-2b61309f7e4a-19/view> |
+| Aurora PostgreSQL `rtdp-sandbox` | <https://us-east-1.console.aws.amazon.com/rds/home?region=us-east-1#database:id=rtdp-sandbox> |
+| ElastiCache Valkey 9.0 `rtdp-sandbox` (`HEXPIRE`) | <https://us-east-1.console.aws.amazon.com/elasticache/home?region=us-east-1#/valkey-clusters> |
+| S3 — all `rtdp-*` buckets | <https://s3.console.aws.amazon.com/s3/buckets?region=us-east-1> |
+
+S3 buckets: `rtdp-artifacts-079457921611` (models) ·
+`rtdp-bundles-079457921611` (compiled bundles/activations) ·
+`rtdp-checkpoints-079457921611` (Flink) ·
+`rtdp-validation-079457921611` (evidence) ·
+`rtdp-tfstate-079457921611` (Terraform state).
+
+### AWS console — network and security
+
+| Resource | Link |
+|---|---|
+| VPC `rtdp-sandbox` (`vpc-06a082a87cae062bd`) | <https://us-east-1.console.aws.amazon.com/vpc/home?region=us-east-1#VpcDetails:vpcId=vpc-06a082a87cae062bd> |
+| KMS keys `alias/rtdp-sandbox-artifacts`, `alias/rtdp-sandbox-data` | <https://us-east-1.console.aws.amazon.com/kms/home?region=us-east-1#/kms/keys> |
+| IAM roles (`rtdp-*` per-service Pod Identity roles) | <https://us-east-1.console.aws.amazon.com/iam/home#/roles> |
+
+Per-service roles to inspect (ADR-011: `rtdp-inference-service` and
+`rtdp-slm-service` are read-only on artifacts): `rtdp-orchestrator`,
+`rtdp-action-dispatcher`, `rtdp-feature-service`,
+`rtdp-feature-materializer`, `rtdp-projector`, `rtdp-signal-resolver`,
+`rtdp-rules-service`, `rtdp-ingress`, `rtdp-bootstrap`,
+`rtdp-external-secrets`, `rtdp-eks-cluster`, `rtdp-eks-nodes`,
+`rtdp-flink-sandbox`.
+
+### Observability and cost
+
+| Resource | Link |
+|---|---|
+| CloudWatch (log groups `/aws/eks/rtdp-sandbox`, `/aws/msk`, app logs) | <https://us-east-1.console.aws.amazon.com/cloudwatch/home?region=us-east-1> |
+| Cost Explorer (RTDP spend) | <https://us-east-1.console.aws.amazon.com/cost-management/home#/cost-explorer> |
