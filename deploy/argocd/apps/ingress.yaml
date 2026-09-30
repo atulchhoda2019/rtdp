@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/ingress
-            digest: "sha256:5f746ab07c9240291919f7e1fda6f9c6f2b73f8c617158b58b3f8a65944f7b45"
+            digest: "sha256:53ee36ec90d57f08d767f3efc2e7e769a8ee6b2e84a618bc715b60fb50810218"
           service:
             port: 8080
           probe:
