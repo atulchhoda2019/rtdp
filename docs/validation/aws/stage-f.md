@@ -183,3 +183,20 @@ for a shareable https URL. `GET /` on ingress serves an embedded demo page
 (same-origin POSTs to `/v1/decide`, no CORS surface).
 
 - `rtdp/ingress@sha256:de2f3d48274aec277057a75f0d72c4288673ab9fa0805112f16698b50ac40109` (git-6798a19)
+
+### Durable public demo endpoint
+
+`edge-tunnel` Deployment (deploy/edge/tunnel.yaml, ArgoCD app) runs a
+cloudflared quick tunnel in-cluster against `ingress:8080` — outbound
+QUIC only, no inbound holes, survives local sessions; URL rotates on
+pod restart (read `kubectl -n rtdp logs deploy/edge-tunnel`).
+
+Current URL: https://ancient-implemented-olympic-fancy.trycloudflare.com
+
+Embedded demo page at `GET /` (ingress `de2f3d48`). Known caveat: the
+edge masks upstream-502 bodies with branded HTML — dedup CONFLICT and
+any 5xx surface as bare 502s publicly (status still correct); use the
+localhost port-forward when the error body matters.
+
+`tests/e2e/test_use_cases.py` — 11/11 PASS over the public tunnel URL
+and over localhost port-forward.
