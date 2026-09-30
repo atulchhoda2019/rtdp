@@ -1,0 +1,18 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: edge-tunnel
+  namespace: argocd
+spec:
+  project: rtdp
+  source:
+    repoURL: https://github.com/atulchhoda2019/rtdp.git
+    targetRevision: main
+    path: deploy/edge
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: rtdp
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
