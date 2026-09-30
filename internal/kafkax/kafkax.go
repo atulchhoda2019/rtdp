@@ -279,3 +279,49 @@ func DeleteTopics(ctx context.Context) error {
 	_, err = adm.DeleteTopics(ctx, AllTopics...)
 	return err
 }
+
+// DescribeTopics returns each declared topic's replication factor and
+// min.insync.replicas — bootstrap/evidence tooling for the RF==MinISR
+// availability check.
+func DescribeTopics(ctx context.Context) (map[string]string, error) {
+	opts, err := authOpts()
+	if err != nil {
+		return nil, err
+	}
+	cl, err := kgo.NewClient(append([]kgo.Opt{
+		kgo.SeedBrokers(Brokers()...),
+	}, opts...)...)
+	if err != nil {
+		return nil, err
+	}
+	defer cl.Close()
+	adm := kadm.NewClient(cl)
+	details, err := adm.ListTopics(ctx, AllTopics...)
+	if err != nil {
+		return nil, err
+	}
+	cfgs, err := adm.DescribeTopicConfigs(ctx, AllTopics...)
+	if err != nil {
+		return nil, err
+	}
+	minISR := map[string]string{}
+	for _, rc := range cfgs {
+		for _, e := range rc.Configs {
+			if e.Key == "min.insync.replicas" && e.Value != nil {
+				minISR[rc.Name] = *e.Value
+			}
+		}
+	}
+	out := map[string]string{}
+	for topic, d := range details {
+		rf := 0
+		for _, p := range d.Partitions {
+			if len(p.Replicas) > rf {
+				rf = len(p.Replicas)
+			}
+		}
+		out[topic] = fmt.Sprintf("rf=%d min.insync.replicas=%s", rf,
+			minISR[topic])
+	}
+	return out, nil
+}

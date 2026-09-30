@@ -28,6 +28,16 @@ func main() {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
+	if os.Getenv("RTDP_TOPIC_DESCRIBE") == "1" {
+		desc, err := kafkax.DescribeTopics(ctx)
+		if err != nil {
+			log.Fatalf("describe topics: %v", err)
+		}
+		for _, topic := range kafkax.AllTopics {
+			log.Printf("%s %s", topic, desc[topic])
+		}
+		return
+	}
 	if os.Getenv("RTDP_TOPIC_DELETE") == "1" {
 		if err := kafkax.DeleteTopics(ctx); err != nil {
 			log.Fatalf("delete topics: %v", err)
