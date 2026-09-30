@@ -3,27 +3,74 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>RTDP — decision demo</title>
+<title>RTDP — real-time decisioning demo</title>
 <style>
   body { font-family: ui-monospace, Menlo, monospace; background:#0d1117;
-         color:#c9d1d9; max-width:760px; margin:2em auto; padding:0 1em; }
+         color:#c9d1d9; max-width:880px; margin:2em auto; padding:0 1em; }
   h1 { font-size:1.2em; color:#58a6ff; }
+  h2 { font-size:.85em; color:#8b949e; text-transform:uppercase;
+       letter-spacing:.08em; margin:1.6em 0 .5em; }
+  .scenarios { display:grid; grid-template-columns:repeat(auto-fill,minmax(255px,1fr));
+               gap:.6em; }
+  .sc { text-align:left; background:#161b22; border:1px solid #30363d;
+        border-radius:6px; padding:.7em .8em; cursor:pointer; color:#c9d1d9; }
+  .sc:hover:not(:disabled) { border-color:#58a6ff; }
+  .sc:disabled { opacity:.45; cursor:wait; }
+  .sc b { display:block; font-size:.85em; margin-bottom:.3em; }
+  .sc span { font-size:.72em; color:#8b949e; line-height:1.35; display:block; }
   label { display:block; margin-top:.8em; font-size:.85em; color:#8b949e; }
-  select, input, button { width:100%; padding:.45em; margin-top:.25em;
+  select, input, button.go { width:100%; padding:.45em; margin-top:.25em;
          background:#161b22; color:#c9d1d9; border:1px solid #30363d;
          border-radius:6px; font-family:inherit; font-size:.95em; }
-  button { background:#238636; color:#fff; border:none; margin-top:1.2em;
+  button.go { background:#238636; color:#fff; border:none; margin-top:1.2em;
          cursor:pointer; font-weight:600; }
-  button:disabled { background:#30363d; cursor:wait; }
-  #out { margin-top:1.5em; padding:1em; background:#161b22;
-         border:1px solid #30363d; border-radius:6px; white-space:pre-wrap;
-         word-break:break-all; font-size:.85em; min-height:3em; }
+  button.go:disabled { background:#30363d; cursor:wait; }
+  #log { margin-top:1.2em; padding:.8em 1em; background:#161b22;
+         border:1px solid #30363d; border-radius:6px; font-size:.8em;
+         min-height:3em; max-height:26em; overflow-y:auto; }
+  .ln { padding:.28em 0; border-bottom:1px solid #21262d;
+        display:flex; gap:.8em; align-items:baseline; }
+  .ln:last-child { border-bottom:none; }
+  .ln .n { color:#484f58; min-width:1.6em; }
+  .ln .ev { color:#8b949e; min-width:9em; font-size:.85em; }
+  .ln .ms { color:#484f58; margin-left:auto; }
+  .ln .sub { display:block; font-size:.82em; color:#8b949e; margin-top:.15em; }
   .APPROVE { color:#3fb950; } .REVIEW { color:#d29922; } .DECLINE { color:#f85149; }
+  .hdr { color:#58a6ff; font-weight:600; padding:.5em 0 .2em; }
+  .bad { color:#f85149; }
+  .ok2 { color:#3fb950; }
   #meta { font-size:.75em; color:#8b949e; margin-top:.4em; }
 </style>
 </head>
 <body>
 <h1>RTDP — real-time decisioning (synthetic sandbox)</h1>
+<p style="font-size:.78em;color:#8b949e;margin-top:-.4em">
+Every request is a real end-to-end decision: ingress → orchestrator → tier-1
+feature store (Valkey) → model → rules → durable Kafka commit → action intents.</p>
+
+<h2>Scenarios</h2>
+<div class="scenarios">
+  <button class="sc" data-sc="claim"><b>Standard claim</b>
+    <span>One claim through the fraud model + rules. Fast path, ~100ms budget.</span></button>
+  <button class="sc" data-sc="velocity"><b>Velocity attack — 13 claims</b>
+    <span>Same claimant fires 13 claims. Seed rule declines at #13 (VELOCITY_LIMIT).</span></button>
+  <button class="sc" data-sc="idem"><b>Duplicate retry</b>
+    <span>Identical transaction sent twice — proves the same decision_id returns, no double-commit.</span></button>
+  <button class="sc" data-sc="conflict"><b>Tampered replay</b>
+    <span>Same transaction_id, mutated amount — dedup detects the digest change and rejects.</span></button>
+  <button class="sc" data-sc="tenants"><b>Tenant A vs Tenant B</b>
+    <span>Same claim to both tenants — each resolves its own pinned bundle digest (ADR-004).</span></button>
+  <button class="sc" data-sc="uw"><b>Underwriting review band</b>
+    <span>Policy application lands inside the seeded refer band → REVIEW + UW_REFER_BAND.</span></button>
+  <button class="sc" data-sc="quote"><b>Quote pricing</b>
+    <span>QUOTE_REQUEST priced by premium_linear → APPROVE + QUOTE_ISSUED.</span></button>
+  <button class="sc" data-sc="doc"><b>Document intake (SLM)</b>
+    <span>Narrative consistency check via the SLM signal provider. ~2–12s on CPU.</span></button>
+  <button class="sc" data-sc="rogue"><b>Rogue tenant</b>
+    <span>Unknown client id → 401 before any decision work. Identity comes from auth, not payload.</span></button>
+</div>
+
+<h2>Manual request</h2>
 <label>Tenant client
   <select id="client">
     <option>demo-client-a</option>
@@ -40,49 +87,175 @@
   <input id="amount" type="number" value="2500"></label>
 <label>Claimant token
   <input id="claimant" value="tok_demo"></label>
-<button id="go">Submit decision</button>
-<div id="out">—</div>
+<button class="go" id="go">Submit decision</button>
+
+<h2>Run log</h2>
+<div id="log">—</div>
 <div id="meta"></div>
+
 <script>
 const $ = id => document.getElementById(id);
-let n = 0;
-$("go").onclick = async () => {
-  $("go").disabled = true; $("out").textContent = "deciding…"; $("meta").textContent = "";
-  const t0 = performance.now();
-  const body = {
-    transaction_id: "ui_" + Date.now() + "_" + (n++),
+const RUN = Date.now().toString(36);
+let seq = 0;
+
+const CLAIMANTS = ["tok_m_okafor","tok_j_alvarez","tok_p_nguyen","tok_s_ibrahim",
+                   "tok_a_kowalski","tok_r_tanaka","tok_l_moreau","tok_d_silva"];
+const PROVIDERS = ["prv_allied","prv_meridian","prv_northgate","prv_summit"];
+const CHANNELS = ["PORTAL","MOBILE","AGENT_DESKTOP"];
+
+function pick(a){ return a[Math.floor(Math.random()*a.length)]; }
+function mkTxn(over){
+  return Object.assign({
+    transaction_id: "ui_" + RUN + "_" + (seq++),
     transaction_revision: 1,
-    event_type: $("event").value,
-    channel: "PORTAL", region: "us-east-1",
-    tokenized_claimant: $("claimant").value,
-    provider_id: "prv_demo", currency: "USD",
-    amount: parseFloat($("amount").value) || 0,
+    event_type: "CLAIM_SUBMISSION",
+    channel: pick(CHANNELS), region: "us-east-1",
+    tokenized_claimant: pick(CLAIMANTS) + "_" + RUN,
+    provider_id: pick(PROVIDERS), currency: "USD",
+    amount: 500 + Math.floor(Math.random()*9500),
     event_time: new Date().toISOString(),
-  };
+  }, over || {});
+}
+
+async function decide(client, body){
+  const t0 = performance.now();
   try {
     const r = await fetch("/v1/decide", {
       method: "POST",
-      headers: {"Content-Type": "application/json",
-                "X-RTDP-Client-Id": $("client").value},
+      headers: {"Content-Type":"application/json","X-RTDP-Client-Id":client},
       body: JSON.stringify(body),
     });
-    const j = await r.json();
-    const ms = Math.round(performance.now() - t0);
-    if (r.ok) {
-      const cls = (j.outcome || "").replace("DECISION_", "");
-      $("out").innerHTML =
-        `<span class="${cls}">${j.outcome}</span>  ` +
-        `${(j.reason_codes || []).join(", ") || "—"}\n` +
-        `decision_id   ${j.decision_id}\n` +
-        `bundle_digest ${j.bundle_digest}\n` +
-        `manifest_epoch ${j.manifest_epoch}   action_intents ${j.action_intents}`;
-      $("meta").textContent = `${ms} ms  ·  http ${r.status}`;
-    } else {
-      $("out").textContent = `http ${r.status}\n` + (j.error || JSON.stringify(j));
-      $("meta").textContent = `${ms} ms`;
+    let j = {};
+    try { j = await r.json(); } catch(e) {}
+    return {http:r.status, body:j, ms:Math.round(performance.now()-t0)};
+  } catch(e) {
+    return {http:0, body:{error:String(e)}, ms:Math.round(performance.now()-t0)};
+  }
+}
+
+function ln(html, ev, ms){
+  const d = document.createElement("div");
+  d.className = "ln";
+  d.innerHTML = `<span class="n">${seq>0?"·":""}</span>` +
+                `<span class="ev">${ev||""}</span><span>${html}</span>` +
+                `<span class="ms">${ms!=null?ms+" ms":""}</span>`;
+  if ($("log").textContent === "—") $("log").textContent = "";
+  $("log").appendChild(d);
+  $("log").scrollTop = $("log").scrollHeight;
+  return d;
+}
+function hdr(t){
+  const d = document.createElement("div");
+  d.className = "hdr"; d.textContent = "▸ " + t;
+  if ($("log").textContent === "—") $("log").textContent = "";
+  $("log").appendChild(d);
+}
+function fmt(res){
+  const j = res.body;
+  if (res.http === 200) {
+    const cls = (j.outcome||"").replace("DECISION_","");
+    return `<span class="${cls}">${j.outcome}</span> ` +
+           `${(j.reason_codes||[]).join(", ")||"—"}` +
+           `<span class="sub">decision ${String(j.decision_id).slice(0,13)}… · ` +
+           `bundle ${String(j.bundle_digest).slice(0,19)}… · intents ${j.action_intents}</span>`;
+  }
+  const err = j.error || (res.http ? "edge-masked or empty body" : "network error");
+  return `<span class="bad">http ${res.http}</span> ${String(err).slice(0,140)}`;
+}
+
+function busy(v){ document.querySelectorAll("button").forEach(b=>b.disabled=v); }
+
+const SC = {
+  claim: async () => {
+    hdr("Standard claim — fast path");
+    const r = await decide("demo-client-a", mkTxn());
+    ln(fmt(r), "CLAIM_SUBMISSION", r.ms);
+  },
+  velocity: async () => {
+    const claimant = "tok_vel_" + RUN;
+    hdr("Velocity attack — 13 claims, same claimant " + claimant);
+    for (let i = 1; i <= 13; i++) {
+      const r = await decide("demo-client-a",
+        mkTxn({tokenized_claimant: claimant}));
+      const tag = i === 13 ? " ← decline threshold (velocity_decline_count=12)" : "";
+      ln(fmt(r) + `<span style="color:#58a6ff">${tag}</span>`,
+         `claim ${i}/13`, r.ms);
     }
-  } catch (e) { $("out").textContent = "network error: " + e; }
-  $("go").disabled = false;
+  },
+  idem: async () => {
+    const t = mkTxn();
+    hdr("Duplicate retry — same transaction sent twice");
+    const r1 = await decide("demo-client-a", t);
+    ln(fmt(r1) + ` <span class="sub">original</span>`, "CLAIM_SUBMISSION", r1.ms);
+    await new Promise(s=>setTimeout(s,400));
+    const r2 = await decide("demo-client-a", t);
+    const same = r1.body.decision_id && r1.body.decision_id === r2.body.decision_id;
+    ln(fmt(r2) + ` <span class="${same?"ok2":"bad"}">${same?
+      "✓ identical decision_id — replay, not re-count":"✗ decision_id differs"}</span>`,
+       "retry", r2.ms);
+  },
+  conflict: async () => {
+    const t = mkTxn();
+    hdr("Tampered replay — same transaction_id, mutated amount");
+    const r1 = await decide("demo-client-a", t);
+    ln(fmt(r1) + ` <span class="sub">original commits</span>`, "CLAIM_SUBMISSION", r1.ms);
+    await new Promise(s=>setTimeout(s,400));
+    const r2 = await decide("demo-client-a", {...t, amount: t.amount + 42000});
+    ln(fmt(r2) + ` <span class="sub">digest mismatch → dedup conflict (502 over
+      the tunnel edge shows as bare 502)</span>`, "mutated replay", r2.ms);
+  },
+  tenants: async () => {
+    hdr("Tenant bundle pinning — same claim shape, two tenants");
+    const ra = await decide("demo-client-a", mkTxn());
+    ln(fmt(ra) + ` <span class="sub">demo-client-a</span>`, "tenant A", ra.ms);
+    const rb = await decide("demo-client-b", mkTxn());
+    const diff = ra.body.bundle_digest && rb.body.bundle_digest &&
+                 ra.body.bundle_digest !== rb.body.bundle_digest;
+    ln(fmt(rb) + ` <span class="sub">demo-client-b</span>` +
+       `<span class="${diff?"ok2":"bad"}">${diff?
+       " ✓ different pinned bundle":" — same bundle"}</span>`, "tenant B", rb.ms);
+  },
+  uw: async () => {
+    hdr("Underwriting — policy application into the refer band");
+    const r = await decide("demo-client-a", mkTxn({event_type:"POLICY_APPLICATION"}));
+    ln(fmt(r), "POLICY_APPLICATION", r.ms);
+  },
+  quote: async () => {
+    hdr("Risk pricing — quote request");
+    const r = await decide("demo-client-a", mkTxn({event_type:"QUOTE_REQUEST"}));
+    ln(fmt(r), "QUOTE_REQUEST", r.ms);
+  },
+  doc: async () => {
+    hdr("Document intake — SLM narrative consistency (30s product budget)");
+    ln("running — SLM generation on CPU takes a few seconds…",
+       "CLAIM_DOCUMENT_INTAKE", null);
+    const r = await decide("demo-client-a",
+      mkTxn({event_type:"CLAIM_DOCUMENT_INTAKE"}));
+    $("log").lastChild.remove();
+    ln(fmt(r), "CLAIM_DOCUMENT_INTAKE", r.ms);
+  },
+  rogue: async () => {
+    hdr("Rogue tenant — unknown client id");
+    const r = await decide("rogue-client", mkTxn());
+    ln(fmt(r) + ` <span class="sub">rejected before any decision work</span>`,
+       "unauthenticated", r.ms);
+  },
+};
+
+document.querySelectorAll(".sc").forEach(b => {
+  b.onclick = async () => { busy(true); await SC[b.dataset.sc](); busy(false); };
+});
+
+$("go").onclick = async () => {
+  busy(true);
+  hdr(`Manual — ${$("client").value} / ${$("event").value}`);
+  const r = await decide($("client").value, mkTxn({
+    event_type: $("event").value,
+    tokenized_claimant: $("claimant").value,
+    amount: parseFloat($("amount").value) || 0,
+  }));
+  ln(fmt(r), $("event").value, r.ms);
+  busy(false);
 };
 </script>
 </body>

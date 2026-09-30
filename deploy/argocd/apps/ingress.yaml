@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/ingress
-            digest: "sha256:de2f3d48274aec277057a75f0d72c4288673ab9fa0805112f16698b50ac40109"
+            digest: "sha256:643654a4bf56fda6eece539f4995490a6f9adea138d8bbac69e743195313307d"
           service:
             port: 8080
             # service.public (NLB) is intentionally unset: the permission
