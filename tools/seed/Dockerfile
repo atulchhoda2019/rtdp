@@ -21,7 +21,7 @@ RUN apt-get update \
     && apt-get install -y --no-install-recommends postgresql-client ca-certificates \
     && rm -rf /var/lib/apt/lists/*
 RUN pip install --no-cache-dir \
-    "pyyaml>=6.0.2" "protobuf>=5.29,<6" "grpcio>=1.68,<2" "boto3>=1.35,<2"
+    "pyyaml>=6.0.2" "protobuf>=6.33,<7" "grpcio>=1.68,<2" "boto3>=1.35,<2"
 WORKDIR /app
 COPY assets ./assets
 COPY contracts ./contracts
