@@ -10,6 +10,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strconv"
 	"time"
 
 	"github.com/google/uuid"
@@ -40,6 +41,16 @@ type decideReq struct {
 	Amount              float64 `json:"amount"`
 	EventTime           string  `json:"event_time"`
 }
+
+// decideTimeout is an upper bound only — the orchestrator enforces the
+// product-level deadline internally (document_intake's SLM path needs up
+// to 30s, decisioning ~100ms). Not a behavior contract.
+var decideTimeout = func() time.Duration {
+	if v, err := strconv.Atoi(os.Getenv("RTDP_DECIDE_TIMEOUT_MS")); err == nil && v > 0 {
+		return time.Duration(v) * time.Millisecond
+	}
+	return 5 * time.Second
+}()
 
 func envOr(k, d string) string {
 	if v := os.Getenv(k); v != "" {
@@ -99,7 +110,7 @@ func main() {
 			EventTime:           timestamppb.New(et),
 			Traceparent:         r.Header.Get("traceparent"),
 		}
-		ctx, cancel := context.WithTimeout(r.Context(), 5*time.Second)
+		ctx, cancel := context.WithTimeout(r.Context(), decideTimeout)
 		defer cancel()
 		res, err := orch.Decide(ctx, at)
 		if err != nil {

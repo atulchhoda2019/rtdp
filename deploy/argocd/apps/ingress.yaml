@@ -22,6 +22,7 @@ spec:
             httpPath: /healthz
           env:
             RTDP_ORCHESTRATOR_ADDR: orchestrator.rtdp.svc.cluster.local:50055
+            RTDP_DECIDE_TIMEOUT_MS: "35000" # bound only; product deadline governs
 
     - repoURL: https://github.com/atulchhoda2019/rtdp.git
       targetRevision: main
