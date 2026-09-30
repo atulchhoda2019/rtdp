@@ -1,0 +1,19 @@
+ruleset_id: contribution_policy
+version: 1
+owner_scope: platform
+requires: []
+evaluation: all_match
+rules:
+  # Account-takeover pattern: a first-time participant (no prior history —
+  # the tier-1 count includes the current request, so 1 == never seen)
+  # immediately requesting a large change.
+  - id: account_takeover_pattern
+    when: "features.claimant_claim_count_1h <= cfg.fraud_max_history && features.claimant_amount_sum_24h >= cfg.fraud_amount"
+    outcome: {decision: REVIEW, reason: ACCOUNT_TAKEOVER_PATTERN}
+    requires_signals: []
+  - id: plan_limit_exceeded
+    when: "features.claimant_amount_sum_24h > cfg.plan_limit_24h"
+    outcome: {decision: REVIEW, reason: PLAN_LIMIT_EXCEEDED}
+    requires_signals: []
+default_outcome: APPROVE
+missing_required_signal_outcome: APPROVE

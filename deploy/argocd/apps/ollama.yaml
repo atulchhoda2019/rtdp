@@ -23,7 +23,7 @@ spec:
           initContainers:
             - name: model-pull
               image: ollama/ollama@sha256:a61a8fd395dbb931cc8cb1b5da7a2510746575c87113fdc45b647ee59ef7f808
-              command: ["sh", "-c", "ollama serve & for i in $(seq 60); do ollama list >/dev/null 2>&1 && break; sleep 1; done; ollama pull qwen2.5:0.5b && pkill -f 'ollama serve' || true"]
+              command: ["sh", "-c", "ollama serve & for i in $(seq 60); do ollama list >/dev/null 2>&1 && break; sleep 1; done; ollama pull qwen2.5:0.5b && ollama pull qwen2.5-coder:0.5b && pkill -f 'ollama serve' || true"]
               volumeMounts: [{name: models, mountPath: /root/.ollama}]
           volumes: [{name: models, emptyDir: {}}]
           volumeMounts: [{name: models, mountPath: /root/.ollama}]

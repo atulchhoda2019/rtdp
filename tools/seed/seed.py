@@ -44,19 +44,57 @@ MODELS = {
         "version": "1",
         "binding": ROOT / "assets/seed/platform/bindings/premium-linear-primary/1.yaml",
     },
+    # Benefits demo (docs/demo-benefits.md): HSA champion + challenger pair.
+    "hsa_eligibility_logistic": {
+        "version": "1",
+        "binding": ROOT / "assets/seed/platform/bindings/hsa-eligibility-primary/1.yaml",
+    },
+    "hsa_eligibility_challenger": {
+        "version": "1",
+        "binding": ROOT / "assets/seed/platform/bindings/hsa-eligibility-challenger/1.yaml",
+    },
 }
-# Generative model: GGUF served by the Ollama runtime, pinned by blob sha256.
-SLM_MODEL_ID = "slm_narrative"
-SLM_VERSION = "1"
-SLM_TAG = "qwen2.5:0.5b"
-SLM_SRC = ROOT / "ml/slm-narrative"
-SLM_BINDING = ROOT / "assets/seed/platform/bindings/slm-narrative-primary/1.yaml"
+# Generative models: GGUF served by the Ollama runtime, pinned by blob
+# sha256. Each entry needs its OWN weights tag — the slm-service registry
+# keys warmed models by weights digest, so two entries sharing a tag
+# would collide on one prompt template.
+SLM_MODELS = [
+    {
+        "model_id": "slm_narrative",
+        "version": "1",
+        "tag": "qwen2.5:0.5b",
+        "src": ROOT / "ml/slm-narrative",
+        "binding": ROOT / "assets/seed/platform/bindings/slm-narrative-primary/1.yaml",
+        "output_contract": "claim.narrative_consistency@1.0.0",
+        "output_value": "consistency",
+    },
+    {
+        "model_id": "slm_dependent_verification",
+        "version": "1",
+        "tag": "qwen2.5-coder:0.5b",
+        "src": ROOT / "ml/slm-dependent-verification",
+        "binding": ROOT / "assets/seed/platform/bindings/slm-dependent-verification-primary/1.yaml",
+        "output_contract": "dependent.doc_consistency@1.0.0",
+        "output_value": "consistency",
+    },
+]
 PRODUCTS = {
     "claim_decisioning": ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml",
     "underwriting_decisioning": ROOT / "assets/seed/platform/products/underwriting_decisioning/1.yaml",
     "risk_pricing": ROOT / "assets/seed/platform/products/risk_pricing/1.yaml",
     "document_intake": ROOT / "assets/seed/platform/products/document_intake/1.yaml",
+    "dependent_verification": ROOT / "assets/seed/platform/products/dependent_verification/1.yaml",
+    "hsa_reimbursement": ROOT / "assets/seed/platform/products/hsa_reimbursement/1.yaml",
+    "contribution_change": ROOT / "assets/seed/platform/products/contribution_change/1.yaml",
 }
+# Challenger product revision — compiled and activated under cohort
+# "shadow" for tenant_a (BUC-5). Runtime activation lookup matches on
+# tenant+env+event_type only (internal/bundle ActivationFor) and returns
+# the first entry, so the champion above always wins live routing; the
+# shadow entry pins the challenger bundle into the deployed manifest.
+# Cohort-aware routing is tracked in docs/validation/phase3-gaps.md.
+SHADOW_PRODUCT = ROOT / "assets/seed/platform/products/hsa_reimbursement/2.yaml"
+SHADOW_TENANT = "tenant_a"
 
 # RTDP_SEED_AWS=1: in-cluster bootstrap — real S3 via pod identity, topics via
 # the rtdp-topics binary, no docker exec, no Flink REST submit (Managed Flink
@@ -149,31 +187,38 @@ def patch_binding(model_id: str, meta: dict):
     binding.write_text(yaml.safe_dump(doc, sort_keys=False))
 
 
-def setup_slm() -> dict:
-    """Pull the pinned GGUF into the Ollama runtime, discover its blob
-    digest, stage + upload the prompt/schema artifacts, patch the binding.
-    The weights digest comes from the runtime itself — the binding pins
-    what is actually served, not what we hoped was pulled."""
-    # Idempotent pull (init container also does this; seed may run standalone)
+def _ollama_blob_digest(tag: str) -> str:
+    """Pull the pinned GGUF into the Ollama runtime and discover its blob
+    digest — the binding pins what is actually served, not what we hoped
+    was pulled."""
+    # Idempotent pull (init container also does this; seed may run standalone).
+    # Local mode queries the container CLI, not localhost:11434 — a host
+    # ollama (or any other listener) may already own that port.
     if not AWS_MODE:
-        sh(["docker", "exec", "rtdp-ollama-1", "ollama", "pull", SLM_TAG])
-    req = urllib.request.Request(
-        f"{OLLAMA_ADDR}/api/show",
-        data=json.dumps({"model": SLM_TAG}).encode(),
-        headers={"Content-Type": "application/json"}, method="POST")
-    with urllib.request.urlopen(req, timeout=15) as r:
-        info = json.loads(r.read())
-    blob = None
-    for line in info.get("modelfile", "").splitlines():
+        sh(["docker", "exec", "rtdp-ollama-1", "ollama", "pull", tag])
+        modelfile = sh(["docker", "exec", "rtdp-ollama-1",
+                        "ollama", "show", "--modelfile", tag]).stdout
+    else:
+        req = urllib.request.Request(
+            f"{OLLAMA_ADDR}/api/show",
+            data=json.dumps({"model": tag}).encode(),
+            headers={"Content-Type": "application/json"}, method="POST")
+        with urllib.request.urlopen(req, timeout=15) as r:
+            modelfile = json.loads(r.read()).get("modelfile", "")
+    for line in modelfile.splitlines():
         if line.startswith("FROM ") and "sha256-" in line:
-            blob = "sha256:" + line.split("sha256-", 1)[1].strip()
-    if not blob:
-        raise RuntimeError(f"no weights digest in modelfile: {info}")
+            return "sha256:" + line.split("sha256-", 1)[1].strip()
+    raise RuntimeError(f"no weights digest in modelfile: {modelfile}")
 
-    mdir = BUILD / "models" / SLM_MODEL_ID / SLM_VERSION
+
+def setup_slm(spec: dict, blob: str) -> dict:
+    """Stage + upload the prompt/schema artifacts for one SLM entry and
+    patch its binding with real digests."""
+    model_id, ver = spec["model_id"], spec["version"]
+    mdir = BUILD / "models" / model_id / ver
     mdir.mkdir(parents=True, exist_ok=True)
-    schema_bytes = (SLM_SRC / "input_schema.json").read_bytes()
-    tmpl_bytes = (SLM_SRC / "prompt_template.json").read_bytes()
+    schema_bytes = (spec["src"] / "input_schema.json").read_bytes()
+    tmpl_bytes = (spec["src"] / "prompt_template.json").read_bytes()
     (mdir / "input_schema.json").write_bytes(schema_bytes)
     (mdir / "prompt_template.json").write_bytes(tmpl_bytes)
     schema_digest = "sha256:" + hashlib.sha256(
@@ -181,15 +226,16 @@ def setup_slm() -> dict:
         .encode()).hexdigest()
     tmpl_digest = "sha256:" + hashlib.sha256(tmpl_bytes).hexdigest()
     meta = {
-        "model_id": SLM_MODEL_ID, "model_version": SLM_VERSION,
+        "model_id": model_id, "model_version": ver,
         "model_digest": blob, "input_schema_digest": schema_digest,
         "preprocessing_digest": tmpl_digest,
-        "output_contract": "claim.narrative_consistency@1.0.0",
+        "output_contract": spec["output_contract"],
         "output_kind": "structured_extraction",
-        "output_value": "consistency",
-        "runtime": SLM_TAG,
+        "output_value": spec["output_value"],
+        "runtime": spec["tag"],
         "provenance": {"kind": "synthetic",
-                       "generator": "ml/slm-narrative/prompt_template.json"},
+                       "generator": str(spec["src"].relative_to(ROOT))
+                       + "/prompt_template.json"},
     }
     (mdir / "metadata.json").write_text(json.dumps(meta, indent=2))
 
@@ -197,16 +243,16 @@ def setup_slm() -> dict:
     for name in ("input_schema.json", "prompt_template.json",
                  "metadata.json"):
         s3.upload_file(str(mdir / name), ARTIFACT_BUCKET,
-                       f"{SLM_MODEL_ID}/{SLM_VERSION}/{name}")
+                       f"{model_id}/{ver}/{name}")
 
-    doc = yaml.safe_load(SLM_BINDING.read_text())
-    doc["model"] = f"{SLM_MODEL_ID}@{SLM_VERSION}"
+    doc = yaml.safe_load(spec["binding"].read_text())
+    doc["model"] = f"{model_id}@{ver}"
     doc["input_schema_digest"] = schema_digest
     doc["preprocessing_digest"] = tmpl_digest
     doc["model_digest"] = blob
-    SLM_BINDING.write_text(yaml.safe_dump(doc, sort_keys=False))
-    print(f"slm artifact pinned: {SLM_TAG} {blob[:23]}")
-    meta["artifact_uri"] = f"ollama://{SLM_TAG}"
+    spec["binding"].write_text(yaml.safe_dump(doc, sort_keys=False))
+    print(f"slm artifact pinned: {model_id} {spec['tag']} {blob[:23]}")
+    meta["artifact_uri"] = f"ollama://{spec['tag']}"
     return meta
 
 
@@ -214,7 +260,7 @@ def warm_slm(meta: dict):
     ch = grpc.insecure_channel(SLM_ADDR)
     stub = services_pb2_grpc.InferenceServiceStub(ch)
     resp = stub.Warm(services_pb2.WarmRequest(
-        model_id=SLM_MODEL_ID, model_version=SLM_VERSION,
+        model_id=meta["model_id"], model_version=meta["model_version"],
         model_digest=meta["model_digest"],
         artifact_uri=meta["artifact_uri"],
         input_schema_digest=meta["input_schema_digest"],
@@ -223,7 +269,7 @@ def warm_slm(meta: dict):
         contract_version=meta["output_contract"].split("@")[1]))
     if not resp.ready:
         raise RuntimeError(f"slm warm failed: {resp.error}")
-    print(f"slm warm: {resp.model_digest[:23]}")
+    print(f"slm warm: {meta['model_id']} {resp.model_digest[:23]}")
 
 
 def compile_tenants():
@@ -258,6 +304,25 @@ def compile_tenants():
             })
             print(f"compiled {tenant}/{pid}: "
                   f"{bundle['digest'][:23]} -> {path.name}")
+
+    # BUC-5: pin the HSA challenger bundle for SHADOW_TENANT under cohort
+    # "shadow". ActivationFor returns the first tenant+env+event_type
+    # match, so the champion activation above still serves live traffic;
+    # this entry deploys the challenger manifest alongside it.
+    shadow_product = yaml.safe_load(SHADOW_PRODUCT.read_text())
+    shadow_bundle = compile_bundle(registry, shadow_product, None,
+                                   SHADOW_TENANT)
+    shadow_bundle["subscription_revision"] = 1
+    write_bundle(shadow_bundle, BUILD / "bundles")
+    activations.append({
+        "tenant_id": SHADOW_TENANT,
+        "environment": os.environ.get("RTDP_ENV", "work"),
+        "cohort": "shadow", "epoch": epoch,
+        "bundle_digest": shadow_bundle["digest"], "bundle": shadow_bundle,
+    })
+    print(f"compiled {SHADOW_TENANT}/hsa_reimbursement@2 (shadow): "
+          f"{shadow_bundle['digest'][:23]}")
+
     (BUILD / "bundles" / "activations.json").write_text(
         json.dumps(activations, indent=2))
     return activations
@@ -326,7 +391,9 @@ def warm_pipeline():
     run_id = uuid.uuid4().hex[:12]
     for client_id in ("demo-client-a", "demo-client-b"):
         for event_type in ("CLAIM_SUBMISSION", "POLICY_APPLICATION",
-                           "QUOTE_REQUEST", "CLAIM_DOCUMENT_INTAKE"):
+                           "QUOTE_REQUEST", "CLAIM_DOCUMENT_INTAKE",
+                           "DEPENDENT_VERIFICATION", "HSA_CLAIM",
+                           "CONTRIBUTION_CHANGE"):
             for attempt in range(40):
                 req = urllib.request.Request(
                     f"{INGRESS}/v1/decide",
@@ -367,13 +434,15 @@ def main():
         meta = upload_model(model_id)
         patch_binding(model_id, meta)
         metas[model_id] = meta
-    slm_meta = setup_slm()
+    slm_metas = [setup_slm(spec, _ollama_blob_digest(spec["tag"]))
+                 for spec in SLM_MODELS]
     activations = compile_tenants()
     sync_bundles()
     submit_flink()
     for model_id, meta in metas.items():
         warm_inference(model_id, meta)
-    warm_slm(slm_meta)
+    for slm_meta in slm_metas:
+        warm_slm(slm_meta)
     warm_pipeline()
     print("seed complete")
 

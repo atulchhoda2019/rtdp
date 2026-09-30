@@ -1,0 +1,32 @@
+# Platform-owned product definition. Synthetic demo configuration only.
+# Benefits product — SLM document-consistency check, same runtime profile
+# as document_intake (generative path, looser deadline cap).
+product_id: dependent_verification
+version: 1
+owner_scope: platform
+runtime_profile: document_intake
+routing:
+  event_types: [DEPENDENT_VERIFICATION]
+  channels: [PORTAL, BROKER]
+execution:
+  total_deadline_ms: 15000
+  required_features:
+    - claimant_claim_count_1h@1
+    - claimant_amount_sum_24h@1
+  signals:
+    dv:
+      contract: dependent.doc_consistency
+      accepted_contracts: ["1.0.0"]
+      binding: slm-dependent-verification-primary@1
+      timeout_ms: 12000
+      required: true
+  ruleset: dependent_verification_policy@1
+  missing_required_signal: REVIEW
+  aggregation: decision_precedence@1
+thresholds:
+  refer_below: 0.5
+  auto_accept: 0.75
+action_policy: dependent_verification_actions@1
+rollout:
+  mode: LIVE
+  cohort: champion

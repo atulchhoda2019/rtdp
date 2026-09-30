@@ -1,0 +1,17 @@
+binding_id: hsa-eligibility-challenger
+version: 1
+owner_scope: platform
+provider: grpc_inference
+endpoint_ref: inference-local
+model: hsa_eligibility_challenger@1
+input_schema_digest: sha256:b7ba56dfffa194f787c1441fe8052367ede83ac18683370843bd4e23fb106122
+preprocessing_digest: sha256:16f815d56f2ab7b35ae4c44d306f26ee56a3a5bfa8c5f210b970d59050fc6af7
+output_contract: hsa.eligibility_probability@1.0.0
+input_features:
+- txn.amount
+- claimant_claim_count_1h
+- claimant_amount_sum_24h
+maximum_age_ms: 50
+required_quality:
+  allow_stale_required_features: false
+model_digest: sha256:df75e108e22d943b6a5dd45e6822f5137c5d7d28904ea4e9ec2e88ca8d0e3956

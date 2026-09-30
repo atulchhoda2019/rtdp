@@ -1,0 +1,17 @@
+binding_id: slm-dependent-verification-primary
+version: 1
+owner_scope: platform
+provider: grpc_inference
+endpoint_ref: slm-local
+model: slm_dependent_verification@1
+input_schema_digest: sha256:b7ba56dfffa194f787c1441fe8052367ede83ac18683370843bd4e23fb106122
+preprocessing_digest: sha256:131fe3d3f0ac14e3764f5a4d50dd0f9cbe64d34f8bbaf6f3346058375ee229a7
+output_contract: dependent.doc_consistency@1.0.0
+input_features:
+- txn.amount
+- claimant_claim_count_1h
+- claimant_amount_sum_24h
+maximum_age_ms: 5000
+required_quality:
+  allow_stale_required_features: false
+model_digest: sha256:20693aeb02c63304e263a72453b6ab89e1c700a87c6948cac523ac1e6f7cade0

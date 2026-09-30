@@ -1,0 +1,33 @@
+# Platform-owned product definition. Synthetic demo configuration only.
+# Benefits product — HSA/FSA receipt auto-adjudication. Per-client
+# auto-approve limits are tenant overlays on thresholds.* only.
+product_id: hsa_reimbursement
+version: 2
+owner_scope: platform
+runtime_profile: decisioning
+routing:
+  event_types: [HSA_CLAIM]
+  channels: [PORTAL, BROKER]
+execution:
+  total_deadline_ms: 100
+  required_features:
+    - claimant_claim_count_1h@1
+    - claimant_amount_sum_24h@1
+  signals:
+    hsa:
+      contract: hsa.eligibility_probability
+      accepted_contracts: ["1.0.0"]
+      binding: hsa-eligibility-challenger@1
+      timeout_ms: 40
+      required: true
+  ruleset: hsa_policy@1
+  missing_required_signal: REVIEW
+  aggregation: decision_precedence@1
+thresholds:
+  eligibility_approve: 0.65
+  auto_approve_limit: 500.0   # cumulative receipts under this auto-adjudicate
+  velocity_review_count: 5
+action_policy: hsa_actions@1
+rollout:
+  mode: LIVE
+  cohort: challenger

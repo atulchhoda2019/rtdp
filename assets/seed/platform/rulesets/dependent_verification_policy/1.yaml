@@ -1,0 +1,24 @@
+ruleset_id: dependent_verification_policy
+version: 1
+owner_scope: platform
+requires:
+  - signal: dependent.doc_consistency
+    contract: "1.0.0"
+    alias: dv
+    optional: false
+evaluation: all_match
+rules:
+  - id: inconsistent_refer
+    when: "signals.dv.consistency < cfg.refer_below"
+    outcome: {decision: REVIEW, reason: DOCUMENT_INCONSISTENT}
+    requires_signals: [dv]
+  - id: consistent_accept
+    when: "signals.dv.consistency >= cfg.auto_accept"
+    outcome: {decision: APPROVE, reason: DOCUMENT_CONSISTENT}
+    requires_signals: [dv]
+  - id: borderline_refer
+    when: "signals.dv.consistency >= cfg.refer_below && signals.dv.consistency < cfg.auto_accept"
+    outcome: {decision: REVIEW, reason: DOCUMENT_BORDERLINE}
+    requires_signals: [dv]
+default_outcome: REVIEW
+missing_required_signal_outcome: REVIEW

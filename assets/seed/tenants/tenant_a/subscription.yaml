@@ -17,4 +17,17 @@ subscriptions:
     product: document_intake@1
     revision: 1
     status: ACTIVE
+  # Benefits demo products (docs/demo-benefits.md) — configuration only.
+  - subscription_id: sub_a_depver
+    product: dependent_verification@1
+    revision: 1
+    status: ACTIVE
+  - subscription_id: sub_a_hsa
+    product: hsa_reimbursement@1
+    revision: 1
+    status: ACTIVE
+  - subscription_id: sub_a_contrib
+    product: contribution_change@1
+    revision: 1
+    status: ACTIVE
 overlays: []

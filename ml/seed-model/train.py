@@ -65,6 +65,23 @@ def _uw_eligibility(n, rng):
     return X, y
 
 
+def _hsa_eligibility(n, rng):
+    """Label: synthetic eligibility for HSA receipt auto-adjudication.
+    Higher output = more eligible for straight-through reimbursement."""
+    amount = rng.gamma(2.0, 300.0, n)            # txn.amount: receipt total
+    claimant_count = rng.poisson(2, n).astype(np.float64)
+    claimant_amt = rng.gamma(2.0, 400.0, n)      # cumulative 24h claimed
+    X = np.column_stack([amount, claimant_count, claimant_amt])
+    # Eligibility falls with receipt size, participant velocity, and
+    # cumulative claim volume.
+    z = (2.4 - 1.1 * np.log1p(amount / 250.0)
+         - 0.45 * np.log1p(claimant_count)
+         - 0.9 * np.log1p(claimant_amt / 1000.0)
+         + rng.normal(0, 0.5, n))
+    y = (1.0 / (1.0 + np.exp(-z)) > rng.uniform(0, 1, n)).astype(np.int64)
+    return X, y
+
+
 def _premium(n, rng):
     """Output: synthetic premium estimate (currency units) for a quote."""
     amount = rng.gamma(3.0, 3000.0, n)          # txn.amount: coverage requested
@@ -111,6 +128,32 @@ MODELS = {
         "estimator": lambda: LinearRegression(),
         "data": _premium,
     },
+    "hsa_eligibility_logistic": {
+        "version": "1",
+        "kind": "binary_probability",
+        "output_value": "probability",
+        "output_contract": "hsa.eligibility_probability@1.0.0",
+        "features": ["txn.amount", "claimant_claim_count_1h",
+                     "claimant_amount_sum_24h"],
+        "estimator": lambda: LogisticRegression(max_iter=1000,
+                                                random_state=42),
+        "data": _hsa_eligibility,
+    },
+    # Champion/challenger pair: same contract and feature schema, different
+    # training seed -> different coefficients. Used by the shadow-rollout
+    # demo (docs/demo-benefits.md BUC-5).
+    "hsa_eligibility_challenger": {
+        "version": "1",
+        "kind": "binary_probability",
+        "output_value": "probability",
+        "output_contract": "hsa.eligibility_probability@1.0.0",
+        "features": ["txn.amount", "claimant_claim_count_1h",
+                     "claimant_amount_sum_24h"],
+        "estimator": lambda: LogisticRegression(max_iter=1000,
+                                                random_state=99),
+        "data": _hsa_eligibility,
+        "seed": 99,
+    },
 }
 
 
@@ -131,7 +174,8 @@ def _probe(model_id: str, X: np.ndarray):
 
 def train(model_id: str):
     spec = MODELS[model_id]
-    seed = int(os.environ.get("RTDP_TRAIN_SEED", "42"))
+    seed = int(os.environ.get("RTDP_TRAIN_SEED",
+                              str(spec.get("seed", 42))))
     X, y = spec["data"](20000, np.random.default_rng(seed))
     est = spec["estimator"]()
     est.fit(X, y)

@@ -17,6 +17,19 @@ subscriptions:
     product: document_intake@1
     revision: 1
     status: ACTIVE
+  # Benefits demo products (docs/demo-benefits.md) — configuration only.
+  - subscription_id: sub_b_depver
+    product: dependent_verification@1
+    revision: 1
+    status: ACTIVE
+  - subscription_id: sub_b_hsa
+    product: hsa_reimbursement@1
+    revision: 1
+    status: ACTIVE
+  - subscription_id: sub_b_contrib
+    product: contribution_change@1
+    revision: 1
+    status: ACTIVE
 overlays:
   - overlay_id: ovl_b_decline
     version: 1
@@ -24,3 +37,10 @@ overlays:
     # Tenant B's stricter decline threshold (worked example in design.md).
     overrides:
       thresholds.decline_probability: 0.85
+  - overlay_id: ovl_b_hsa_limit
+    version: 1
+    product: hsa_reimbursement@1
+    # Client B's plan caps auto-adjudication at $250 cumulative receipts;
+    # Client A uses the product default $500 (BUC-2/BUC-3 demo lever).
+    overrides:
+      thresholds.auto_approve_limit: 250.0

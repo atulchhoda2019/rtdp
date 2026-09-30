@@ -1,0 +1,24 @@
+signal_name: dependent.doc_consistency
+version: 1.0.0
+value_schema:
+  consistency:
+    type: float64
+    required: true
+    minimum: 0.0
+    maximum: 1.0
+semantics:
+  meaning: >-
+    SLM-judged consistency between a dependent-verification submission's
+    declared fields and the participant's authoritative record; 1.0 = fully
+    consistent
+  population: synthetic_dependent_verifications_v1
+  target_label: synthetic_consistent_dependent_label_v1
+  label_observation_horizon: P30D
+  unit: consistency_score
+  higher_means: more_consistent
+  calibration_contract: synthetic_slm_rubric_v1
+scope: transaction_revision
+allowed_statuses: [OK, UNAVAILABLE, INVALID_INPUT, TIMED_OUT]
+compatibility:
+  additive_optional_values: allowed_after_validation
+  semantic_change: new_major_required

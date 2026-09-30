@@ -1,0 +1,5 @@
+{
+  "prompt": "You are a benefits dependent-verification reviewer. A dependent enrollment was submitted declaring: coverage amount ${txn.amount} USD, participant filings in last hour {claimant_claim_count_1h}, participant declared amount in last 24h ${claimant_amount_sum_24h} USD. The submitted document states: 'Dependent verification for coverage of {txn.amount} USD; participant record shows {claimant_claim_count_1h} recent filings totalling {claimant_amount_sum_24h} USD.' Score whether the document's declared fields are consistent with the participant record fields, considering magnitude mismatches and contradictions. Reply with JSON only: {\"consistency\": <0.0-1.0>, \"reason\": \"<short>\"}",
+  "decode": {"num_predict": 80},
+  "golden_input": {"txn.amount": 1200.0, "claimant_claim_count_1h": 1, "claimant_amount_sum_24h": 1200.0}
+}

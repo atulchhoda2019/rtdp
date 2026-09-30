@@ -1,0 +1,28 @@
+ruleset_id: hsa_policy
+version: 1
+owner_scope: platform
+requires:
+  - signal: hsa.eligibility_probability
+    contract: "1.0.0"
+    alias: hsa
+    optional: false
+evaluation: all_match
+rules:
+  - id: velocity_review
+    when: "features.claimant_claim_count_1h > cfg.velocity_review_count"
+    outcome: {decision: REVIEW, reason: PARTICIPANT_VELOCITY}
+    requires_signals: []
+  - id: over_client_limit
+    when: "features.claimant_amount_sum_24h > cfg.auto_approve_limit"
+    outcome: {decision: REVIEW, reason: OVER_AUTO_APPROVE_LIMIT}
+    requires_signals: []
+  - id: eligible_auto_approve
+    when: "signals.hsa.probability >= cfg.eligibility_approve && features.claimant_amount_sum_24h <= cfg.auto_approve_limit"
+    outcome: {decision: APPROVE, reason: AUTO_ADJUDICATED}
+    requires_signals: [hsa]
+  - id: low_eligibility_review
+    when: "signals.hsa.probability < cfg.eligibility_approve"
+    outcome: {decision: REVIEW, reason: ELIGIBILITY_UNCERTAIN}
+    requires_signals: [hsa]
+default_outcome: REVIEW
+missing_required_signal_outcome: REVIEW

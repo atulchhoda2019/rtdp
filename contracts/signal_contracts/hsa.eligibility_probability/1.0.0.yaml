@@ -1,0 +1,21 @@
+signal_name: hsa.eligibility_probability
+version: 1.0.0
+value_schema:
+  probability:
+    type: float64
+    required: true
+    minimum: 0.0
+    maximum: 1.0
+semantics:
+  meaning: probability_that_this_hsa_claim_is_eligible_for_auto_adjudication
+  population: synthetic_hsa_claims_v1
+  target_label: synthetic_hsa_eligible_label_v1
+  label_observation_horizon: P30D
+  unit: probability
+  higher_means: more_eligible
+  calibration_contract: synthetic_calibration_v1
+scope: transaction_revision
+allowed_statuses: [OK, UNAVAILABLE, INVALID_INPUT, TIMED_OUT]
+compatibility:
+  additive_optional_values: allowed_after_validation
+  semantic_change: new_major_required

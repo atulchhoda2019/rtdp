@@ -1,0 +1,22 @@
+action_policy_id: contribution_actions
+version: 1
+owner_scope: platform
+allowed_actions: [APPLY_CONTRIBUTION_CHANGE, OPEN_FRAUD_CASE]
+adapters:
+  # local_timeout_simulator always reports a provider timeout after a
+  # possible apply -> UNKNOWN, never a blind retry (ADR-007 demo path).
+  APPLY_CONTRIBUTION_CHANGE: local_timeout_simulator@1
+  OPEN_FRAUD_CASE: local_siu_case_adapter@1
+authoritative_decision_domain: contribution_change
+action_rules:
+  APPLY_CONTRIBUTION_CHANGE: [APPROVE]
+  OPEN_FRAUD_CASE: [REVIEW]
+intent_ttl_ms:
+  APPLY_CONTRIBUTION_CHANGE: 300000
+  OPEN_FRAUD_CASE: 300000
+retries:
+  OPEN_FRAUD_CASE:
+    maximum_attempts: 3
+    strategy: bounded_exponential
+on_unknown_outcome: RECONCILE
+live_effects_allowed: false

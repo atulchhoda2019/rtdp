@@ -1,0 +1,23 @@
+action_policy_id: dependent_verification_actions
+version: 1
+owner_scope: platform
+allowed_actions: [ENROLL_DEPENDENT, ROUTE_TO_REVIEW_QUEUE]
+adapters:
+  ENROLL_DEPENDENT: local_intake_simulator@1
+  ROUTE_TO_REVIEW_QUEUE: local_uw_queue_adapter@1
+authoritative_decision_domain: dependent_verification
+# ADMT guardrail as data: APPROVE may enroll; everything else routes to a
+# human queue. There is deliberately no action bound to DECLINE — the
+# policy cannot decline, so the AI can never reject a dependent.
+action_rules:
+  ENROLL_DEPENDENT: [APPROVE]
+  ROUTE_TO_REVIEW_QUEUE: [REVIEW]
+intent_ttl_ms:
+  ENROLL_DEPENDENT: 100
+  ROUTE_TO_REVIEW_QUEUE: 300000
+retries:
+  ROUTE_TO_REVIEW_QUEUE:
+    maximum_attempts: 3
+    strategy: bounded_exponential
+on_unknown_outcome: RECONCILE
+live_effects_allowed: false
