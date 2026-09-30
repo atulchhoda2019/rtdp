@@ -51,3 +51,119 @@ Account `079457921611`, region `us-east-1`, profile `rtdp-devin` (assumed
 - [ ] `rtdp-migrate` + `rtdp-seed` PostSync jobs succeed
 - [ ] End-to-end synthetic decision on AWS (port-forward ingress)
 - [ ] Phase 1 gates re-run on AWS
+
+## Stage F verified — 2026-09-30 (commit 137ae0b)
+
+### AWS Health finding: MSK RF == MinISR — RESOLVED
+
+AWS_KAFKA_HIGH_RISK_CONFIG_RF_EQUALS_MINISR (us-east-1, acct 079457921611).
+Root cause: `msk` module broker config `min.insync.replicas=2` + all topics
+created with `topicReplicationFactor: 2` → every topic RF=2/MinISR=2 (any
+single broker loss stalls writes).
+
+Fix: topics deleted + recreated at RF=3 with explicit topic-level
+`min.insync.replicas=2` (`internal/kafkax.EnsureTopics` pins it at creation;
+`rtdp-topics` gained `RTDP_TOPIC_DELETE` + `RTDP_TOPIC_DESCRIBE`; bootstrap
+role got `DeleteTopic`, `DescribeTopicDynamicConfiguration`,
+`AlterTopicDynamicConfiguration` — MSK action-name corrections, verified
+against the service authorization reference after finding earlier
+`WriteTransactionId`/`DescribeConfigs` strings were dead).
+
+Live describe via `rtdp-topics` (RTDP_TOPIC_DESCRIBE=1, in-cluster,
+rtdp-bootstrap Pod Identity, SASL IAM):
+
+    rtdp.ingress.v1          rf=3 min.insync.replicas=2
+    rtdp.egress.v1           rf=3 min.insync.replicas=2
+    rtdp.feature.contrib.v1  rf=3 min.insync.replicas=2
+    rtdp.feature.updates.v1  rf=3 min.insync.replicas=2
+    rtdp.feature.late.v1     rf=3 min.insync.replicas=2
+    rtdp.decision.facts.v1   rf=3 min.insync.replicas=2
+    rtdp.action.commands.v1  rf=3 min.insync.replicas=2
+    rtdp.action.status.v1    rf=3 min.insync.replicas=2
+    rtdp.control.activation.v1 rf=3 min.insync.replicas=2
+    rtdp.telemetry.v1        rf=3 min.insync.replicas=2
+    rtdp.dlq.v1              rf=3 min.insync.replicas=2
+
+### Tier-1 store: Valkey 9.0 (HEXPIRE contract)
+
+`internal/store/tier1.lua` requires hash-field expiry (dedup entries, count
+buckets, amount buckets, vectors). ElastiCache Valkey 8.0 and 8.1 both return
+`unknown command 'HEXPIRE'` — the feature landed in Valkey 9.0 / Redis 7.4.
+Upgraded in place 8.0 → 8.1 → 9.0; parameter group family now derives from
+the engine major version (`rtdp-valkey9`, `create_before_destroy`).
+
+Live check (`redis-cli --tls`, in-cluster):
+
+    INFO server  →  valkey_version:9.0.0
+    HEXPIRE t1:probe 60 FIELDS 1 a  →  1
+
+`describe-cache-clusters rtdp-sandbox-001`: status=available, engine=valkey
+9.0.0, parameter group=rtdp-valkey9.
+
+### Kafka producer fixes (durable commit)
+
+- `internal/kafkax.TxnPool.Warm` now runs a real empty transaction so
+  `InitProducerId` is acquired at pod start — previously `Warm` only pinged
+  and the first request per slot always paid producer init (~>100ms on MSK,
+  blowing `total_deadline_ms`).
+- `release()` no longer recycles producers on deadline/abort failures —
+  the detached `TryAbort` leaves the client clean; recycling created a
+  permanent cold loop (every error → new epoch → next request pays init →
+  error again).
+- MSK IAM action names corrected: `AlterTransactionalId` /
+  `DescribeTransactionalId` (not `WriteTransactionId`), `WriteTxnMarkers`
+  (Kafka ≥3.8 txn termination), `WriteDataIdempotently` moved to the
+  cluster ARN — all cluster-level, ignored on topic ARNs.
+
+### Ingress
+
+`RTDP_DECIDE_TIMEOUT_MS` replaces the hardcoded 5s gRPC deadline; sandbox
+runs 35000 — `CLAIM_DOCUMENT_INTAKE`'s SLM path takes ~8-12s cold /
+~2-4s warm and can never fit 5s. Orchestrator enforces the real per-product
+deadline internally.
+
+### Seed dedup conflict (final blocker, fixed)
+
+Seed warmup ids were `warmup_{client}_{event}_{attempt}` — deterministic
+across runs — while each request's payload embeds the current `event_time`.
+A failed run writes tier-1 dedup markers for its ids; any rerun replays the
+same ids with a different digest → `tier1: ERR CONFLICT` → instant 502 on
+all 40 attempts. Fix: transaction ids now carry a per-run uuid nonce —
+a re-seed is fresh synthetic traffic, not a replay.
+
+### Deployed images (all linux/amd64, digest-pinned)
+
+- `rtdp/tools@sha256:0a31b957a8c75cecf532096c790335eff6188c0af6954979b7e39e2dc0b09661` (git-0f264a9)
+- `rtdp/ingress@sha256:53ee36ec90d57f08d767f3efc2e7e769a8ee6b2e84a618bc715b60fb50810218`
+- `rtdp/orchestrator@sha256:4805b09ea4260edb2fe47752f910b29a5c74555344e205b7113ec8b8e994f5fe`
+
+### Final state
+
+- 13/13 ArgoCD apps Synced + Healthy (ollama rescheduled onto the
+  `cpu-inference` pool — system node was CPU-saturated).
+- 12/12 service pods Running; `rtdp-migrate` + `rtdp-seed` Completed.
+- Seed run `rtdp-seed-rckvq`: 3 ONNX models → artifacts bucket, 9 tenant
+  bundles → bundles bucket, activations for env `aws-sandbox`, inference
+  + SLM warmed, 8/8 pipeline-warm calls ok on attempt 1 (second clean run —
+  re-seeding is idempotent).
+- `terraform plan` (no target): **No changes.**
+
+### End-to-end decisions (live, in-cluster → ingress → orchestrator → MSK txn)
+
+| tenant | event | outcome | reasons | latency |
+|---|---|---|---|---|
+| demo-client-a | CLAIM_SUBMISSION | APPROVE | — | 0.31s |
+| demo-client-a | POLICY_APPLICATION | REVIEW | UW_REFER_BAND | 0.37s |
+| demo-client-a | QUOTE_REQUEST | APPROVE | QUOTE_ISSUED | 0.44s |
+| demo-client-a | CLAIM_DOCUMENT_INTAKE | APPROVE | NARRATIVE_CONSISTENT | 3.69s |
+| demo-client-b | CLAIM_SUBMISSION | APPROVE | — | 0.18s |
+| demo-client-b | POLICY_APPLICATION | REVIEW | UW_REFER_BAND | 0.17s |
+| demo-client-b | QUOTE_REQUEST | APPROVE | QUOTE_ISSUED | 0.20s |
+| demo-client-b | CLAIM_DOCUMENT_INTAKE | APPROVE | NARRATIVE_CONSISTENT | 2.10s |
+
+Each tenant resolves distinct pinned bundle digests per product
+(e.g. document_intake: tenant_a `sha256:9e1d88b4…`, tenant_b
+`sha256:555a98bd…`); manifest_epoch `1790742710` on all responses.
+Earlier runs also produced DECLINE/REVIEW paths: VELOCITY_LIMIT (tier-1
+counters accumulate across requests — dedup/counters verified live),
+MODEL_REVIEW_BAND, MISSING_REQUIRED_SIGNAL, NARRATIVE_INCONSISTENT.
