@@ -98,12 +98,19 @@ resource "aws_iam_role_policy" "kafka" {
         Action   = ["kafka-cluster:Connect", "kafka-cluster:DescribeCluster"]
         Resource = [var.msk_cluster_arn]
       }],
-      # WriteDataIdempotently is a CLUSTER-level permission — ignored on
-      # topic/group/transactional-id ARNs (MSK IAM auth docs).
+      # WriteDataIdempotently + WriteTxnMarkers are CLUSTER-level
+      # permissions — ignored on topic/group/transactional-id ARNs.
+      # Kafka >=3.8 ends transactions via WriteTxnMarkers (MSK IAM auth docs).
       length([for c in each.value : c
         if contains(["kafka-txn", "kafka-write-events", "kafka-admin"], c)]) > 0 ? [{
         Effect   = "Allow"
         Action   = ["kafka-cluster:WriteDataIdempotently"]
+        Resource = [var.msk_cluster_arn]
+      }] : [],
+      length([for c in each.value : c
+        if contains(["kafka-txn", "kafka-admin"], c)]) > 0 ? [{
+        Effect   = "Allow"
+        Action   = ["kafka-cluster:WriteTxnMarkers"]
         Resource = [var.msk_cluster_arn]
       }] : [],
       contains(each.value, "kafka-txn") ? [{
