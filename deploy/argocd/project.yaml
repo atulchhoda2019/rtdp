@@ -12,4 +12,6 @@ spec:
       namespace: rtdp
     - server: https://kubernetes.default.svc
       namespace: argocd
-  clusterResourceWhitelist: [] # namespace-scoped only
+  clusterResourceWhitelist:
+    - group: ""
+      kind: Namespace # CreateNamespace=true sync option targets `rtdp`
