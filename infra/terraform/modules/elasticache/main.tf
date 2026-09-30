@@ -20,9 +20,9 @@ variable "node_type" {
   default = "cache.t4g.medium"
 }
 variable "engine_version" {
-  # 8.1+ required: the Tier-1 Lua op uses HEXPIRE (hash-field expiry),
-  # which landed in Valkey 8.1 / Redis 7.4 — 8.0 does not support it.
-  default = "8.1"
+  # 9.x required: the Tier-1 Lua op uses HEXPIRE (hash-field expiry),
+  # which landed in Valkey 9.0 / Redis 7.4 — 8.x does not support it.
+  default = "9.0"
 }
 variable "kms_key_arn" {
   type = string
@@ -43,14 +43,22 @@ resource "aws_elasticache_subnet_group" "this" {
   subnet_ids = var.subnet_ids
   tags       = var.tags
 }
+locals {
+  # Param-group family tracks the engine major version — a major upgrade
+  # requires a same-major group or ModifyReplicationGroup rejects it.
+  valkey_family = "valkey${split(".", var.engine_version)[0]}"
+}
 resource "aws_elasticache_parameter_group" "this" {
-  name   = "rtdp-valkey8"
-  family = "valkey8"
+  name   = "rtdp-${local.valkey_family}"
+  family = local.valkey_family
   parameter {
     name  = "cluster-enabled"
     value = "no"
   }
   tags = var.tags
+  # The replication group must move to the new group before the old one can
+  # be deleted — otherwise ElastiCache rejects the delete (still in use).
+  lifecycle { create_before_destroy = true }
 }
 # Replication group: 1 primary + 1 replica across AZs, TLS in transit,
 # KMS at rest. Lua atomicity verified in Stage D gate.
