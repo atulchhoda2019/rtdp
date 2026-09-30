@@ -14,6 +14,7 @@ import subprocess
 import sys
 import time
 import urllib.request
+import uuid
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[2] / "gen" / "python"))
@@ -322,6 +323,7 @@ def warm_pipeline():
     the CEL engine cache are all cold on a fresh stack and would otherwise
     blow the configured total_deadline_ms on first request (design.md
     warm-readiness contract)."""
+    run_id = uuid.uuid4().hex[:12]
     for client_id in ("demo-client-a", "demo-client-b"):
         for event_type in ("CLAIM_SUBMISSION", "POLICY_APPLICATION",
                            "QUOTE_REQUEST", "CLAIM_DOCUMENT_INTAKE"):
@@ -330,7 +332,7 @@ def warm_pipeline():
                     f"{INGRESS}/v1/decide",
                     data=json.dumps({
                         "transaction_id":
-                            f"warmup_{client_id}_{event_type}_{attempt}",
+                            f"warmup_{client_id}_{event_type}_{run_id}_{attempt}",
                         "transaction_revision": 1,
                         "event_type": event_type,
                         "channel": "PORTAL",
