@@ -167,3 +167,19 @@ Each tenant resolves distinct pinned bundle digests per product
 Earlier runs also produced DECLINE/REVIEW paths: VELOCITY_LIMIT (tier-1
 counters accumulate across requests — dedup/counters verified live),
 MODEL_REVIEW_BAND, MISSING_REQUIRED_SIGNAL, NARRATIVE_INCONSISTENT.
+
+### Demo access
+
+No ELB is possible in this account — `RTDPDevinPermissionBoundary` denies
+`iam:CreateServiceLinkedRole` unconditionally, so `Service type:LoadBalancer`
+can never provision (verified live: `SyncLoadBalancerFailed` ×8, then the
+same 403 creating `AWSServiceRoleForElasticLoadBalancing` via terraform).
+The `service.public` block in the rtdp-service chart remains as a documented
+escape hatch if the boundary ever changes.
+
+Working path: `kubectl -n rtdp port-forward svc/ingress 8080:8080`, plus a
+cloudflared quick tunnel (`cloudflared tunnel --url http://localhost:8080`)
+for a shareable https URL. `GET /` on ingress serves an embedded demo page
+(same-origin POSTs to `/v1/decide`, no CORS surface).
+
+- `rtdp/ingress@sha256:de2f3d48274aec277057a75f0d72c4288673ab9fa0805112f16698b50ac40109` (git-6798a19)
