@@ -1,0 +1,53 @@
+ruleset_id: receipt_policy
+version: 1
+owner_scope: platform
+requires:
+  - signal: receipt.ocr_consistency
+    contract: "1.0.0"
+    alias: rc
+    optional: false
+evaluation: all_match
+rules:
+  # No docling extraction attached to the claim at all — straight to the
+  # residual manual lane.
+  - id: no_extraction_review
+    when: '!("attr.ocr_confidence" in input) || !("attr.receipt_text" in input)'
+    outcome: {decision: REVIEW, reason: NO_EXTRACTION}
+    requires_signals: []
+  # Extraction ran but the image was too degraded to trust.
+  - id: unreadable_review
+    when: '"attr.ocr_confidence" in input && input["attr.ocr_confidence"] < cfg.min_ocr_confidence'
+    outcome: {decision: REVIEW, reason: UNREADABLE_IMAGE}
+    requires_signals: []
+  # SLM judged the extracted text does not support the claimed amount.
+  - id: extraction_mismatch
+    when: "signals.rc.consistency < cfg.refer_below"
+    outcome: {decision: REVIEW, reason: EXTRACTION_MISMATCH}
+    requires_signals: [rc]
+  # Claiming more than the receipt's own TOTAL is never valid — the
+  # deterministic cross-check that does not depend on the SLM being right.
+  # 15% headroom absorbs OCR digit-drop on the extracted total; tampered
+  # claims in the corpus run 60-140% over.
+  - id: over_receipt_total
+    when: '"attr.extracted_total" in input && input["attr.extracted_total"] > 0.0 && input["txn.amount"] > input["attr.extracted_total"] * 1.15'
+    outcome: {decision: REVIEW, reason: EXCEEDS_RECEIPT_TOTAL}
+    requires_signals: []
+  # Claimed amount exceeds the eligible subtotal the extraction pipeline
+  # pulled off the receipt — the core HSA control: ineligible lines
+  # (groceries, cosmetics) can never auto-approve.
+  - id: eligible_amount_gap
+    when: '"attr.extracted_eligible" in input && input["attr.extracted_eligible"] > 0.0 && input["txn.amount"] > input["attr.extracted_eligible"] * 1.15'
+    outcome: {decision: REVIEW, reason: CLAIMS_INELIGIBLE_LINES}
+    requires_signals: []
+  # Claimed amount exceeds the client's per-claim auto-adjudication cap.
+  - id: over_client_limit
+    when: '"txn.amount" in input && input["txn.amount"] > cfg.auto_approve_limit'
+    outcome: {decision: REVIEW, reason: OVER_AUTO_APPROVE_LIMIT}
+    requires_signals: []
+  - id: clean_auto_approve
+    when: 'signals.rc.consistency >= cfg.auto_accept && input["attr.ocr_confidence"] >= cfg.min_ocr_confidence'
+    outcome: {decision: APPROVE, reason: AUTO_ADJUDICATED}
+    requires_signals: [rc]
+default_outcome: REVIEW
+missing_required_signal_outcome: REVIEW
+action_policy_id: receipt_actions

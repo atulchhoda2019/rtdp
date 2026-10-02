@@ -273,6 +273,7 @@ services:
       <<: *common-env
       RTDP_INGRESS_PORT: "8080"
       RTDP_ORCHESTRATOR_ADDR: orchestrator:50055
+      RTDP_DECIDE_TIMEOUT_MS: "35000" # bound only; product deadline governs
     depends_on:
       - orchestrator
       - kafka

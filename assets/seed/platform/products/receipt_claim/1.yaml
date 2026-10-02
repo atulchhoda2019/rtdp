@@ -1,0 +1,36 @@
+# Platform-owned product definition. Synthetic demo configuration only.
+# Claims/receipt intake at scale — docling extraction arrives as request
+# attributes (attr.receipt_text, attr.ocr_confidence), the SLM scores
+# claim-vs-document consistency, rules auto-adjudicate or route to the
+# residual review lane. Generative path: document_intake runtime profile.
+product_id: receipt_claim
+version: 1
+owner_scope: platform
+runtime_profile: document_intake
+routing:
+  event_types: [RECEIPT_CLAIM]
+  channels: [PORTAL, BROKER]
+execution:
+  total_deadline_ms: 15000
+  required_features:
+    - claimant_claim_count_1h@1
+    - claimant_amount_sum_24h@1
+  signals:
+    rc:
+      contract: receipt.ocr_consistency
+      accepted_contracts: ["1.0.0"]
+      binding: slm-receipt-verification-primary@1
+      timeout_ms: 12000
+      required: true
+  ruleset: receipt_policy@1
+  missing_required_signal: REVIEW
+  aggregation: decision_precedence@1
+thresholds:
+  min_ocr_confidence: 0.55
+  refer_below: 0.5
+  auto_accept: 0.75
+  auto_approve_limit: 100.0
+action_policy: receipt_actions@1
+rollout:
+  mode: LIVE
+  cohort: champion

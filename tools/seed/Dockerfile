@@ -27,6 +27,7 @@ COPY assets ./assets
 COPY contracts ./contracts
 COPY ml/slm-narrative ./ml/slm-narrative
 COPY ml/slm-dependent-verification ./ml/slm-dependent-verification
+COPY ml/slm-receipt-verification ./ml/slm-receipt-verification
 COPY gen/python ./gen/python
 COPY services/control-plane ./services/control-plane
 COPY tools/seed ./tools/seed

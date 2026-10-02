@@ -59,6 +59,35 @@ python tools/demo/benefits_demo.py --only contrib  # UNKNOWN effect path
 > the rest. And the contribution adapter times out *after* a possible
 > apply: the effect lands UNKNOWN and policy says reconcile, never retry."
 
+## Act 4b — receipt claims at scale (docling → rules → BPO math)
+
+```bash
+.venv-docling/bin/streamlit run tools/demo/receipt_app.py
+```
+
+Upload or pick a corpus receipt — watch docling extract the lines, then
+submit the claim. Clean receipt claiming the eligible subtotal →
+**DECISION_APPROVE**. Then try `demo-client-b` — the same claim reviews
+under the $50 overlay.
+
+> "OCR is commoditized — docling runs on CPU. The expensive part was the
+> LLM checking deterministic rules, so the rules do that for free and the
+> model only scores document-vs-claim consistency. AI never rejects:
+> there is no decline path in the action policy, and a test walks every
+> outcome to prove it. Everything else lands in the review queue with the
+> extracted fields pre-filled."
+
+Then the aggregate evidence:
+
+```bash
+cat docs/validation/receipts-at-scale.json
+```
+
+> "Measured against the Textract-plus-LLM-plus-BPO counterfactual: ~47%
+> cheaper per document at a million documents, 94% of inflated claims
+> caught by deterministic rules — the model never touches a line item —
+> and every decision carries the bundle digest you'd replay to audit it."
+
 ## Act 5 — a live plan change, no deploy
 
 ```bash

@@ -124,13 +124,17 @@ class SlmServicer(services_pb2_grpc.InferenceServiceServicer):
         return services_pb2.ScoreResponse(envelope=env)
 
     @staticmethod
-    def _scalar(v: envelope_pb2.TypedValue) -> float:
+    def _scalar(v: envelope_pb2.TypedValue):
         which = v.WhichOneof("kind")
         if which == "double_value":
             return float(v.double_value)
         if which == "int_value":
             return float(v.int_value)
-        raise ValueError(f"feature value must be numeric, got {which}")
+        if which == "string_value":
+            # attr.<key> request attributes carry document text into prompt
+            # templates — generate() renders it with str().
+            return v.string_value
+        raise ValueError(f"feature value must be numeric or string, got {which}")
 
 
 def serve():

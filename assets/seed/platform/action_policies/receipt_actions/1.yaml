@@ -1,0 +1,22 @@
+action_policy_id: receipt_actions
+version: 1
+owner_scope: platform
+allowed_actions: [ISSUE_REIMBURSEMENT, ROUTE_TO_REVIEW_QUEUE]
+adapters:
+  ISSUE_REIMBURSEMENT: local_intake_simulator@1
+  ROUTE_TO_REVIEW_QUEUE: local_uw_queue_adapter@1
+authoritative_decision_domain: receipt_claim
+# APPROVE auto-adjudicates (this is the BPO-deflection path); every REVIEW
+# routes to the residual human lane — the queue a scaled-down BPO still owns.
+action_rules:
+  ISSUE_REIMBURSEMENT: [APPROVE]
+  ROUTE_TO_REVIEW_QUEUE: [REVIEW]
+intent_ttl_ms:
+  ISSUE_REIMBURSEMENT: 100
+  ROUTE_TO_REVIEW_QUEUE: 300000
+retries:
+  ROUTE_TO_REVIEW_QUEUE:
+    maximum_attempts: 3
+    strategy: bounded_exponential
+on_unknown_outcome: RECONCILE
+live_effects_allowed: false

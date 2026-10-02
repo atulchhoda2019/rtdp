@@ -1,0 +1,4 @@
+{
+  "ordered_features": ["txn.amount", "claimant_claim_count_1h", "claimant_amount_sum_24h", "attr.receipt_text"],
+  "types": {"txn.amount": "float64", "claimant_claim_count_1h": "float64", "claimant_amount_sum_24h": "float64", "attr.receipt_text": "string"}
+}

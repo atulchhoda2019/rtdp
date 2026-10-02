@@ -30,6 +30,11 @@ subscriptions:
     product: contribution_change@1
     revision: 1
     status: ACTIVE
+  # Receipt-claims intake at scale (docs/demo-claims-scale.md) — config only.
+  - subscription_id: sub_b_receipt
+    product: receipt_claim@1
+    revision: 1
+    status: ACTIVE
 overlays:
   - overlay_id: ovl_b_decline
     version: 1
@@ -44,3 +49,10 @@ overlays:
     # Client A uses the product default $500 (BUC-2/BUC-3 demo lever).
     overrides:
       thresholds.auto_approve_limit: 250.0
+  - overlay_id: ovl_b_receipt_limit
+    version: 1
+    product: receipt_claim@1
+    # Client B's claims plan caps receipt auto-adjudication at $50 cumulative
+    # 24h; Client A uses the product default $100 (claims-scale demo lever).
+    overrides:
+      thresholds.auto_approve_limit: 50.0

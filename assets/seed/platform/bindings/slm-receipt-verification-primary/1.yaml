@@ -1,0 +1,18 @@
+binding_id: slm-receipt-verification-primary
+version: 1
+owner_scope: platform
+provider: grpc_inference
+endpoint_ref: slm-local
+model: slm_receipt_verification@1
+input_schema_digest: sha256:338188b3b7a2cff5b4c3c1e35ea4442e92f9896854915e245196999031a20630
+preprocessing_digest: sha256:4ddd66aa69b52819d2c97ba3eecd098901d93912b785fca84f620c660c552040
+output_contract: receipt.ocr_consistency@1.0.0
+input_features:
+- txn.amount
+- claimant_claim_count_1h
+- claimant_amount_sum_24h
+- attr.receipt_text
+maximum_age_ms: 5000
+required_quality:
+  allow_stale_required_features: false
+model_digest: sha256:183715c435899236895da3869489cc30ac241476b4971a20285b1a462818a5b4

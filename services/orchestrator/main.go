@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -190,6 +191,19 @@ func (s *server) Decide(ctx context.Context,
 	}
 	featNames = append(featNames, "txn.amount")
 	featVals = append(featVals, tvf(req.Amount))
+	// Caller-supplied attributes join the shared universe as "attr.<key>" —
+	// bindings name them in input_features and prompt templates reference
+	// {attr.<key>}. Sorted: map order is random and the snapshot digest must
+	// be identical across an idempotent retry.
+	attrKeys := make([]string, 0, len(req.Attributes))
+	for k := range req.Attributes {
+		attrKeys = append(attrKeys, k)
+	}
+	sort.Strings(attrKeys)
+	for _, k := range attrKeys {
+		featNames = append(featNames, "attr."+k)
+		featVals = append(featVals, req.Attributes[k])
+	}
 	inputSnap := fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(
 		fmt.Sprintf("%v", featVals))))
 
@@ -255,6 +269,16 @@ func (s *server) Decide(ctx context.Context,
 			}
 		}
 	}
+	// Rules see attributes under input["attr.<key>"]. The prefix keeps
+	// caller-supplied names from shadowing reserved input keys the rules
+	// service reads (e.g. missing_required_signal_outcome).
+	ruleInput := map[string]*rtdpv1.TypedValue{}
+	for _, k := range attrKeys {
+		ruleInput["attr."+k] = req.Attributes[k]
+	}
+	// Reserved platform keys: the claimed amount as submitted on the
+	// transaction, so rules never depend on a caller-duplicated attribute.
+	ruleInput["txn.amount"] = tvf(req.Amount)
 	eval, err := s.rules.EvaluateRules(ctx, &rtdpv1.EvaluateRulesRequest{
 		RulesetDigest:        m.Ruleset.Digest,
 		RulesetSpecJson:      m.Ruleset.SpecRaw,
@@ -262,7 +286,7 @@ func (s *server) Decide(ctx context.Context,
 		Signals:              sigValues,
 		PresentSignalAliases: keys(present),
 		Cfg:                  cfg,
-		Input:                map[string]*rtdpv1.TypedValue{},
+		Input:                ruleInput,
 		ExecutionBudgetMs:    time.Until(deadline).Milliseconds(),
 	})
 	if err != nil {

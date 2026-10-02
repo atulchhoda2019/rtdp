@@ -50,3 +50,6 @@ coverage/
 
 # Terraform variable files may contain account-specific values
 **/terraform.tfvars
+.venv-docling/
+# Generated receipt corpus — reproducible via tools/demo/receipt_corpus.py
+tests/fixtures/receipts/

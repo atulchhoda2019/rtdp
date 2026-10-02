@@ -1,0 +1,112 @@
+{
+ "run_id": "709a46ba",
+ "receipts": 100,
+ "auto_adjudication_rate": 0.3,
+ "review_rate": 0.7,
+ "tamper_catch_rate": 0.941,
+ "ocr_total_match_rate": 0.34,
+ "eligible_amount_accuracy": 0.424,
+ "lexicon_line_share": 1.0,
+ "docling_ms": {
+  "mean": 2717
+ },
+ "decide_ms": {
+  "mean": 5687
+ },
+ "cost_model": {
+  "bpo_usd_per_doc": 0.85,
+  "measured_usd_per_doc": 0.0041,
+  "counterfactual_usd_per_doc": 1.12,
+  "counterfactual_note": "Textract per-page + LLM on every rule + BPO on every doc",
+  "blended_usd_per_doc": 0.5991,
+  "per_1m_docs_usd": 599075,
+  "counterfactual_per_1m_docs_usd": 1120000,
+  "savings_pct_at_1m": 46.5
+ },
+ "by_degrade_level": {
+  "0": {
+   "n": 43,
+   "auto_rate": 0.3
+  },
+  "1": {
+   "n": 27,
+   "auto_rate": 0.56
+  },
+  "2": {
+   "n": 22,
+   "auto_rate": 0.09
+  },
+  "3": {
+   "n": 8,
+   "auto_rate": 0.0
+  }
+ },
+ "sample_decisions": [
+  {
+   "receipt_id": "rcpt_0000",
+   "degrade_level": 1,
+   "truth_total": 28.66,
+   "truth_eligible": 17.61,
+   "claimed": 17.61,
+   "tampered": false,
+   "extracted_total": 27.0,
+   "extracted_eligible": null,
+   "lines_decided": 0,
+   "lines_unsure": 0,
+   "ocr_confidence": 0.8,
+   "text_chars": 311,
+   "docling_ms": 9220,
+   "decide_ms": 12376,
+   "http": 200,
+   "outcome": "DECISION_REVIEW",
+   "reasons": [
+    "MISSING_REQUIRED_SIGNAL"
+   ],
+   "bundle_digest": "sha256:68d15920ca36036ab560b2d17b6813c293f046822c98267982ba2b9264288cf6"
+  },
+  {
+   "receipt_id": "rcpt_0001",
+   "degrade_level": 0,
+   "truth_total": 41.85,
+   "truth_eligible": 41.85,
+   "claimed": 41.85,
+   "tampered": false,
+   "extracted_total": 41.0,
+   "extracted_eligible": 41.0,
+   "lines_decided": 0,
+   "lines_unsure": 0,
+   "ocr_confidence": 0.8,
+   "text_chars": 144,
+   "docling_ms": 3213,
+   "decide_ms": 13732,
+   "http": 200,
+   "outcome": "DECISION_REVIEW",
+   "reasons": [
+    "MISSING_REQUIRED_SIGNAL"
+   ],
+   "bundle_digest": "sha256:68d15920ca36036ab560b2d17b6813c293f046822c98267982ba2b9264288cf6"
+  },
+  {
+   "receipt_id": "rcpt_0002",
+   "degrade_level": 1,
+   "truth_total": 61.53,
+   "truth_eligible": 57.85,
+   "claimed": 57.85,
+   "tampered": false,
+   "extracted_total": 61.0,
+   "extracted_eligible": null,
+   "lines_decided": 0,
+   "lines_unsure": 0,
+   "ocr_confidence": 0.8,
+   "text_chars": 494,
+   "docling_ms": 6704,
+   "decide_ms": 7162,
+   "http": 200,
+   "outcome": "DECISION_APPROVE",
+   "reasons": [
+    "AUTO_ADJUDICATED"
+   ],
+   "bundle_digest": "sha256:68d15920ca36036ab560b2d17b6813c293f046822c98267982ba2b9264288cf6"
+  }
+ ]
+}

@@ -7,6 +7,7 @@ import (
 	"context"
 	_ "embed"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net"
 	"net/http"
@@ -31,16 +32,42 @@ var clientTenants = map[string]string{
 }
 
 type decideReq struct {
-	TransactionID       string  `json:"transaction_id"`
-	TransactionRevision int64   `json:"transaction_revision"`
-	EventType           string  `json:"event_type"`
-	Channel             string  `json:"channel"`
-	Region              string  `json:"region"`
-	TokenizedClaimant   string  `json:"tokenized_claimant"`
-	ProviderID          string  `json:"provider_id"`
-	Currency            string  `json:"currency"`
-	Amount              float64 `json:"amount"`
-	EventTime           string  `json:"event_time"`
+	TransactionID       string         `json:"transaction_id"`
+	TransactionRevision int64          `json:"transaction_revision"`
+	EventType           string         `json:"event_type"`
+	Channel             string         `json:"channel"`
+	Region              string         `json:"region"`
+	TokenizedClaimant   string         `json:"tokenized_claimant"`
+	ProviderID          string         `json:"provider_id"`
+	Currency            string         `json:"currency"`
+	Amount              float64        `json:"amount"`
+	EventTime           string         `json:"event_time"`
+	Attributes          map[string]any `json:"attributes"`
+}
+
+// Scalar-only: nested structures would silently flatten into the CEL
+// input and signal feature spaces.
+func toTypedAttrs(in map[string]any) (map[string]*rtdpv1.TypedValue, error) {
+	if len(in) == 0 {
+		return nil, nil
+	}
+	out := make(map[string]*rtdpv1.TypedValue, len(in))
+	for k, v := range in {
+		switch t := v.(type) {
+		case string:
+			out[k] = &rtdpv1.TypedValue{
+				Kind: &rtdpv1.TypedValue_StringValue{StringValue: t}}
+		case float64:
+			out[k] = &rtdpv1.TypedValue{
+				Kind: &rtdpv1.TypedValue_DoubleValue{DoubleValue: t}}
+		case bool:
+			out[k] = &rtdpv1.TypedValue{
+				Kind: &rtdpv1.TypedValue_BoolValue{BoolValue: t}}
+		default:
+			return nil, fmt.Errorf("attribute %q must be a scalar", k)
+		}
+	}
+	return out, nil
 }
 
 //go:embed demo.html
@@ -97,6 +124,12 @@ func main() {
 				et = t
 			}
 		}
+		attrs, err := toTypedAttrs(req.Attributes)
+		if err != nil {
+			http.Error(w, `{"error":"`+err.Error()+`"}`,
+				http.StatusBadRequest)
+			return
+		}
 		at := &rtdpv1.AuthenticatedTransaction{
 			RequestId:           uuid.NewString(),
 			TenantId:            tenant,
@@ -112,6 +145,7 @@ func main() {
 			Currency:            req.Currency,
 			Amount:              req.Amount,
 			EventTime:           timestamppb.New(et),
+			Attributes:          attrs,
 			Traceparent:         r.Header.Get("traceparent"),
 		}
 		ctx, cancel := context.WithTimeout(r.Context(), decideTimeout)

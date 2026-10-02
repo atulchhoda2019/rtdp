@@ -77,6 +77,15 @@ SLM_MODELS = [
         "output_contract": "dependent.doc_consistency@1.0.0",
         "output_value": "consistency",
     },
+    {
+        "model_id": "slm_receipt_verification",
+        "version": "1",
+        "tag": "qwen2.5:1.5b",
+        "src": ROOT / "ml/slm-receipt-verification",
+        "binding": ROOT / "assets/seed/platform/bindings/slm-receipt-verification-primary/1.yaml",
+        "output_contract": "receipt.ocr_consistency@1.0.0",
+        "output_value": "consistency",
+    },
 ]
 PRODUCTS = {
     "claim_decisioning": ROOT / "assets/seed/platform/products/claim_decisioning/1.yaml",
@@ -86,6 +95,7 @@ PRODUCTS = {
     "dependent_verification": ROOT / "assets/seed/platform/products/dependent_verification/1.yaml",
     "hsa_reimbursement": ROOT / "assets/seed/platform/products/hsa_reimbursement/1.yaml",
     "contribution_change": ROOT / "assets/seed/platform/products/contribution_change/1.yaml",
+    "receipt_claim": ROOT / "assets/seed/platform/products/receipt_claim/1.yaml",
 }
 # Challenger product revision — compiled and activated under cohort
 # "shadow" for tenant_a (BUC-5). Runtime activation lookup matches on
@@ -393,7 +403,7 @@ def warm_pipeline():
         for event_type in ("CLAIM_SUBMISSION", "POLICY_APPLICATION",
                            "QUOTE_REQUEST", "CLAIM_DOCUMENT_INTAKE",
                            "DEPENDENT_VERIFICATION", "HSA_CLAIM",
-                           "CONTRIBUTION_CHANGE"):
+                           "CONTRIBUTION_CHANGE", "RECEIPT_CLAIM"):
             for attempt in range(40):
                 req = urllib.request.Request(
                     f"{INGRESS}/v1/decide",

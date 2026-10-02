@@ -30,4 +30,9 @@ subscriptions:
     product: contribution_change@1
     revision: 1
     status: ACTIVE
+  # Receipt-claims intake at scale (docs/demo-claims-scale.md) — config only.
+  - subscription_id: sub_a_receipt
+    product: receipt_claim@1
+    revision: 1
+    status: ACTIVE
 overlays: []

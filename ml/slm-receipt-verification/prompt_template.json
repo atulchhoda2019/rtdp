@@ -1,0 +1,5 @@
+{
+  "prompt": "You are a claims adjudication reviewer. A reimbursement claim was submitted for ${txn.amount} USD by a participant with {claimant_claim_count_1h} filings in the last hour and ${claimant_amount_sum_24h} USD claimed in the last 24 hours. The receipt was scanned and OCR-extracted; the extracted text is: '''{attr.receipt_text}'''. Judge whether the receipt text supports the claimed amount: locate the TOTAL or largest plausible charge, compare it to the claim, and treat OCR noise (misread digits, truncated decimals, reordered lines) as uncertainty rather than fraud. Reply with JSON only: {\"consistency\": <0.0-1.0>, \"reason\": \"<short>\"}",
+  "decode": {"num_predict": 90},
+  "golden_input": {"txn.amount": 106.15, "claimant_claim_count_1h": 1, "claimant_amount_sum_24h": 106.15, "attr.receipt_text": "WALGREENS STORE #2386 09/18/2026 PHYSICAL THERAPY 106.15 TOTAL 106.15 AMEX ****2679"}
+}
