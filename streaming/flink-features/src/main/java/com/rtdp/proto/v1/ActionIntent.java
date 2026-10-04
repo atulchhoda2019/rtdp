@@ -35,6 +35,12 @@ private static final long serialVersionUID = 0L;
     actionType_ = "";
     idempotencyKey_ = "";
     adapterRef_ = "";
+    status_ = 0;
+    approvers_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    escalationApprovers_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    slaBreachAction_ = "";
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
@@ -62,6 +68,7 @@ private static final long serialVersionUID = 0L;
             com.rtdp.proto.v1.ActionIntent.class, com.rtdp.proto.v1.ActionIntent.Builder.class);
   }
 
+  private int bitField0_;
   public static final int ACTION_TYPE_FIELD_NUMBER = 1;
   @SuppressWarnings("serial")
   private volatile java.lang.Object actionType_ = "";
@@ -269,6 +276,211 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     return ttlMs_;
   }
 
+  public static final int STATUS_FIELD_NUMBER = 6;
+  private int status_ = 0;
+  /**
+   * <pre>
+   * ADR-014: populated when tier resolution holds the intent.
+   * </pre>
+   *
+   * <code>.rtdp.v1.IntentStatus status = 6 [json_name = "status"];</code>
+   * @return The enum numeric value on the wire for status.
+   */
+  @java.lang.Override public int getStatusValue() {
+    return status_;
+  }
+  /**
+   * <pre>
+   * ADR-014: populated when tier resolution holds the intent.
+   * </pre>
+   *
+   * <code>.rtdp.v1.IntentStatus status = 6 [json_name = "status"];</code>
+   * @return The status.
+   */
+  @java.lang.Override public com.rtdp.proto.v1.IntentStatus getStatus() {
+    com.rtdp.proto.v1.IntentStatus result = com.rtdp.proto.v1.IntentStatus.forNumber(status_);
+    return result == null ? com.rtdp.proto.v1.IntentStatus.UNRECOGNIZED : result;
+  }
+
+  public static final int APPROVERS_FIELD_NUMBER = 7;
+  @SuppressWarnings("serial")
+  private com.google.protobuf.LazyStringArrayList approvers_ =
+      com.google.protobuf.LazyStringArrayList.emptyList();
+  /**
+   * <pre>
+   * e.g. "role:plan_admin"
+   * </pre>
+   *
+   * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+   * @return A list containing the approvers.
+   */
+  public com.google.protobuf.ProtocolStringList
+      getApproversList() {
+    return approvers_;
+  }
+  /**
+   * <pre>
+   * e.g. "role:plan_admin"
+   * </pre>
+   *
+   * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+   * @return The count of approvers.
+   */
+  public int getApproversCount() {
+    return approvers_.size();
+  }
+  /**
+   * <pre>
+   * e.g. "role:plan_admin"
+   * </pre>
+   *
+   * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+   * @param index The index of the element to return.
+   * @return The approvers at the given index.
+   */
+  public java.lang.String getApprovers(int index) {
+    return approvers_.get(index);
+  }
+  /**
+   * <pre>
+   * e.g. "role:plan_admin"
+   * </pre>
+   *
+   * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the approvers at the given index.
+   */
+  public com.google.protobuf.ByteString
+      getApproversBytes(int index) {
+    return approvers_.getByteString(index);
+  }
+
+  public static final int ESCALATION_APPROVERS_FIELD_NUMBER = 8;
+  @SuppressWarnings("serial")
+  private com.google.protobuf.LazyStringArrayList escalationApprovers_ =
+      com.google.protobuf.LazyStringArrayList.emptyList();
+  /**
+   * <pre>
+   * used after SLA ESCALATE
+   * </pre>
+   *
+   * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+   * @return A list containing the escalationApprovers.
+   */
+  public com.google.protobuf.ProtocolStringList
+      getEscalationApproversList() {
+    return escalationApprovers_;
+  }
+  /**
+   * <pre>
+   * used after SLA ESCALATE
+   * </pre>
+   *
+   * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+   * @return The count of escalationApprovers.
+   */
+  public int getEscalationApproversCount() {
+    return escalationApprovers_.size();
+  }
+  /**
+   * <pre>
+   * used after SLA ESCALATE
+   * </pre>
+   *
+   * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+   * @param index The index of the element to return.
+   * @return The escalationApprovers at the given index.
+   */
+  public java.lang.String getEscalationApprovers(int index) {
+    return escalationApprovers_.get(index);
+  }
+  /**
+   * <pre>
+   * used after SLA ESCALATE
+   * </pre>
+   *
+   * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the escalationApprovers at the given index.
+   */
+  public com.google.protobuf.ByteString
+      getEscalationApproversBytes(int index) {
+    return escalationApprovers_.getByteString(index);
+  }
+
+  public static final int SLA_BREACH_ACTION_FIELD_NUMBER = 9;
+  @SuppressWarnings("serial")
+  private volatile java.lang.Object slaBreachAction_ = "";
+  /**
+   * <pre>
+   * ESCALATE | EXPIRE
+   * </pre>
+   *
+   * <code>string sla_breach_action = 9 [json_name = "slaBreachAction"];</code>
+   * @return The slaBreachAction.
+   */
+  @java.lang.Override
+  public java.lang.String getSlaBreachAction() {
+    java.lang.Object ref = slaBreachAction_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      slaBreachAction_ = s;
+      return s;
+    }
+  }
+  /**
+   * <pre>
+   * ESCALATE | EXPIRE
+   * </pre>
+   *
+   * <code>string sla_breach_action = 9 [json_name = "slaBreachAction"];</code>
+   * @return The bytes for slaBreachAction.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString
+      getSlaBreachActionBytes() {
+    java.lang.Object ref = slaBreachAction_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      slaBreachAction_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
+  public static final int APPROVAL_DUE_AT_FIELD_NUMBER = 10;
+  private com.google.protobuf.Timestamp approvalDueAt_;
+  /**
+   * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+   * @return Whether the approvalDueAt field is set.
+   */
+  @java.lang.Override
+  public boolean hasApprovalDueAt() {
+    return ((bitField0_ & 0x00000001) != 0);
+  }
+  /**
+   * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+   * @return The approvalDueAt.
+   */
+  @java.lang.Override
+  public com.google.protobuf.Timestamp getApprovalDueAt() {
+    return approvalDueAt_ == null ? com.google.protobuf.Timestamp.getDefaultInstance() : approvalDueAt_;
+  }
+  /**
+   * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+   */
+  @java.lang.Override
+  public com.google.protobuf.TimestampOrBuilder getApprovalDueAtOrBuilder() {
+    return approvalDueAt_ == null ? com.google.protobuf.Timestamp.getDefaultInstance() : approvalDueAt_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -300,6 +512,21 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     if (ttlMs_ != 0L) {
       output.writeInt64(5, ttlMs_);
+    }
+    if (status_ != com.rtdp.proto.v1.IntentStatus.INTENT_STATUS_UNSPECIFIED.getNumber()) {
+      output.writeEnum(6, status_);
+    }
+    for (int i = 0; i < approvers_.size(); i++) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 7, approvers_.getRaw(i));
+    }
+    for (int i = 0; i < escalationApprovers_.size(); i++) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 8, escalationApprovers_.getRaw(i));
+    }
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(slaBreachAction_)) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 9, slaBreachAction_);
+    }
+    if (((bitField0_ & 0x00000001) != 0)) {
+      output.writeMessage(10, getApprovalDueAt());
     }
     getUnknownFields().writeTo(output);
   }
@@ -333,6 +560,33 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(5, ttlMs_);
     }
+    if (status_ != com.rtdp.proto.v1.IntentStatus.INTENT_STATUS_UNSPECIFIED.getNumber()) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeEnumSize(6, status_);
+    }
+    {
+      int dataSize = 0;
+      for (int i = 0; i < approvers_.size(); i++) {
+        dataSize += computeStringSizeNoTag(approvers_.getRaw(i));
+      }
+      size += dataSize;
+      size += 1 * getApproversList().size();
+    }
+    {
+      int dataSize = 0;
+      for (int i = 0; i < escalationApprovers_.size(); i++) {
+        dataSize += computeStringSizeNoTag(escalationApprovers_.getRaw(i));
+      }
+      size += dataSize;
+      size += 1 * getEscalationApproversList().size();
+    }
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(slaBreachAction_)) {
+      size += com.google.protobuf.GeneratedMessage.computeStringSize(9, slaBreachAction_);
+    }
+    if (((bitField0_ & 0x00000001) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(10, getApprovalDueAt());
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -358,6 +612,18 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
         .equals(other.getAdapterRef())) return false;
     if (getTtlMs()
         != other.getTtlMs()) return false;
+    if (status_ != other.status_) return false;
+    if (!getApproversList()
+        .equals(other.getApproversList())) return false;
+    if (!getEscalationApproversList()
+        .equals(other.getEscalationApproversList())) return false;
+    if (!getSlaBreachAction()
+        .equals(other.getSlaBreachAction())) return false;
+    if (hasApprovalDueAt() != other.hasApprovalDueAt()) return false;
+    if (hasApprovalDueAt()) {
+      if (!getApprovalDueAt()
+          .equals(other.getApprovalDueAt())) return false;
+    }
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -382,6 +648,22 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     hash = (37 * hash) + TTL_MS_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
         getTtlMs());
+    hash = (37 * hash) + STATUS_FIELD_NUMBER;
+    hash = (53 * hash) + status_;
+    if (getApproversCount() > 0) {
+      hash = (37 * hash) + APPROVERS_FIELD_NUMBER;
+      hash = (53 * hash) + getApproversList().hashCode();
+    }
+    if (getEscalationApproversCount() > 0) {
+      hash = (37 * hash) + ESCALATION_APPROVERS_FIELD_NUMBER;
+      hash = (53 * hash) + getEscalationApproversList().hashCode();
+    }
+    hash = (37 * hash) + SLA_BREACH_ACTION_FIELD_NUMBER;
+    hash = (53 * hash) + getSlaBreachAction().hashCode();
+    if (hasApprovalDueAt()) {
+      hash = (37 * hash) + APPROVAL_DUE_AT_FIELD_NUMBER;
+      hash = (53 * hash) + getApprovalDueAt().hashCode();
+    }
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -527,13 +809,19 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
 
     // Construct using com.rtdp.proto.v1.ActionIntent.newBuilder()
     private Builder() {
-
+      maybeForceBuilderInitialization();
     }
 
     private Builder(
         com.google.protobuf.GeneratedMessage.BuilderParent parent) {
       super(parent);
-
+      maybeForceBuilderInitialization();
+    }
+    private void maybeForceBuilderInitialization() {
+      if (com.google.protobuf.GeneratedMessage
+              .alwaysUseFieldBuilders) {
+        internalGetApprovalDueAtFieldBuilder();
+      }
     }
     @java.lang.Override
     public Builder clear() {
@@ -544,6 +832,17 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       internalGetMutablePayload().clear();
       adapterRef_ = "";
       ttlMs_ = 0L;
+      status_ = 0;
+      approvers_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      escalationApprovers_ =
+          com.google.protobuf.LazyStringArrayList.emptyList();
+      slaBreachAction_ = "";
+      approvalDueAt_ = null;
+      if (approvalDueAtBuilder_ != null) {
+        approvalDueAtBuilder_.dispose();
+        approvalDueAtBuilder_ = null;
+      }
       return this;
     }
 
@@ -592,6 +891,28 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       if (((from_bitField0_ & 0x00000010) != 0)) {
         result.ttlMs_ = ttlMs_;
       }
+      if (((from_bitField0_ & 0x00000020) != 0)) {
+        result.status_ = status_;
+      }
+      if (((from_bitField0_ & 0x00000040) != 0)) {
+        approvers_.makeImmutable();
+        result.approvers_ = approvers_;
+      }
+      if (((from_bitField0_ & 0x00000080) != 0)) {
+        escalationApprovers_.makeImmutable();
+        result.escalationApprovers_ = escalationApprovers_;
+      }
+      if (((from_bitField0_ & 0x00000100) != 0)) {
+        result.slaBreachAction_ = slaBreachAction_;
+      }
+      int to_bitField0_ = 0;
+      if (((from_bitField0_ & 0x00000200) != 0)) {
+        result.approvalDueAt_ = approvalDueAtBuilder_ == null
+            ? approvalDueAt_
+            : approvalDueAtBuilder_.build();
+        to_bitField0_ |= 0x00000001;
+      }
+      result.bitField0_ |= to_bitField0_;
     }
 
     @java.lang.Override
@@ -626,6 +947,37 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       }
       if (other.getTtlMs() != 0L) {
         setTtlMs(other.getTtlMs());
+      }
+      if (other.status_ != 0) {
+        setStatusValue(other.getStatusValue());
+      }
+      if (!other.approvers_.isEmpty()) {
+        if (approvers_.isEmpty()) {
+          approvers_ = other.approvers_;
+          bitField0_ |= 0x00000040;
+        } else {
+          ensureApproversIsMutable();
+          approvers_.addAll(other.approvers_);
+        }
+        onChanged();
+      }
+      if (!other.escalationApprovers_.isEmpty()) {
+        if (escalationApprovers_.isEmpty()) {
+          escalationApprovers_ = other.escalationApprovers_;
+          bitField0_ |= 0x00000080;
+        } else {
+          ensureEscalationApproversIsMutable();
+          escalationApprovers_.addAll(other.escalationApprovers_);
+        }
+        onChanged();
+      }
+      if (!other.getSlaBreachAction().isEmpty()) {
+        slaBreachAction_ = other.slaBreachAction_;
+        bitField0_ |= 0x00000100;
+        onChanged();
+      }
+      if (other.hasApprovalDueAt()) {
+        mergeApprovalDueAt(other.getApprovalDueAt());
       }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
@@ -682,6 +1034,35 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
               bitField0_ |= 0x00000010;
               break;
             } // case 40
+            case 48: {
+              status_ = input.readEnum();
+              bitField0_ |= 0x00000020;
+              break;
+            } // case 48
+            case 58: {
+              java.lang.String s = input.readStringRequireUtf8();
+              ensureApproversIsMutable();
+              approvers_.add(s);
+              break;
+            } // case 58
+            case 66: {
+              java.lang.String s = input.readStringRequireUtf8();
+              ensureEscalationApproversIsMutable();
+              escalationApprovers_.add(s);
+              break;
+            } // case 66
+            case 74: {
+              slaBreachAction_ = input.readStringRequireUtf8();
+              bitField0_ |= 0x00000100;
+              break;
+            } // case 74
+            case 82: {
+              input.readMessage(
+                  internalGetApprovalDueAtFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              bitField0_ |= 0x00000200;
+              break;
+            } // case 82
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -1100,6 +1481,584 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       ttlMs_ = 0L;
       onChanged();
       return this;
+    }
+
+    private int status_ = 0;
+    /**
+     * <pre>
+     * ADR-014: populated when tier resolution holds the intent.
+     * </pre>
+     *
+     * <code>.rtdp.v1.IntentStatus status = 6 [json_name = "status"];</code>
+     * @return The enum numeric value on the wire for status.
+     */
+    @java.lang.Override public int getStatusValue() {
+      return status_;
+    }
+    /**
+     * <pre>
+     * ADR-014: populated when tier resolution holds the intent.
+     * </pre>
+     *
+     * <code>.rtdp.v1.IntentStatus status = 6 [json_name = "status"];</code>
+     * @param value The enum numeric value on the wire for status to set.
+     * @return This builder for chaining.
+     */
+    public Builder setStatusValue(int value) {
+      status_ = value;
+      bitField0_ |= 0x00000020;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-014: populated when tier resolution holds the intent.
+     * </pre>
+     *
+     * <code>.rtdp.v1.IntentStatus status = 6 [json_name = "status"];</code>
+     * @return The status.
+     */
+    @java.lang.Override
+    public com.rtdp.proto.v1.IntentStatus getStatus() {
+      com.rtdp.proto.v1.IntentStatus result = com.rtdp.proto.v1.IntentStatus.forNumber(status_);
+      return result == null ? com.rtdp.proto.v1.IntentStatus.UNRECOGNIZED : result;
+    }
+    /**
+     * <pre>
+     * ADR-014: populated when tier resolution holds the intent.
+     * </pre>
+     *
+     * <code>.rtdp.v1.IntentStatus status = 6 [json_name = "status"];</code>
+     * @param value The status to set.
+     * @return This builder for chaining.
+     */
+    public Builder setStatus(com.rtdp.proto.v1.IntentStatus value) {
+      if (value == null) { throw new NullPointerException(); }
+      bitField0_ |= 0x00000020;
+      status_ = value.getNumber();
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-014: populated when tier resolution holds the intent.
+     * </pre>
+     *
+     * <code>.rtdp.v1.IntentStatus status = 6 [json_name = "status"];</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearStatus() {
+      bitField0_ = (bitField0_ & ~0x00000020);
+      status_ = 0;
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.LazyStringArrayList approvers_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    private void ensureApproversIsMutable() {
+      if (!approvers_.isModifiable()) {
+        approvers_ = new com.google.protobuf.LazyStringArrayList(approvers_);
+      }
+      bitField0_ |= 0x00000040;
+    }
+    /**
+     * <pre>
+     * e.g. "role:plan_admin"
+     * </pre>
+     *
+     * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+     * @return A list containing the approvers.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getApproversList() {
+      approvers_.makeImmutable();
+      return approvers_;
+    }
+    /**
+     * <pre>
+     * e.g. "role:plan_admin"
+     * </pre>
+     *
+     * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+     * @return The count of approvers.
+     */
+    public int getApproversCount() {
+      return approvers_.size();
+    }
+    /**
+     * <pre>
+     * e.g. "role:plan_admin"
+     * </pre>
+     *
+     * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+     * @param index The index of the element to return.
+     * @return The approvers at the given index.
+     */
+    public java.lang.String getApprovers(int index) {
+      return approvers_.get(index);
+    }
+    /**
+     * <pre>
+     * e.g. "role:plan_admin"
+     * </pre>
+     *
+     * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the approvers at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getApproversBytes(int index) {
+      return approvers_.getByteString(index);
+    }
+    /**
+     * <pre>
+     * e.g. "role:plan_admin"
+     * </pre>
+     *
+     * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+     * @param index The index to set the value at.
+     * @param value The approvers to set.
+     * @return This builder for chaining.
+     */
+    public Builder setApprovers(
+        int index, java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      ensureApproversIsMutable();
+      approvers_.set(index, value);
+      bitField0_ |= 0x00000040;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * e.g. "role:plan_admin"
+     * </pre>
+     *
+     * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+     * @param value The approvers to add.
+     * @return This builder for chaining.
+     */
+    public Builder addApprovers(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      ensureApproversIsMutable();
+      approvers_.add(value);
+      bitField0_ |= 0x00000040;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * e.g. "role:plan_admin"
+     * </pre>
+     *
+     * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+     * @param values The approvers to add.
+     * @return This builder for chaining.
+     */
+    public Builder addAllApprovers(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureApproversIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, approvers_);
+      bitField0_ |= 0x00000040;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * e.g. "role:plan_admin"
+     * </pre>
+     *
+     * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearApprovers() {
+      approvers_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+      bitField0_ = (bitField0_ & ~0x00000040);;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * e.g. "role:plan_admin"
+     * </pre>
+     *
+     * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+     * @param value The bytes of the approvers to add.
+     * @return This builder for chaining.
+     */
+    public Builder addApproversBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      ensureApproversIsMutable();
+      approvers_.add(value);
+      bitField0_ |= 0x00000040;
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.LazyStringArrayList escalationApprovers_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+    private void ensureEscalationApproversIsMutable() {
+      if (!escalationApprovers_.isModifiable()) {
+        escalationApprovers_ = new com.google.protobuf.LazyStringArrayList(escalationApprovers_);
+      }
+      bitField0_ |= 0x00000080;
+    }
+    /**
+     * <pre>
+     * used after SLA ESCALATE
+     * </pre>
+     *
+     * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+     * @return A list containing the escalationApprovers.
+     */
+    public com.google.protobuf.ProtocolStringList
+        getEscalationApproversList() {
+      escalationApprovers_.makeImmutable();
+      return escalationApprovers_;
+    }
+    /**
+     * <pre>
+     * used after SLA ESCALATE
+     * </pre>
+     *
+     * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+     * @return The count of escalationApprovers.
+     */
+    public int getEscalationApproversCount() {
+      return escalationApprovers_.size();
+    }
+    /**
+     * <pre>
+     * used after SLA ESCALATE
+     * </pre>
+     *
+     * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+     * @param index The index of the element to return.
+     * @return The escalationApprovers at the given index.
+     */
+    public java.lang.String getEscalationApprovers(int index) {
+      return escalationApprovers_.get(index);
+    }
+    /**
+     * <pre>
+     * used after SLA ESCALATE
+     * </pre>
+     *
+     * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+     * @param index The index of the value to return.
+     * @return The bytes of the escalationApprovers at the given index.
+     */
+    public com.google.protobuf.ByteString
+        getEscalationApproversBytes(int index) {
+      return escalationApprovers_.getByteString(index);
+    }
+    /**
+     * <pre>
+     * used after SLA ESCALATE
+     * </pre>
+     *
+     * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+     * @param index The index to set the value at.
+     * @param value The escalationApprovers to set.
+     * @return This builder for chaining.
+     */
+    public Builder setEscalationApprovers(
+        int index, java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      ensureEscalationApproversIsMutable();
+      escalationApprovers_.set(index, value);
+      bitField0_ |= 0x00000080;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * used after SLA ESCALATE
+     * </pre>
+     *
+     * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+     * @param value The escalationApprovers to add.
+     * @return This builder for chaining.
+     */
+    public Builder addEscalationApprovers(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      ensureEscalationApproversIsMutable();
+      escalationApprovers_.add(value);
+      bitField0_ |= 0x00000080;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * used after SLA ESCALATE
+     * </pre>
+     *
+     * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+     * @param values The escalationApprovers to add.
+     * @return This builder for chaining.
+     */
+    public Builder addAllEscalationApprovers(
+        java.lang.Iterable<java.lang.String> values) {
+      ensureEscalationApproversIsMutable();
+      com.google.protobuf.AbstractMessageLite.Builder.addAll(
+          values, escalationApprovers_);
+      bitField0_ |= 0x00000080;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * used after SLA ESCALATE
+     * </pre>
+     *
+     * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearEscalationApprovers() {
+      escalationApprovers_ =
+        com.google.protobuf.LazyStringArrayList.emptyList();
+      bitField0_ = (bitField0_ & ~0x00000080);;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * used after SLA ESCALATE
+     * </pre>
+     *
+     * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+     * @param value The bytes of the escalationApprovers to add.
+     * @return This builder for chaining.
+     */
+    public Builder addEscalationApproversBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      ensureEscalationApproversIsMutable();
+      escalationApprovers_.add(value);
+      bitField0_ |= 0x00000080;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object slaBreachAction_ = "";
+    /**
+     * <pre>
+     * ESCALATE | EXPIRE
+     * </pre>
+     *
+     * <code>string sla_breach_action = 9 [json_name = "slaBreachAction"];</code>
+     * @return The slaBreachAction.
+     */
+    public java.lang.String getSlaBreachAction() {
+      java.lang.Object ref = slaBreachAction_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        slaBreachAction_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <pre>
+     * ESCALATE | EXPIRE
+     * </pre>
+     *
+     * <code>string sla_breach_action = 9 [json_name = "slaBreachAction"];</code>
+     * @return The bytes for slaBreachAction.
+     */
+    public com.google.protobuf.ByteString
+        getSlaBreachActionBytes() {
+      java.lang.Object ref = slaBreachAction_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        slaBreachAction_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <pre>
+     * ESCALATE | EXPIRE
+     * </pre>
+     *
+     * <code>string sla_breach_action = 9 [json_name = "slaBreachAction"];</code>
+     * @param value The slaBreachAction to set.
+     * @return This builder for chaining.
+     */
+    public Builder setSlaBreachAction(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      slaBreachAction_ = value;
+      bitField0_ |= 0x00000100;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ESCALATE | EXPIRE
+     * </pre>
+     *
+     * <code>string sla_breach_action = 9 [json_name = "slaBreachAction"];</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearSlaBreachAction() {
+      slaBreachAction_ = getDefaultInstance().getSlaBreachAction();
+      bitField0_ = (bitField0_ & ~0x00000100);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ESCALATE | EXPIRE
+     * </pre>
+     *
+     * <code>string sla_breach_action = 9 [json_name = "slaBreachAction"];</code>
+     * @param value The bytes for slaBreachAction to set.
+     * @return This builder for chaining.
+     */
+    public Builder setSlaBreachActionBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      slaBreachAction_ = value;
+      bitField0_ |= 0x00000100;
+      onChanged();
+      return this;
+    }
+
+    private com.google.protobuf.Timestamp approvalDueAt_;
+    private com.google.protobuf.SingleFieldBuilder<
+        com.google.protobuf.Timestamp, com.google.protobuf.Timestamp.Builder, com.google.protobuf.TimestampOrBuilder> approvalDueAtBuilder_;
+    /**
+     * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+     * @return Whether the approvalDueAt field is set.
+     */
+    public boolean hasApprovalDueAt() {
+      return ((bitField0_ & 0x00000200) != 0);
+    }
+    /**
+     * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+     * @return The approvalDueAt.
+     */
+    public com.google.protobuf.Timestamp getApprovalDueAt() {
+      if (approvalDueAtBuilder_ == null) {
+        return approvalDueAt_ == null ? com.google.protobuf.Timestamp.getDefaultInstance() : approvalDueAt_;
+      } else {
+        return approvalDueAtBuilder_.getMessage();
+      }
+    }
+    /**
+     * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+     */
+    public Builder setApprovalDueAt(com.google.protobuf.Timestamp value) {
+      if (approvalDueAtBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        approvalDueAt_ = value;
+      } else {
+        approvalDueAtBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00000200;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+     */
+    public Builder setApprovalDueAt(
+        com.google.protobuf.Timestamp.Builder builderForValue) {
+      if (approvalDueAtBuilder_ == null) {
+        approvalDueAt_ = builderForValue.build();
+      } else {
+        approvalDueAtBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00000200;
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+     */
+    public Builder mergeApprovalDueAt(com.google.protobuf.Timestamp value) {
+      if (approvalDueAtBuilder_ == null) {
+        if (((bitField0_ & 0x00000200) != 0) &&
+          approvalDueAt_ != null &&
+          approvalDueAt_ != com.google.protobuf.Timestamp.getDefaultInstance()) {
+          getApprovalDueAtBuilder().mergeFrom(value);
+        } else {
+          approvalDueAt_ = value;
+        }
+      } else {
+        approvalDueAtBuilder_.mergeFrom(value);
+      }
+      if (approvalDueAt_ != null) {
+        bitField0_ |= 0x00000200;
+        onChanged();
+      }
+      return this;
+    }
+    /**
+     * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+     */
+    public Builder clearApprovalDueAt() {
+      bitField0_ = (bitField0_ & ~0x00000200);
+      approvalDueAt_ = null;
+      if (approvalDueAtBuilder_ != null) {
+        approvalDueAtBuilder_.dispose();
+        approvalDueAtBuilder_ = null;
+      }
+      onChanged();
+      return this;
+    }
+    /**
+     * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+     */
+    public com.google.protobuf.Timestamp.Builder getApprovalDueAtBuilder() {
+      bitField0_ |= 0x00000200;
+      onChanged();
+      return internalGetApprovalDueAtFieldBuilder().getBuilder();
+    }
+    /**
+     * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+     */
+    public com.google.protobuf.TimestampOrBuilder getApprovalDueAtOrBuilder() {
+      if (approvalDueAtBuilder_ != null) {
+        return approvalDueAtBuilder_.getMessageOrBuilder();
+      } else {
+        return approvalDueAt_ == null ?
+            com.google.protobuf.Timestamp.getDefaultInstance() : approvalDueAt_;
+      }
+    }
+    /**
+     * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+     */
+    private com.google.protobuf.SingleFieldBuilder<
+        com.google.protobuf.Timestamp, com.google.protobuf.Timestamp.Builder, com.google.protobuf.TimestampOrBuilder> 
+        internalGetApprovalDueAtFieldBuilder() {
+      if (approvalDueAtBuilder_ == null) {
+        approvalDueAtBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+            com.google.protobuf.Timestamp, com.google.protobuf.Timestamp.Builder, com.google.protobuf.TimestampOrBuilder>(
+                getApprovalDueAt(),
+                getParentForChildren(),
+                isClean());
+        approvalDueAt_ = null;
+      }
+      return approvalDueAtBuilder_;
     }
 
     // @@protoc_insertion_point(builder_scope:rtdp.v1.ActionIntent)

@@ -129,7 +129,7 @@ TOPICS = [
     "rtdp.feature.updates.v1", "rtdp.feature.late.v1", "rtdp.signals.v1",
     "rtdp.decision.facts.v1", "rtdp.action.commands.v1",
     "rtdp.action.status.v1", "rtdp.control.activation.v1",
-    "rtdp.telemetry.v1", "rtdp.dlq.v1",
+    "rtdp.telemetry.v1", "rtdp.dlq.v1", "rtdp.approval.events.v1",
 ]
 
 
@@ -410,7 +410,13 @@ AGENTS = [
      "version": "1.0.0", "allowed_scopes": ["decide", "reservations", "pms"]},
     {"tenant_id": "tenant_a", "agent_id": "benefits-agent-1",
      "kind": "CUSTOMER", "display_name": "Participant's benefits agent",
-     "version": "1.0.0", "allowed_scopes": ["decide", "benefits"]},
+     "version": "1.0.0", "max_autonomy": "T1",
+     "allowed_scopes": ["decide", "benefits"]},
+    # T2 counterpart for G9a — same scopes, higher autonomy ceiling.
+    {"tenant_id": "tenant_a", "agent_id": "benefits-admin-2",
+     "kind": "EMPLOYEE", "display_name": "Plan ops admin agent",
+     "version": "1.0.0", "max_autonomy": "T2",
+     "allowed_scopes": ["decide", "benefits"]},
     {"tenant_id": "tenant_a", "agent_id": "sub-agent-a",
      "kind": "PLATFORM", "display_name": "Guest agent sub-agent A",
      "version": "1.0.0", "allowed_scopes": ["decide", "reservations"]},
@@ -430,6 +436,8 @@ GRANTS = [
     ("ORG", "hotel-h", "hotel-ops-dot",
      ["decide", "reservations", "pms"]),
     ("PERSON", "participant-p", "benefits-agent-1",
+     ["decide", "benefits"]),
+    ("PERSON", "participant-p", "benefits-admin-2",
      ["decide", "benefits"]),
 ]
 
@@ -456,14 +464,17 @@ def seed_agents():
     so seeding is additive and safe to re-run."""
     # initdb.d only runs on a fresh volume — apply idempotently so seed
     # works on an existing stack too.
-    mig = ROOT / "services/control-plane/migrations/002_agent.sql"
     if AWS_MODE:
         # AWS applies schema via the rtdp-migrate PostSync job on every
-        # ArgoCD sync; by seed time 002_agent is already in place.
+        # ArgoCD sync; by seed time the migrations are already in place.
         pass
     else:
-        sh(["docker", "compose", "exec", "-T", "postgres", "psql", "-U",
-            "rtdp", "-d", "rtdp"], input=mig.read_text())
+        for mig in sorted(
+                (ROOT / "services/control-plane/migrations").glob("*.sql")):
+            if mig.name == "001_init.sql":
+                continue  # initdb.d already applied it
+            sh(["docker", "compose", "exec", "-T", "postgres", "psql",
+                "-U", "rtdp", "-d", "rtdp"], input=mig.read_text())
     # wait for the registry to come up (first boot: image build)
     for attempt in range(60):
         try:

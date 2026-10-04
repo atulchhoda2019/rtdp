@@ -283,6 +283,25 @@ func main() {
 			"manifest_epoch": res.ManifestEpoch,
 			"action_intents": len(res.ActionIntents),
 		}
+		// Per-intent release state — a held action must be visible to the
+		// caller, not just counted (ADR-014).
+		intents := []map[string]any{}
+		for _, ai := range res.ActionIntents {
+			m := map[string]any{
+				"action_type":     ai.ActionType,
+				"status":          ai.Status.String(),
+				"idempotency_key": ai.IdempotencyKey,
+			}
+			if len(ai.Approvers) > 0 {
+				m["approvers"] = ai.Approvers
+			}
+			if ai.ApprovalDueAt != nil {
+				m["approval_due_at"] = ai.ApprovalDueAt.AsTime().
+					UTC().Format("2006-01-02T15:04:05Z")
+			}
+			intents = append(intents, m)
+		}
+		resp["intents"] = intents
 		if res.Delegation != nil && res.Delegation.Principal != nil {
 			links := []map[string]any{}
 			for _, l := range res.Delegation.Links {

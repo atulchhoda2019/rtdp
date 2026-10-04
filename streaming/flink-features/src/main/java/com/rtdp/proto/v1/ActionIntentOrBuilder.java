@@ -85,4 +85,140 @@ com.rtdp.proto.v1.TypedValue defaultValue);
    * @return The ttlMs.
    */
   long getTtlMs();
+
+  /**
+   * <pre>
+   * ADR-014: populated when tier resolution holds the intent.
+   * </pre>
+   *
+   * <code>.rtdp.v1.IntentStatus status = 6 [json_name = "status"];</code>
+   * @return The enum numeric value on the wire for status.
+   */
+  int getStatusValue();
+  /**
+   * <pre>
+   * ADR-014: populated when tier resolution holds the intent.
+   * </pre>
+   *
+   * <code>.rtdp.v1.IntentStatus status = 6 [json_name = "status"];</code>
+   * @return The status.
+   */
+  com.rtdp.proto.v1.IntentStatus getStatus();
+
+  /**
+   * <pre>
+   * e.g. "role:plan_admin"
+   * </pre>
+   *
+   * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+   * @return A list containing the approvers.
+   */
+  java.util.List<java.lang.String>
+      getApproversList();
+  /**
+   * <pre>
+   * e.g. "role:plan_admin"
+   * </pre>
+   *
+   * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+   * @return The count of approvers.
+   */
+  int getApproversCount();
+  /**
+   * <pre>
+   * e.g. "role:plan_admin"
+   * </pre>
+   *
+   * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+   * @param index The index of the element to return.
+   * @return The approvers at the given index.
+   */
+  java.lang.String getApprovers(int index);
+  /**
+   * <pre>
+   * e.g. "role:plan_admin"
+   * </pre>
+   *
+   * <code>repeated string approvers = 7 [json_name = "approvers"];</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the approvers at the given index.
+   */
+  com.google.protobuf.ByteString
+      getApproversBytes(int index);
+
+  /**
+   * <pre>
+   * used after SLA ESCALATE
+   * </pre>
+   *
+   * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+   * @return A list containing the escalationApprovers.
+   */
+  java.util.List<java.lang.String>
+      getEscalationApproversList();
+  /**
+   * <pre>
+   * used after SLA ESCALATE
+   * </pre>
+   *
+   * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+   * @return The count of escalationApprovers.
+   */
+  int getEscalationApproversCount();
+  /**
+   * <pre>
+   * used after SLA ESCALATE
+   * </pre>
+   *
+   * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+   * @param index The index of the element to return.
+   * @return The escalationApprovers at the given index.
+   */
+  java.lang.String getEscalationApprovers(int index);
+  /**
+   * <pre>
+   * used after SLA ESCALATE
+   * </pre>
+   *
+   * <code>repeated string escalation_approvers = 8 [json_name = "escalationApprovers"];</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the escalationApprovers at the given index.
+   */
+  com.google.protobuf.ByteString
+      getEscalationApproversBytes(int index);
+
+  /**
+   * <pre>
+   * ESCALATE | EXPIRE
+   * </pre>
+   *
+   * <code>string sla_breach_action = 9 [json_name = "slaBreachAction"];</code>
+   * @return The slaBreachAction.
+   */
+  java.lang.String getSlaBreachAction();
+  /**
+   * <pre>
+   * ESCALATE | EXPIRE
+   * </pre>
+   *
+   * <code>string sla_breach_action = 9 [json_name = "slaBreachAction"];</code>
+   * @return The bytes for slaBreachAction.
+   */
+  com.google.protobuf.ByteString
+      getSlaBreachActionBytes();
+
+  /**
+   * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+   * @return Whether the approvalDueAt field is set.
+   */
+  boolean hasApprovalDueAt();
+  /**
+   * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+   * @return The approvalDueAt.
+   */
+  com.google.protobuf.Timestamp getApprovalDueAt();
+  /**
+   * <code>.google.protobuf.Timestamp approval_due_at = 10 [json_name = "approvalDueAt"];</code>
+   */
+  com.google.protobuf.TimestampOrBuilder getApprovalDueAtOrBuilder();
 }

@@ -46,6 +46,15 @@ message SelectedProduct {
   repeated string selection_reasons = 5;
 }
 
+// IntentStatus is the release state of an intent/command (ADR-014).
+enum IntentStatus {
+  INTENT_STATUS_UNSPECIFIED = 0;
+  INTENT_READY = 1;             // free to dispatch
+  INTENT_AWAITING_APPROVAL = 2; // held: a human must approve first
+  INTENT_CANCELLED = 3;         // approval rejected — never dispatches
+  INTENT_EXPIRED = 4;           // approval SLA breached with EXPIRE
+}
+
 // ActionIntent is a permitted desired effect — not yet an executed action.
 message ActionIntent {
   string action_type = 1;
@@ -53,6 +62,12 @@ message ActionIntent {
   map<string, TypedValue> payload = 3;
   string adapter_ref = 4;
   int64 ttl_ms = 5;
+  // ADR-014: populated when tier resolution holds the intent.
+  IntentStatus status = 6;
+  repeated string approvers = 7;             // e.g. "role:plan_admin"
+  repeated string escalation_approvers = 8;  // used after SLA ESCALATE
+  string sla_breach_action = 9;              // ESCALATE | EXPIRE
+  google.protobuf.Timestamp approval_due_at = 10;
 }
 
 // DecisionResult records what policy decided for one transaction revision.
@@ -93,6 +108,33 @@ message ActionCommand {
   map<string, TypedValue> payload = 10;
   int64 intent_ttl_ms = 11;
   google.protobuf.Timestamp created_at = 12;
+  // ADR-014: release state + approval metadata. AWAITING_APPROVAL is
+  // written in the decision commit — the dispatcher holds it until
+  // approval-service republishes READY (or CANCELLED/EXPIRED).
+  IntentStatus status = 13;
+  repeated string approvers = 14;
+  repeated string escalation_approvers = 15;
+  string sla_breach_action = 16;
+  google.protobuf.Timestamp approval_due_at = 17;
+  // Identity strings barred from approving this command (self-approval):
+  // every agent_id in the delegation chain plus the principal id.
+  repeated string requester_identities = 18;
+}
+
+// ApprovalEvent is the human-decision ledger fact for a held decision
+// (ADR-014). Published on rtdp.approval.events.v1 by approval-service.
+message ApprovalEvent {
+  string event_id = 1;
+  string tenant_id = 2;
+  string environment = 3;
+  string decision_id = 4;
+  int64 decision_generation = 5;
+  // APPROVED | REJECTED | ESCALATED | EXPIRED
+  string verdict = 6;
+  string actor_identity = 7;   // human approver; empty for timer events
+  string note = 8;
+  repeated string intent_keys = 9; // idempotency keys affected
+  google.protobuf.Timestamp at = 10;
 }
 
 // FeatureContribution is the canonical per-event input to streaming features.

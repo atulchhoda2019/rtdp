@@ -170,6 +170,11 @@ message EvaluateRulesRequest {
   map<string, TypedValue> cfg = 6;
   map<string, TypedValue> input = 7;
   int64 execution_budget_ms = 8;
+  // ADR-013/014: delegation-derived actor context and SLA timer vars
+  // (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+  // input — e.g. {"agent.id": "...", "chain_depth": 1}.
+  map<string, TypedValue> actor = 9;
+  map<string, TypedValue> timer = 10;
 }
 
 message FiredRule {

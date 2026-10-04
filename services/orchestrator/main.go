@@ -31,10 +31,12 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 
+	agentv1 "github.com/rtdp/rtdp/gen/go/rtdp/agent/v1"
 	rtdpv1 "github.com/rtdp/rtdp/gen/go/rtdp/v1"
 	"github.com/rtdp/rtdp/internal/bundle"
 	"github.com/rtdp/rtdp/internal/kafkax"
 	"github.com/rtdp/rtdp/internal/redisx"
+	"github.com/rtdp/rtdp/internal/ruleseng"
 )
 
 var (
@@ -298,6 +300,21 @@ func (s *server) Decide(ctx context.Context,
 				}
 			}
 		}
+		// Top-level scalar config is also exposed (e.g. t1_limit for
+		// ADR-014 autonomy-tier conditions).
+		for k, v := range m.EffectiveConfig {
+			if _, taken := cfg[k]; taken {
+				continue
+			}
+			switch t := v.(type) {
+			case float64:
+				cfg[k] = tvf(t)
+			case string:
+				cfg[k] = tvs(t)
+			case bool:
+				cfg[k] = &rtdpv1.TypedValue{Kind: &rtdpv1.TypedValue_BoolValue{BoolValue: t}}
+			}
+		}
 		// Rules see attributes under input["attr.<key>"]. The prefix keeps
 		// caller-supplied names from shadowing reserved input keys the rules
 		// service reads (e.g. missing_required_signal_outcome).
@@ -310,18 +327,36 @@ func (s *server) Decide(ctx context.Context,
 		ruleInput["txn.amount"] = tvf(req.Amount)
 		// ADR-013: actor.* context for rules — principal and last-hop agent
 		// from the verified chain. Absent chain = legacy service caller, so
-		// actor.* keys simply don't exist (CEL sees null).
+		// the actor var is empty (CEL sees null).
+		actorMap := map[string]*rtdpv1.TypedValue{}
 		if req.Delegation != nil && req.Delegation.Principal != nil {
-			ruleInput["actor.principal.kind"] = tvs(req.Delegation.Principal.Kind.String())
-			ruleInput["actor.principal.id"] = tvs(req.Delegation.Principal.Id)
+			actorMap["principal.kind"] = tvs(req.Delegation.Principal.Kind.String())
+			actorMap["principal.id"] = tvs(req.Delegation.Principal.Id)
 			if n := len(req.Delegation.Links); n > 0 {
 				last := req.Delegation.Links[n-1]
-				ruleInput["actor.agent.id"] = tvs(last.AgentId)
-				ruleInput["actor.agent.kind"] = tvs(last.AgentKind)
-				ruleInput["actor.agent.scopes"] = &rtdpv1.TypedValue{
+				actorMap["agent.id"] = tvs(last.AgentId)
+				actorMap["agent.kind"] = tvs(last.AgentKind)
+				actorMap["agent.scopes"] = &rtdpv1.TypedValue{
 					Kind: &rtdpv1.TypedValue_StringList{
 						StringList: &rtdpv1.StringList{Values: last.Scopes}}}
-				ruleInput["actor.chain_depth"] = tvi(int64(n))
+				actorMap["chain_depth"] = tvi(int64(n))
+			}
+		}
+		// ADR-014: timer.approval_due_at — the earliest approval SLA among
+		// actions this policy could hold, so rules can reason about the
+		// clock. Absent when no action can be held.
+		timerMap := map[string]*rtdpv1.TypedValue{}
+		if m.ActionPolicy != nil {
+			var minSla int64
+			for _, aa := range m.ActionPolicy.Spec.Actions {
+				if aa.SlaMinutes > 0 && (minSla == 0 || aa.SlaMinutes < minSla) {
+					minSla = aa.SlaMinutes
+				}
+			}
+			if minSla > 0 {
+				timerMap["approval_due_at"] = tvs(time.Now().
+					Add(time.Duration(minSla) * time.Minute).
+					UTC().Format(time.RFC3339))
 			}
 		}
 		eval, err := s.rules.EvaluateRules(ctx, &rtdpv1.EvaluateRulesRequest{
@@ -332,27 +367,91 @@ func (s *server) Decide(ctx context.Context,
 			PresentSignalAliases: keys(present),
 			Cfg:                  cfg,
 			Input:                ruleInput,
+			Actor:                actorMap,
+			Timer:                timerMap,
 			ExecutionBudgetMs:    time.Until(deadline).Milliseconds(),
 		})
 		if err != nil {
 			decisions.WithLabelValues("rules_error").Inc()
 			return nil, fmt.Errorf("rules: %w", err)
 		}
+		// ADR-014: a rule may return APPROVE_WITH_APPROVAL — the
+		// orchestrator maps it to PENDING_APPROVAL (a human gate on an
+		// otherwise-approvable request).
+		forceApproval := eval.Decision == "APPROVE_WITH_APPROVAL"
 		res.Outcome = parseDecision(eval.Decision)
 		res.ReasonCodes = eval.ReasonCodes
 
 		// 7. Permitted action intents only.
 		if m.ActionPolicy != nil {
-			for _, at := range allowedFor(res.Outcome.String(), m.ActionPolicy.Spec) {
+			pol := m.ActionPolicy.Spec
+			for _, at := range allowedFor(res.Outcome.String(), pol) {
 				key := fmt.Sprintf("%s:%s:%s:%d:%s:%s", req.TenantId, req.Environment,
 					res.DecisionId, res.DecisionGeneration, at, req.ProviderId)
-				res.ActionIntents = append(res.ActionIntents, &rtdpv1.ActionIntent{
+				ai := &rtdpv1.ActionIntent{
 					ActionType:     at,
 					IdempotencyKey: key,
-					AdapterRef:     m.ActionPolicy.Spec.Adapters[at],
-					TtlMs:          m.ActionPolicy.Spec.IntentTTLMs[at],
-				})
+					AdapterRef:     pol.Adapters[at],
+					TtlMs:          pol.IntentTTLMs[at],
+					Status:         rtdpv1.IntentStatus_INTENT_READY,
+				}
+				// ADR-014 tier resolution: held intents get approval
+				// metadata so approval-service stays bundle-free.
+				if req.Mode == rtdpv1.Mode_MODE_LIVE &&
+					!completesAlone(at, req.Delegation, pol, req.Amount,
+						cfg, ruleInput, actorMap) {
+					aa := pol.Actions[at]
+					ai.Status = rtdpv1.IntentStatus_INTENT_AWAITING_APPROVAL
+					ai.Approvers = aa.Approvers
+					if len(ai.Approvers) == 0 {
+						// Held without configured approvers (e.g. a T2
+						// action capped by the agent's ceiling): the
+						// policy owner is the accountable fallback.
+						ai.Approvers = []string{pol.Owner.Identity}
+					}
+					ai.EscalationApprovers = aa.EscalationApprovers
+					ai.SlaBreachAction = aa.OnSlaBreach
+					ai.ApprovalDueAt = timestamppb.New(
+						res.DecidedAt.AsTime().Add(slaFor(aa)))
+				}
+				res.ActionIntents = append(res.ActionIntents, ai)
 			}
+
+			// Any held intent -> the decision lands PENDING_APPROVAL;
+			// only the held commands wait (ready intents still
+			// dispatch — per-intent autonomy, ADR-014).
+			held := false
+			for _, ai := range res.ActionIntents {
+				if ai.Status == rtdpv1.IntentStatus_INTENT_AWAITING_APPROVAL {
+					held = true
+					res.ReasonCodes = append(res.ReasonCodes,
+						"APPROVAL_REQUIRED:"+ai.ActionType)
+				}
+			}
+			// PENDING_APPROVAL maps APPROVE-with-held per spec; a
+			// REVIEW/DECLINE outcome keeps its own state even while
+			// its intents wait (REVIEW is already a human path).
+			if held && res.Outcome == rtdpv1.Decision_DECISION_APPROVE {
+				res.Outcome = rtdpv1.Decision_DECISION_PENDING_APPROVAL
+			}
+			if forceApproval && !held {
+				// Rule asked for a human gate but no action held it —
+				// hold every emitted intent so the decision is releasable.
+				for _, ai := range res.ActionIntents {
+					aa := pol.Actions[ai.ActionType]
+					ai.Status = rtdpv1.IntentStatus_INTENT_AWAITING_APPROVAL
+					ai.Approvers = aa.Approvers
+					ai.EscalationApprovers = aa.EscalationApprovers
+					ai.SlaBreachAction = aa.OnSlaBreach
+					ai.ApprovalDueAt = timestamppb.New(res.DecidedAt.AsTime().
+						Add(slaFor(aa)))
+				}
+				res.Outcome = rtdpv1.Decision_DECISION_PENDING_APPROVAL
+				res.ReasonCodes = append(res.ReasonCodes, "APPROVAL_REQUIRED")
+			}
+		}
+		if forceApproval && res.Outcome == rtdpv1.Decision_DECISION_APPROVE {
+			res.Outcome = rtdpv1.Decision_DECISION_PENDING_APPROVAL
 		}
 	} // end authorized evaluation branch
 
@@ -398,6 +497,14 @@ func (s *server) Decide(ctx context.Context,
 				Payload:            ai.Payload,
 				IntentTtlMs:        ai.TtlMs,
 				CreatedAt:          timestamppb.Now(),
+				// ADR-014: release state + approval metadata travel
+				// with the durable command.
+				Status:              ai.Status,
+				Approvers:           ai.Approvers,
+				EscalationApprovers: ai.EscalationApprovers,
+				SlaBreachAction:     ai.SlaBreachAction,
+				ApprovalDueAt:       ai.ApprovalDueAt,
+				RequesterIdentities: requesterIdentities(req.Delegation),
 			}
 			cb, _ := proto.Marshal(cmd)
 			recs = append(recs, &kgo.Record{
@@ -446,6 +553,130 @@ func (s *server) Decide(ctx context.Context,
 
 	decisions.WithLabelValues(res.Outcome.String()).Inc()
 	return res, nil
+}
+
+// completesAlone resolves ADR-014 autonomy for one action: the agent's
+// registered ceiling (last chain link; legacy callers are platform T2)
+// caps the action's tier, then the tier's declared policy applies —
+// T0 never completes alone, T1 only when every condition holds, T2
+// unconditionally. Undeclared action metadata defaults to T2 (v2.1
+// behavior).
+func completesAlone(actionType string, chain *agentv1.DelegationChain,
+	pol bundle.ActionPolicySpec, amount float64,
+	cfg, input, actor map[string]*rtdpv1.TypedValue) bool {
+	aa, ok := pol.Actions[actionType]
+	if !ok || aa.Tier == "" {
+		return true
+	}
+	rank := map[string]int{"T0": 0, "T1": 1, "T2": 2}
+	agentMax := "T2"
+	if chain != nil && len(chain.Links) > 0 {
+		if v := chain.Links[len(chain.Links)-1].MaxAutonomy; v != "" {
+			agentMax = v
+		}
+	}
+	if rank[agentMax] < rank[aa.Tier] {
+		return false
+	}
+	tier, ok := pol.AutonomyTiers[aa.Tier]
+	if !ok {
+		return aa.Tier != "T0"
+	}
+	if !tier.CompletesAlone {
+		return false
+	}
+	vars := map[string]any{
+		"features": map[string]any{},
+		"signals":  map[string]any{},
+		"cfg":      nestFlat(anyMap(cfg)),
+		"input":    map[string]any{"amount": amount, "attrs": anyMap(input)},
+		"actor":    nestFlat(anyMap(actor)),
+		"timer":    map[string]any{},
+	}
+	for _, cond := range tier.Conditions {
+		ok, err := ruleseng.EvalCondition(cond, vars)
+		if err != nil || !ok {
+			return false // fail closed: a broken condition holds for review
+		}
+	}
+	return true
+}
+
+// slaFor resolves an action's approval window: sla_minutes +
+// sla_seconds, defaulting to 24h when neither is declared.
+func slaFor(aa bundle.ActionAutonomy) time.Duration {
+	d := time.Duration(aa.SlaMinutes)*time.Minute +
+		time.Duration(aa.SlaSeconds)*time.Second
+	if d <= 0 {
+		return 24 * time.Hour
+	}
+	return d
+}
+
+// requesterIdentities lists the identities barred from approving a
+// held intent (ADR-014 self-approval ban): every agent in the chain
+// plus the principal.
+func requesterIdentities(c *agentv1.DelegationChain) []string {
+	if c == nil {
+		return nil
+	}
+	var out []string
+	if c.Principal != nil && c.Principal.Id != "" {
+		out = append(out, c.Principal.Id)
+	}
+	for _, l := range c.Links {
+		out = append(out, l.AgentId)
+	}
+	return out
+}
+
+func anyMap(m map[string]*rtdpv1.TypedValue) map[string]any {
+	out := map[string]any{}
+	for k, v := range m {
+		out[k] = tvToAny(v)
+	}
+	return out
+}
+
+func tvToAny(v *rtdpv1.TypedValue) any {
+	if v == nil {
+		return nil
+	}
+	switch k := v.Kind.(type) {
+	case *rtdpv1.TypedValue_DoubleValue:
+		return k.DoubleValue
+	case *rtdpv1.TypedValue_IntValue:
+		return k.IntValue
+	case *rtdpv1.TypedValue_StringValue:
+		return k.StringValue
+	case *rtdpv1.TypedValue_BoolValue:
+		return k.BoolValue
+	case *rtdpv1.TypedValue_StringList:
+		return k.StringList.Values
+	case *rtdpv1.TypedValue_DoubleList:
+		return k.DoubleList.Values
+	}
+	return nil
+}
+
+// nestFlat unflattens dotted keys into nested maps for CEL vars
+// (actor.agent.id etc.) — mirrors rules-service's nest.
+func nestFlat(flat map[string]any) map[string]any {
+	out := map[string]any{}
+	for k, v := range flat {
+		parts := strings.Split(k, ".")
+		m := out
+		for _, p := range parts[:len(parts)-1] {
+			next, ok := m[p].(map[string]any)
+			if !ok {
+				next = map[string]any{}
+				m[p] = next
+			}
+			m = next
+		}
+		m[parts[len(parts)-1]] = v
+	}
+	return out
 }
 
 func allowedFor(outcome string, p bundle.ActionPolicySpec) []string {

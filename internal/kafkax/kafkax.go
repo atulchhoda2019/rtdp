@@ -67,12 +67,15 @@ const (
 	TopicControlActiv   = "rtdp.control.activation.v1"
 	TopicTelemetry      = "rtdp.telemetry.v1"
 	TopicDLQ            = "rtdp.dlq.v1"
+	// ADR-014: held-intent releases and the approval ledger.
+	TopicApprovalEvents = "rtdp.approval.events.v1"
 )
 
 var AllTopics = []string{
 	TopicIngress, TopicEgress, TopicFeatureContrib, TopicFeatureUpdates,
 	TopicFeatureLate, TopicDecisionFacts, TopicActionCommands,
 	TopicActionStatus, TopicControlActiv, TopicTelemetry, TopicDLQ,
+	TopicApprovalEvents,
 }
 
 // NewTransacter returns a client configured for the orchestrator's durable

@@ -38,6 +38,11 @@ message DelegationLink {
   google.protobuf.Timestamp issued_at = 5;
   google.protobuf.Timestamp expires_at = 6;
   string grant_id = 7;
+  // ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+  // denormalised into the link at mint — the signature covers it, so the
+  // orchestrator resolves tiers without a registry call on the request
+  // path. An agent at T1 can never complete a T2 action alone.
+  string max_autonomy = 8;
 }
 
 // DelegationChain: principal + ordered links + the registry's JWS proof.

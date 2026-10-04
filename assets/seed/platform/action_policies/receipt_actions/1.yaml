@@ -1,6 +1,9 @@
 action_policy_id: receipt_actions
 version: 1
 owner_scope: platform
+owner:
+  role: "Receipt Operations Manager"
+  identity: "receipt_actions.owner@rtdp-synthetic.test"
 allowed_actions: [ISSUE_REIMBURSEMENT, ROUTE_TO_REVIEW_QUEUE]
 adapters:
   ISSUE_REIMBURSEMENT: local_intake_simulator@1

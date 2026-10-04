@@ -11,6 +11,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"strings"
 	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -58,6 +59,27 @@ func mapOf(m map[string]*rtdpv1.TypedValue) map[string]any {
 	out := map[string]any{}
 	for k, v := range m {
 		out[k] = tv(v)
+	}
+	return out
+}
+
+// nest unflattens dotted wire keys into nested maps so CEL can write
+// actor.agent.id / timer.approval_due_at (ADR-013/014). Keys without
+// dots pass through unchanged.
+func nest(flat map[string]any) map[string]any {
+	out := map[string]any{}
+	for k, v := range flat {
+		parts := strings.Split(k, ".")
+		m := out
+		for _, p := range parts[:len(parts)-1] {
+			next, ok := m[p].(map[string]any)
+			if !ok {
+				next = map[string]any{}
+				m[p] = next
+			}
+			m = next
+		}
+		m[parts[len(parts)-1]] = v
 	}
 	return out
 }
@@ -111,7 +133,8 @@ func (s *server) EvaluateRules(ctx context.Context,
 	}
 
 	res, err := e.Evaluate(mapOf(req.Features), signals, present,
-		mapOf(req.Cfg), mapOf(req.Input), map[string]any{})
+		mapOf(req.Cfg), mapOf(req.Input),
+		nest(mapOf(req.Actor)), nest(mapOf(req.Timer)))
 	if err != nil {
 		evals.WithLabelValues("error").Inc()
 		return nil, err

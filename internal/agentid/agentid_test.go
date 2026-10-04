@@ -15,8 +15,8 @@ func testChain() *agentv1.DelegationChain {
 			Kind: agentv1.Principal_PERSON, Id: "guest-g", TenantId: "tenant_a"},
 		Links: []*agentv1.DelegationLink{{
 			AgentId: "guest-agent-1", AgentVersion: "1", AgentKind: "CUSTOMER",
-			Scopes:   []string{"decide", "reservations"},
-			IssuedAt: timestamppb.New(time.Now().Add(-time.Minute)),
+			Scopes:    []string{"decide", "reservations"},
+			IssuedAt:  timestamppb.New(time.Now().Add(-time.Minute)),
 			ExpiresAt: timestamppb.New(time.Now().Add(time.Hour)),
 			GrantId:   "grant-1",
 		}},

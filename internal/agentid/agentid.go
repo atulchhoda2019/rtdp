@@ -53,6 +53,7 @@ type payloadLink struct {
 	AgentVersion string   `json:"agent_version"`
 	AgentKind    string   `json:"agent_kind"`
 	Scopes       []string `json:"scopes"`
+	MaxAutonomy  string   `json:"max_autonomy,omitempty"`
 	IssuedAt     string   `json:"issued_at"` // RFC3339
 	ExpiresAt    string   `json:"expires_at"`
 	GrantID      string   `json:"grant_id"`
@@ -74,6 +75,7 @@ func toPayload(c *agentv1.DelegationChain) chainPayload {
 			AgentVersion: l.AgentVersion,
 			AgentKind:    l.AgentKind,
 			Scopes:       l.Scopes,
+			MaxAutonomy:  l.MaxAutonomy,
 			IssuedAt:     l.IssuedAt.AsTime().UTC().Format(time.RFC3339),
 			ExpiresAt:    l.ExpiresAt.AsTime().UTC().Format(time.RFC3339),
 			GrantID:      l.GrantId,
@@ -108,7 +110,8 @@ func fromPayload(p chainPayload) (*agentv1.DelegationChain, error) {
 		c.Links = append(c.Links, &agentv1.DelegationLink{
 			AgentId: l.AgentID, AgentVersion: l.AgentVersion,
 			AgentKind: l.AgentKind, Scopes: l.Scopes,
-			IssuedAt: timestamppb.New(iat), ExpiresAt: timestamppb.New(exp),
+			MaxAutonomy: l.MaxAutonomy,
+			IssuedAt:    timestamppb.New(iat), ExpiresAt: timestamppb.New(exp),
 			GrantId: l.GrantID,
 		})
 	}

@@ -466,7 +466,7 @@ func main() {
 			}
 			chain.Links = append(chain.Links, &agentv1.DelegationLink{
 				AgentId: aid, AgentVersion: "1", AgentKind: akind,
-				Scopes:   scopes,
+				Scopes: scopes, MaxAutonomy: aversion,
 				IssuedAt: timestamppb.New(now), ExpiresAt: timestamppb.New(exp),
 				GrantId: grantID,
 			})

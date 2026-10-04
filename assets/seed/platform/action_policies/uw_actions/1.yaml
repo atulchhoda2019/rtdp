@@ -1,6 +1,9 @@
 action_policy_id: uw_actions
 version: 1
 owner_scope: platform
+owner:
+  role: "Underwriting Director"
+  identity: "uw_actions.owner@rtdp-synthetic.test"
 allowed_actions: [POLICY_RESPONSE, ASSIGN_UNDERWRITER]
 adapters:
   POLICY_RESPONSE: local_policy_simulator@1

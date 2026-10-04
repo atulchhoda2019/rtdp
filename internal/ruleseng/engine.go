@@ -88,12 +88,45 @@ func Compile(spec bundle.RulesetSpec) (*Engine, error) {
 	return &Engine{spec: spec, progs: progs, order: order}, nil
 }
 
+// EvalCondition compiles and evaluates a single boolean CEL expression
+// against the given vars — used by the orchestrator for ADR-014
+// autonomy-tier conditions (same sandbox limits as ruleset rules).
+func EvalCondition(expr string,
+	vars map[string]any) (bool, error) {
+	if len(expr) > maxExprBytes {
+		return false, fmt.Errorf("condition exceeds expression size limit")
+	}
+	e, err := env()
+	if err != nil {
+		return false, err
+	}
+	ast, iss := e.Compile(expr)
+	if iss.Err() != nil {
+		return false, fmt.Errorf("condition CEL compile: %w", iss.Err())
+	}
+	if !ast.OutputType().IsExactType(cel.BoolType) {
+		return false, fmt.Errorf("condition must evaluate to bool")
+	}
+	prg, err := e.Program(ast,
+		cel.CostTracking(nil),
+		cel.CostLimit(celCostLimit),
+		cel.InterruptCheckFrequency(128))
+	if err != nil {
+		return false, err
+	}
+	out, _, err := prg.Eval(vars)
+	if err != nil {
+		return false, err
+	}
+	return out == types.True, nil
+}
+
 // Evaluate runs all rules whose required signals are present. Missing
 // required inputs mark dependent rules skipped; they never read zero values.
 func (e *Engine) Evaluate(features map[string]any,
 	signals map[string]map[string]any,
 	presentSignals map[string]bool,
-	cfg, input, actor map[string]any) (*Result, error) {
+	cfg, input, actor, timer map[string]any) (*Result, error) {
 
 	res := &Result{}
 	ruleByID := map[string]bundle.Rule{}
@@ -106,7 +139,7 @@ func (e *Engine) Evaluate(features map[string]any,
 	}
 	vars := map[string]any{
 		"features": features, "signals": sigMap, "cfg": cfg,
-		"input": input, "actor": actor, "timer": map[string]any{},
+		"input": input, "actor": actor, "timer": timer,
 	}
 	for _, id := range e.order {
 		r := ruleByID[id]
@@ -144,7 +177,10 @@ func (e *Engine) Evaluate(features map[string]any,
 // a missing required signal yields the declared missing-signal outcome.
 func (e *Engine) Aggregate(res *Result,
 	missingRequiredOutcome string) (string, []string) {
-	precedence := map[string]int{"DECLINE": 3, "REVIEW": 2, "APPROVE": 1}
+	// ADR-014: APPROVE_WITH_APPROVAL ranks above APPROVE but below REVIEW —
+	// a human-gated approval still loses to an explicit review.
+	precedence := map[string]int{"DECLINE": 4, "REVIEW": 3,
+		"APPROVE_WITH_APPROVAL": 2, "APPROVE": 1}
 	best, bestRank := "", 0
 	var reasons []string
 	for _, f := range res.Fired {

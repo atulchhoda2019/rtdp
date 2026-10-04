@@ -180,6 +180,16 @@ func handle(ctx context.Context, db *pgxpool.Pool, rec *kgo.Record,
 	payloadDigest := fmt.Sprintf("%x", sha256.Sum256(
 		mustJSON(payloadMap(cmd.Payload))))
 
+	// ADR-014: the inbox key carries the command's release status so a
+	// held intent (AWAITING_APPROVAL) and its later release (READY) or
+	// termination (CANCELLED/EXPIRED) are distinct messages — not
+	// false-positive duplicates.
+	cmdStatus := cmd.Status.String()
+	if cmdStatus == "" || cmd.Status == rtdpv1.IntentStatus_INTENT_STATUS_UNSPECIFIED {
+		cmdStatus = rtdpv1.IntentStatus_INTENT_READY.String()
+	}
+	msgID := cmd.IdempotencyKey + ":" + cmdStatus
+
 	// Inbox dedup + ledger row in one Postgres transaction.
 	tx, err := db.Begin(ctx)
 	if err != nil {
@@ -194,7 +204,7 @@ func handle(ctx context.Context, db *pgxpool.Pool, rec *kgo.Record,
 		INSERT INTO inbox (consumer_name, tenant_id, message_id, payload_digest)
 		VALUES ('action-dispatcher', $1, $2, $3)
 		ON CONFLICT (consumer_name, tenant_id, message_id) DO NOTHING`,
-		cmd.TenantId, cmd.IdempotencyKey, payloadDigest)
+		cmd.TenantId, msgID, payloadDigest)
 	if err != nil {
 		return err
 	}
@@ -204,12 +214,58 @@ func handle(ctx context.Context, db *pgxpool.Pool, rec *kgo.Record,
 		err := tx.QueryRow(ctx,
 			`SELECT payload_digest FROM inbox
 			 WHERE consumer_name='action-dispatcher' AND tenant_id=$1 AND message_id=$2`,
-			cmd.TenantId, cmd.IdempotencyKey).Scan(&prior)
+			cmd.TenantId, msgID).Scan(&prior)
 		if err == nil && prior != payloadDigest {
 			tx.Rollback(ctx)
 			return fmt.Errorf("payload conflict for %s", cmd.IdempotencyKey)
 		}
 		tx.Commit(ctx)
+		return nil
+	}
+
+	// ADR-014 hold/release transitions. Terminal commands only mutate a
+	// held row; a released command claims it for dispatch below.
+	switch cmd.Status {
+	case rtdpv1.IntentStatus_INTENT_AWAITING_APPROVAL:
+		_, err = tx.Exec(ctx, `
+			INSERT INTO action_execution
+			  (tenant_id, environment, idempotency_key, decision_id,
+			   decision_generation, action_type, intent, payload_digest,
+			   state, expires_at)
+			VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'AWAITING_APPROVAL',
+			        now() + $9::int8 * interval '1 millisecond')
+			ON CONFLICT (tenant_id, environment, idempotency_key)
+			DO UPDATE SET state='AWAITING_APPROVAL', updated_at=now()
+			WHERE action_execution.state IN ('PENDING','AWAITING_APPROVAL')`,
+			cmd.TenantId, cmd.Environment, cmd.IdempotencyKey, cmd.DecisionId,
+			cmd.DecisionGeneration, cmd.ActionType,
+			mustJSON(payloadMap(cmd.Payload)), payloadDigest, cmd.IntentTtlMs)
+		if err != nil {
+			return err
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return err
+		}
+		log.Printf("action %s -> AWAITING_APPROVAL", cmd.IdempotencyKey)
+		return nil
+	case rtdpv1.IntentStatus_INTENT_CANCELLED,
+		rtdpv1.IntentStatus_INTENT_EXPIRED:
+		to := "CANCELLED"
+		if cmd.Status == rtdpv1.IntentStatus_INTENT_EXPIRED {
+			to = "EXPIRED"
+		}
+		_, err = tx.Exec(ctx, `
+			UPDATE action_execution SET state=$4, updated_at=now()
+			WHERE tenant_id=$1 AND environment=$2 AND idempotency_key=$3
+			  AND state='AWAITING_APPROVAL'`,
+			cmd.TenantId, cmd.Environment, cmd.IdempotencyKey, to)
+		if err != nil {
+			return err
+		}
+		if err := tx.Commit(ctx); err != nil {
+			return err
+		}
+		log.Printf("action %s -> %s", cmd.IdempotencyKey, to)
 		return nil
 	}
 	_, err = tx.Exec(ctx, `
@@ -238,7 +294,7 @@ func handle(ctx context.Context, db *pgxpool.Pool, rec *kgo.Record,
 		    lease_expires_at = now() + interval '30 seconds',
 		    state = 'DISPATCHING', updated_at = now()
 		WHERE tenant_id=$1 AND environment=$2 AND idempotency_key=$3
-		  AND state IN ('PENDING','DISPATCHING')
+		  AND state IN ('PENDING','DISPATCHING','AWAITING_APPROVAL')
 		RETURNING lease_generation`,
 		cmd.TenantId, cmd.Environment, cmd.IdempotencyKey).Scan(&gen)
 	if err != nil {

@@ -27,6 +27,37 @@ MAX_TOTAL_DEADLINE_MS = 100
 DEADLINE_CAP_BY_PROFILE = {"document_intake": 30000}
 
 
+def _validate_action_policy(ap: dict, aid: str, aver: int, pid: str):
+    """ADR-014 compile checks (G9e): every active policy version has a
+    non-empty accountable owner, declared tiers are valid, and approval
+    metadata is complete where a tier can hold an intent."""
+    owner = ap.get("owner") or {}
+    if not owner.get("role") or not owner.get("identity"):
+        raise ContractError(
+            "MISSING_OWNER",
+            f"action policy {aid}@{aver} has no accountable owner "
+            "(owner.role + owner.identity required)", pid)
+    for name, meta in (ap.get("actions") or {}).items():
+        tier = meta.get("tier", "T2")
+        if tier not in ("T0", "T1", "T2"):
+            raise ContractError(
+                "BAD_TIER", f"{aid}@{aver} action {name}: "
+                f"unknown tier {tier!r}", pid)
+        if tier in ("T0", "T1") and not meta.get("approvers"):
+            raise ContractError(
+                "MISSING_APPROVERS", f"{aid}@{aver} action {name} at "
+                f"{tier} may hold intents but declares no approvers", pid)
+        breach = meta.get("on_sla_breach")
+        if breach and breach not in ("ESCALATE", "EXPIRE"):
+            raise ContractError(
+                "BAD_BREACH_ACTION", f"{aid}@{aver} action {name}: "
+                f"on_sla_breach must be ESCALATE|EXPIRE", pid)
+        if breach == "ESCALATE" and not meta.get("escalation_approvers"):
+            raise ContractError(
+                "MISSING_ESCALATION", f"{aid}@{aver} action {name}: "
+                "ESCALATE requires escalation_approvers", pid)
+
+
 def _ref(spec: str) -> tuple[str, int]:
     """Parse 'asset@version' -> (asset, int version)."""
     asset, _, ver = spec.rpartition("@")
@@ -142,6 +173,7 @@ def compile_bundle(registry: ContractRegistry, product: dict,
     if ap_ref:
         aid, aver = _ref(ap_ref)
         action_policy = registry.get("action_policy", aid, str(aver))
+        _validate_action_policy(action_policy, aid, aver, pid)
 
     bundle = {
         "kind": "runtime_bundle",

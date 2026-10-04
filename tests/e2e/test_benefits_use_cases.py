@@ -71,10 +71,18 @@ def decide_full(client_id, txn, timeout=40):
 
 def decide_retry(client_id, t, attempts=10, timeout=40):
     """Deadline rejection is a designed bound, not a correctness failure —
-    retry; structural errors return immediately."""
-    for _ in range(attempts):
+    retry; structural errors return immediately. MISSING_REQUIRED_SIGNAL
+    is the same class: a required signal whose pinned timeout expired
+    mid-request (cold model, loaded box) reports REVIEW, so retry the
+    transaction rather than record a latency artifact."""
+    for i in range(attempts):
         status, body, _ = decide_full(client_id, t, timeout)
         if status == 0 or "DeadlineExceeded" in str(body.get("error", "")):
+            time.sleep(0.3)
+            continue
+        if status == 200 and "MISSING_REQUIRED_SIGNAL" in (
+                body.get("reason_codes") or []):
+            t = {**t, "transaction_id": f"{t['transaction_id']}_r{i}"}
             time.sleep(0.3)
             continue
         return status, body
@@ -115,7 +123,26 @@ def psql(sql):
     return out.stdout.strip() if out.returncode == 0 else None
 
 
+def warm_slm_products():
+    """Cold Ollama model loads exceed the SLM products' pinned signal
+    timeouts — warm each SLM-backed event before measuring. A timed-out
+    signal correctly reports REVIEW/MISSING_REQUIRED_SIGNAL, so retry
+    until every product resolves real reasons."""
+    for ev, tag in (("DEPENDENT_VERIFICATION", "dv"),
+                    ("HSA_CLAIM", "hsa")):
+        for i in range(10):
+            status, r = decide_retry(CLIENTS["a"],
+                                     txn(ev, f"{tag}_warm_{i}",
+                                         amount=900.0),
+                                     timeout=60)
+            if status == 200 and "MISSING_REQUIRED_SIGNAL" not in (
+                    r.get("reason_codes") or []):
+                break
+            time.sleep(2)
+
+
 def main():
+    warm_slm_products()
     # ------------------------------------------------------------------
     # BUC-1: dependent_verification — SLM doc-consistency, ADMT guardrail.
     # ------------------------------------------------------------------

@@ -56,20 +56,21 @@ public final class Agent extends com.google.protobuf.GeneratedFile {
       "Principal.KindR\004kind\022\016\n\002id\030\002 \001(\tR\002id\022\033\n\t" +
       "tenant_id\030\003 \001(\tR\010tenantId\">\n\004Kind\022\024\n\020KIN" +
       "D_UNSPECIFIED\020\000\022\n\n\006PERSON\020\001\022\007\n\003ORG\020\002\022\013\n\007" +
-      "SERVICE\020\003\"\226\002\n\016DelegationLink\022\031\n\010agent_id" +
+      "SERVICE\020\003\"\271\002\n\016DelegationLink\022\031\n\010agent_id" +
       "\030\001 \001(\tR\007agentId\022#\n\ragent_version\030\002 \001(\tR\014" +
       "agentVersion\022\035\n\nagent_kind\030\003 \001(\tR\tagentK" +
       "ind\022\026\n\006scopes\030\004 \003(\tR\006scopes\0227\n\tissued_at" +
       "\030\005 \001(\0132\032.google.protobuf.TimestampR\010issu" +
       "edAt\0229\n\nexpires_at\030\006 \001(\0132\032.google.protob" +
       "uf.TimestampR\texpiresAt\022\031\n\010grant_id\030\007 \001(" +
-      "\tR\007grantId\"\261\001\n\017DelegationChain\0226\n\tprinci" +
-      "pal\030\001 \001(\0132\030.rtdp.agent.v1.PrincipalR\tpri" +
-      "ncipal\0223\n\005links\030\002 \003(\0132\035.rtdp.agent.v1.De" +
-      "legationLinkR\005links\022\024\n\005proof\030\003 \001(\tR\005proo" +
-      "f\022\033\n\tproof_kid\030\004 \001(\tR\010proofKidBN\n\027com.rt" +
-      "dp.proto.agent.v1P\001Z1github.com/rtdp/rtd" +
-      "p/gen/go/rtdp/agent/v1;agentv1b\006proto3"
+      "\tR\007grantId\022!\n\014max_autonomy\030\010 \001(\tR\013maxAut" +
+      "onomy\"\261\001\n\017DelegationChain\0226\n\tprincipal\030\001" +
+      " \001(\0132\030.rtdp.agent.v1.PrincipalR\tprincipa" +
+      "l\0223\n\005links\030\002 \003(\0132\035.rtdp.agent.v1.Delegat" +
+      "ionLinkR\005links\022\024\n\005proof\030\003 \001(\tR\005proof\022\033\n\t" +
+      "proof_kid\030\004 \001(\tR\010proofKidBN\n\027com.rtdp.pr" +
+      "oto.agent.v1P\001Z1github.com/rtdp/rtdp/gen" +
+      "/go/rtdp/agent/v1;agentv1b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -87,7 +88,7 @@ public final class Agent extends com.google.protobuf.GeneratedFile {
     internal_static_rtdp_agent_v1_DelegationLink_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_rtdp_agent_v1_DelegationLink_descriptor,
-        new java.lang.String[] { "AgentId", "AgentVersion", "AgentKind", "Scopes", "IssuedAt", "ExpiresAt", "GrantId", });
+        new java.lang.String[] { "AgentId", "AgentVersion", "AgentKind", "Scopes", "IssuedAt", "ExpiresAt", "GrantId", "MaxAutonomy", });
     internal_static_rtdp_agent_v1_DelegationChain_descriptor =
       getDescriptor().getMessageType(2);
     internal_static_rtdp_agent_v1_DelegationChain_fieldAccessorTable = new

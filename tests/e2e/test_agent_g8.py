@@ -84,11 +84,29 @@ def grant_for(principal_id, agent_id):
     return live[0]["grant_id"]
 
 
+def warm():
+    """Cold services return transient 502 deadline errors after a
+    rebuild — retry both decision paths until warm."""
+    for i in range(15):
+        st, r = decide({"event_type": "CLAIM_SUBMISSION"})
+        if st == 200:
+            st2, r2 = decide({"event_type": "CONTRIBUTION_CHANGE"})
+            if st2 == 200:
+                return
+        time.sleep(2)
+    print("warn: pipeline still cold after warm retries")
+
+
 def main():
+    warm()
     # --- G8a: valid chain traverses, delegation echoed on the fact ---
     tok = mint("PERSON", "guest-g", ["guest-agent-g"])
-    st, r = decide({"event_type": "CLAIM_SUBMISSION",
-                    "delegation_token": tok})
+    for attempt in range(5):
+        st, r = decide({"event_type": "CLAIM_SUBMISSION",
+                        "delegation_token": tok})
+        if st == 200:
+            break
+        time.sleep(1.5)
     ok = (st == 200 and r.get("outcome") in
           ("DECISION_APPROVE", "DECISION_REVIEW", "DECISION_DECLINE"))
     d = r.get("delegation") or {}
@@ -178,13 +196,16 @@ def main():
           f"outcome={r.get('outcome')} "
           f"reasons={r.get('reason_codes', [])}")
 
-    # benefits-agent-1 holds `benefits` -> normal evaluation proceeds
+    # benefits-agent-1 holds `benefits` -> normal evaluation proceeds.
+    # PENDING_APPROVAL is a normal outcome here: the agent is T1-capped
+    # (ADR-014) and T2 actions wait for a human — scope still passed.
     tok = mint("PERSON", "participant-p", ["benefits-agent-1"])
     st, r = decide({"event_type": "CONTRIBUTION_CHANGE",
                     "delegation_token": tok})
     check("G8d", "scoped chain evaluates normally",
           st == 200 and r.get("outcome") in
-          ("DECISION_APPROVE", "DECISION_REVIEW", "DECISION_DECLINE"),
+          ("DECISION_APPROVE", "DECISION_REVIEW", "DECISION_DECLINE",
+           "DECISION_PENDING_APPROVAL"),
           f"outcome={r.get('outcome')}")
 
     # legacy (no chain) on the scoped product still works — scope rules

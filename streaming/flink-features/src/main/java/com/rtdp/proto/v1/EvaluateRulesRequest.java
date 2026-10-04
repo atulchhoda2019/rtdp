@@ -52,6 +52,10 @@ private static final long serialVersionUID = 0L;
         return internalGetCfg();
       case 7:
         return internalGetInput();
+      case 9:
+        return internalGetActor();
+      case 10:
+        return internalGetTimer();
       default:
         throw new RuntimeException(
             "Invalid map field number: " + number);
@@ -499,6 +503,188 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     return executionBudgetMs_;
   }
 
+  public static final int ACTOR_FIELD_NUMBER = 9;
+  private static final class ActorDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, com.rtdp.proto.v1.TypedValue> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, com.rtdp.proto.v1.TypedValue>newDefaultInstance(
+                com.rtdp.proto.v1.ServicesProtos.internal_static_rtdp_v1_EvaluateRulesRequest_ActorEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                com.rtdp.proto.v1.TypedValue.getDefaultInstance());
+  }
+  @SuppressWarnings("serial")
+  private com.google.protobuf.MapField<
+      java.lang.String, com.rtdp.proto.v1.TypedValue> actor_;
+  private com.google.protobuf.MapField<java.lang.String, com.rtdp.proto.v1.TypedValue>
+  internalGetActor() {
+    if (actor_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          ActorDefaultEntryHolder.defaultEntry);
+    }
+    return actor_;
+  }
+  public int getActorCount() {
+    return internalGetActor().getMap().size();
+  }
+  /**
+   * <pre>
+   * ADR-013/014: delegation-derived actor context and SLA timer vars
+   * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+   * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+   * </pre>
+   *
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+   */
+  @java.lang.Override
+  public boolean containsActor(
+      java.lang.String key) {
+    if (key == null) { throw new NullPointerException("map key"); }
+    return internalGetActor().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getActorMap()} instead.
+   */
+  @java.lang.Override
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> getActor() {
+    return getActorMap();
+  }
+  /**
+   * <pre>
+   * ADR-013/014: delegation-derived actor context and SLA timer vars
+   * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+   * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+   * </pre>
+   *
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+   */
+  @java.lang.Override
+  public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> getActorMap() {
+    return internalGetActor().getMap();
+  }
+  /**
+   * <pre>
+   * ADR-013/014: delegation-derived actor context and SLA timer vars
+   * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+   * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+   * </pre>
+   *
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+   */
+  @java.lang.Override
+  public /* nullable */
+com.rtdp.proto.v1.TypedValue getActorOrDefault(
+      java.lang.String key,
+      /* nullable */
+com.rtdp.proto.v1.TypedValue defaultValue) {
+    if (key == null) { throw new NullPointerException("map key"); }
+    java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> map =
+        internalGetActor().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <pre>
+   * ADR-013/014: delegation-derived actor context and SLA timer vars
+   * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+   * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+   * </pre>
+   *
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+   */
+  @java.lang.Override
+  public com.rtdp.proto.v1.TypedValue getActorOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new NullPointerException("map key"); }
+    java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> map =
+        internalGetActor().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
+  public static final int TIMER_FIELD_NUMBER = 10;
+  private static final class TimerDefaultEntryHolder {
+    static final com.google.protobuf.MapEntry<
+        java.lang.String, com.rtdp.proto.v1.TypedValue> defaultEntry =
+            com.google.protobuf.MapEntry
+            .<java.lang.String, com.rtdp.proto.v1.TypedValue>newDefaultInstance(
+                com.rtdp.proto.v1.ServicesProtos.internal_static_rtdp_v1_EvaluateRulesRequest_TimerEntry_descriptor, 
+                com.google.protobuf.WireFormat.FieldType.STRING,
+                "",
+                com.google.protobuf.WireFormat.FieldType.MESSAGE,
+                com.rtdp.proto.v1.TypedValue.getDefaultInstance());
+  }
+  @SuppressWarnings("serial")
+  private com.google.protobuf.MapField<
+      java.lang.String, com.rtdp.proto.v1.TypedValue> timer_;
+  private com.google.protobuf.MapField<java.lang.String, com.rtdp.proto.v1.TypedValue>
+  internalGetTimer() {
+    if (timer_ == null) {
+      return com.google.protobuf.MapField.emptyMapField(
+          TimerDefaultEntryHolder.defaultEntry);
+    }
+    return timer_;
+  }
+  public int getTimerCount() {
+    return internalGetTimer().getMap().size();
+  }
+  /**
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+   */
+  @java.lang.Override
+  public boolean containsTimer(
+      java.lang.String key) {
+    if (key == null) { throw new NullPointerException("map key"); }
+    return internalGetTimer().getMap().containsKey(key);
+  }
+  /**
+   * Use {@link #getTimerMap()} instead.
+   */
+  @java.lang.Override
+  @java.lang.Deprecated
+  public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> getTimer() {
+    return getTimerMap();
+  }
+  /**
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+   */
+  @java.lang.Override
+  public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> getTimerMap() {
+    return internalGetTimer().getMap();
+  }
+  /**
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+   */
+  @java.lang.Override
+  public /* nullable */
+com.rtdp.proto.v1.TypedValue getTimerOrDefault(
+      java.lang.String key,
+      /* nullable */
+com.rtdp.proto.v1.TypedValue defaultValue) {
+    if (key == null) { throw new NullPointerException("map key"); }
+    java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> map =
+        internalGetTimer().getMap();
+    return map.containsKey(key) ? map.get(key) : defaultValue;
+  }
+  /**
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+   */
+  @java.lang.Override
+  public com.rtdp.proto.v1.TypedValue getTimerOrThrow(
+      java.lang.String key) {
+    if (key == null) { throw new NullPointerException("map key"); }
+    java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> map =
+        internalGetTimer().getMap();
+    if (!map.containsKey(key)) {
+      throw new java.lang.IllegalArgumentException();
+    }
+    return map.get(key);
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -549,6 +735,18 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     if (executionBudgetMs_ != 0L) {
       output.writeInt64(8, executionBudgetMs_);
     }
+    com.google.protobuf.GeneratedMessage
+      .serializeStringMapTo(
+        output,
+        internalGetActor(),
+        ActorDefaultEntryHolder.defaultEntry,
+        9);
+    com.google.protobuf.GeneratedMessage
+      .serializeStringMapTo(
+        output,
+        internalGetTimer(),
+        TimerDefaultEntryHolder.defaultEntry,
+        10);
     getUnknownFields().writeTo(output);
   }
 
@@ -617,6 +815,26 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       size += com.google.protobuf.CodedOutputStream
         .computeInt64Size(8, executionBudgetMs_);
     }
+    for (java.util.Map.Entry<java.lang.String, com.rtdp.proto.v1.TypedValue> entry
+         : internalGetActor().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, com.rtdp.proto.v1.TypedValue>
+      actor__ = ActorDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(9, actor__);
+    }
+    for (java.util.Map.Entry<java.lang.String, com.rtdp.proto.v1.TypedValue> entry
+         : internalGetTimer().getMap().entrySet()) {
+      com.google.protobuf.MapEntry<java.lang.String, com.rtdp.proto.v1.TypedValue>
+      timer__ = TimerDefaultEntryHolder.defaultEntry.newBuilderForType()
+          .setKey(entry.getKey())
+          .setValue(entry.getValue())
+          .build();
+      size += com.google.protobuf.CodedOutputStream
+          .computeMessageSize(10, timer__);
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -648,6 +866,10 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
         other.internalGetInput())) return false;
     if (getExecutionBudgetMs()
         != other.getExecutionBudgetMs()) return false;
+    if (!internalGetActor().equals(
+        other.internalGetActor())) return false;
+    if (!internalGetTimer().equals(
+        other.internalGetTimer())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -686,6 +908,14 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     hash = (37 * hash) + EXECUTION_BUDGET_MS_FIELD_NUMBER;
     hash = (53 * hash) + com.google.protobuf.Internal.hashLong(
         getExecutionBudgetMs());
+    if (!internalGetActor().getMap().isEmpty()) {
+      hash = (37 * hash) + ACTOR_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetActor().hashCode();
+    }
+    if (!internalGetTimer().getMap().isEmpty()) {
+      hash = (37 * hash) + TIMER_FIELD_NUMBER;
+      hash = (53 * hash) + internalGetTimer().hashCode();
+    }
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -807,6 +1037,10 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
           return internalGetCfg();
         case 7:
           return internalGetInput();
+        case 9:
+          return internalGetActor();
+        case 10:
+          return internalGetTimer();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -824,6 +1058,10 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
           return internalGetMutableCfg();
         case 7:
           return internalGetMutableInput();
+        case 9:
+          return internalGetMutableActor();
+        case 10:
+          return internalGetMutableTimer();
         default:
           throw new RuntimeException(
               "Invalid map field number: " + number);
@@ -860,6 +1098,8 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       internalGetMutableCfg().clear();
       internalGetMutableInput().clear();
       executionBudgetMs_ = 0L;
+      internalGetMutableActor().clear();
+      internalGetMutableTimer().clear();
       return this;
     }
 
@@ -918,6 +1158,12 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       if (((from_bitField0_ & 0x00000080) != 0)) {
         result.executionBudgetMs_ = executionBudgetMs_;
       }
+      if (((from_bitField0_ & 0x00000100) != 0)) {
+        result.actor_ = internalGetActor().build(ActorDefaultEntryHolder.defaultEntry);
+      }
+      if (((from_bitField0_ & 0x00000200) != 0)) {
+        result.timer_ = internalGetTimer().build(TimerDefaultEntryHolder.defaultEntry);
+      }
     }
 
     @java.lang.Override
@@ -965,6 +1211,12 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       if (other.getExecutionBudgetMs() != 0L) {
         setExecutionBudgetMs(other.getExecutionBudgetMs());
       }
+      internalGetMutableActor().mergeFrom(
+          other.internalGetActor());
+      bitField0_ |= 0x00000100;
+      internalGetMutableTimer().mergeFrom(
+          other.internalGetTimer());
+      bitField0_ |= 0x00000200;
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
       return this;
@@ -1048,6 +1300,24 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
               bitField0_ |= 0x00000080;
               break;
             } // case 64
+            case 74: {
+              com.google.protobuf.MapEntry<java.lang.String, com.rtdp.proto.v1.TypedValue>
+              actor__ = input.readMessage(
+                  ActorDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              internalGetMutableActor().ensureBuilderMap().put(
+                  actor__.getKey(), actor__.getValue());
+              bitField0_ |= 0x00000100;
+              break;
+            } // case 74
+            case 82: {
+              com.google.protobuf.MapEntry<java.lang.String, com.rtdp.proto.v1.TypedValue>
+              timer__ = input.readMessage(
+                  TimerDefaultEntryHolder.defaultEntry.getParserForType(), extensionRegistry);
+              internalGetMutableTimer().ensureBuilderMap().put(
+                  timer__.getKey(), timer__.getValue());
+              bitField0_ |= 0x00000200;
+              break;
+            } // case 82
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -1974,6 +2244,364 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       executionBudgetMs_ = 0L;
       onChanged();
       return this;
+    }
+
+    private static final class ActorConverter implements com.google.protobuf.MapFieldBuilder.Converter<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder, com.rtdp.proto.v1.TypedValue> {
+      @java.lang.Override
+      public com.rtdp.proto.v1.TypedValue build(com.rtdp.proto.v1.TypedValueOrBuilder val) {
+        if (val instanceof com.rtdp.proto.v1.TypedValue) { return (com.rtdp.proto.v1.TypedValue) val; }
+        return ((com.rtdp.proto.v1.TypedValue.Builder) val).build();
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.MapEntry<java.lang.String, com.rtdp.proto.v1.TypedValue> defaultEntry() {
+        return ActorDefaultEntryHolder.defaultEntry;
+      }
+    };
+    private static final ActorConverter actorConverter = new ActorConverter();
+
+    private com.google.protobuf.MapFieldBuilder<
+        java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder, com.rtdp.proto.v1.TypedValue, com.rtdp.proto.v1.TypedValue.Builder> actor_;
+    private com.google.protobuf.MapFieldBuilder<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder, com.rtdp.proto.v1.TypedValue, com.rtdp.proto.v1.TypedValue.Builder>
+        internalGetActor() {
+      if (actor_ == null) {
+        return new com.google.protobuf.MapFieldBuilder<>(actorConverter);
+      }
+      return actor_;
+    }
+    private com.google.protobuf.MapFieldBuilder<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder, com.rtdp.proto.v1.TypedValue, com.rtdp.proto.v1.TypedValue.Builder>
+        internalGetMutableActor() {
+      if (actor_ == null) {
+        actor_ = new com.google.protobuf.MapFieldBuilder<>(actorConverter);
+      }
+      bitField0_ |= 0x00000100;
+      onChanged();
+      return actor_;
+    }
+    public int getActorCount() {
+      return internalGetActor().ensureBuilderMap().size();
+    }
+    /**
+     * <pre>
+     * ADR-013/014: delegation-derived actor context and SLA timer vars
+     * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+     * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+     * </pre>
+     *
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+     */
+    @java.lang.Override
+    public boolean containsActor(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetActor().ensureBuilderMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getActorMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> getActor() {
+      return getActorMap();
+    }
+    /**
+     * <pre>
+     * ADR-013/014: delegation-derived actor context and SLA timer vars
+     * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+     * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+     * </pre>
+     *
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> getActorMap() {
+      return internalGetActor().getImmutableMap();
+    }
+    /**
+     * <pre>
+     * ADR-013/014: delegation-derived actor context and SLA timer vars
+     * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+     * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+     * </pre>
+     *
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+com.rtdp.proto.v1.TypedValue getActorOrDefault(
+        java.lang.String key,
+        /* nullable */
+com.rtdp.proto.v1.TypedValue defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder> map = internalGetMutableActor().ensureBuilderMap();
+      return map.containsKey(key) ? actorConverter.build(map.get(key)) : defaultValue;
+    }
+    /**
+     * <pre>
+     * ADR-013/014: delegation-derived actor context and SLA timer vars
+     * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+     * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+     * </pre>
+     *
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+     */
+    @java.lang.Override
+    public com.rtdp.proto.v1.TypedValue getActorOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder> map = internalGetMutableActor().ensureBuilderMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return actorConverter.build(map.get(key));
+    }
+    public Builder clearActor() {
+      bitField0_ = (bitField0_ & ~0x00000100);
+      internalGetMutableActor().clear();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013/014: delegation-derived actor context and SLA timer vars
+     * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+     * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+     * </pre>
+     *
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+     */
+    public Builder removeActor(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      internalGetMutableActor().ensureBuilderMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue>
+        getMutableActor() {
+      bitField0_ |= 0x00000100;
+      return internalGetMutableActor().ensureMessageMap();
+    }
+    /**
+     * <pre>
+     * ADR-013/014: delegation-derived actor context and SLA timer vars
+     * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+     * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+     * </pre>
+     *
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+     */
+    public Builder putActor(
+        java.lang.String key,
+        com.rtdp.proto.v1.TypedValue value) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      if (value == null) { throw new NullPointerException("map value"); }
+      internalGetMutableActor().ensureBuilderMap()
+          .put(key, value);
+      bitField0_ |= 0x00000100;
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013/014: delegation-derived actor context and SLA timer vars
+     * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+     * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+     * </pre>
+     *
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+     */
+    public Builder putAllActor(
+        java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> values) {
+      for (java.util.Map.Entry<java.lang.String, com.rtdp.proto.v1.TypedValue> e : values.entrySet()) {
+        if (e.getKey() == null || e.getValue() == null) {
+          throw new NullPointerException();
+        }
+      }
+      internalGetMutableActor().ensureBuilderMap()
+          .putAll(values);
+      bitField0_ |= 0x00000100;
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013/014: delegation-derived actor context and SLA timer vars
+     * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+     * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+     * </pre>
+     *
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+     */
+    public com.rtdp.proto.v1.TypedValue.Builder putActorBuilderIfAbsent(
+        java.lang.String key) {
+      java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder> builderMap = internalGetMutableActor().ensureBuilderMap();
+      com.rtdp.proto.v1.TypedValueOrBuilder entry = builderMap.get(key);
+      if (entry == null) {
+        entry = com.rtdp.proto.v1.TypedValue.newBuilder();
+        builderMap.put(key, entry);
+      }
+      if (entry instanceof com.rtdp.proto.v1.TypedValue) {
+        entry = ((com.rtdp.proto.v1.TypedValue) entry).toBuilder();
+        builderMap.put(key, entry);
+      }
+      return (com.rtdp.proto.v1.TypedValue.Builder) entry;
+    }
+
+    private static final class TimerConverter implements com.google.protobuf.MapFieldBuilder.Converter<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder, com.rtdp.proto.v1.TypedValue> {
+      @java.lang.Override
+      public com.rtdp.proto.v1.TypedValue build(com.rtdp.proto.v1.TypedValueOrBuilder val) {
+        if (val instanceof com.rtdp.proto.v1.TypedValue) { return (com.rtdp.proto.v1.TypedValue) val; }
+        return ((com.rtdp.proto.v1.TypedValue.Builder) val).build();
+      }
+
+      @java.lang.Override
+      public com.google.protobuf.MapEntry<java.lang.String, com.rtdp.proto.v1.TypedValue> defaultEntry() {
+        return TimerDefaultEntryHolder.defaultEntry;
+      }
+    };
+    private static final TimerConverter timerConverter = new TimerConverter();
+
+    private com.google.protobuf.MapFieldBuilder<
+        java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder, com.rtdp.proto.v1.TypedValue, com.rtdp.proto.v1.TypedValue.Builder> timer_;
+    private com.google.protobuf.MapFieldBuilder<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder, com.rtdp.proto.v1.TypedValue, com.rtdp.proto.v1.TypedValue.Builder>
+        internalGetTimer() {
+      if (timer_ == null) {
+        return new com.google.protobuf.MapFieldBuilder<>(timerConverter);
+      }
+      return timer_;
+    }
+    private com.google.protobuf.MapFieldBuilder<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder, com.rtdp.proto.v1.TypedValue, com.rtdp.proto.v1.TypedValue.Builder>
+        internalGetMutableTimer() {
+      if (timer_ == null) {
+        timer_ = new com.google.protobuf.MapFieldBuilder<>(timerConverter);
+      }
+      bitField0_ |= 0x00000200;
+      onChanged();
+      return timer_;
+    }
+    public int getTimerCount() {
+      return internalGetTimer().ensureBuilderMap().size();
+    }
+    /**
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+     */
+    @java.lang.Override
+    public boolean containsTimer(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      return internalGetTimer().ensureBuilderMap().containsKey(key);
+    }
+    /**
+     * Use {@link #getTimerMap()} instead.
+     */
+    @java.lang.Override
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> getTimer() {
+      return getTimerMap();
+    }
+    /**
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+     */
+    @java.lang.Override
+    public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> getTimerMap() {
+      return internalGetTimer().getImmutableMap();
+    }
+    /**
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+     */
+    @java.lang.Override
+    public /* nullable */
+com.rtdp.proto.v1.TypedValue getTimerOrDefault(
+        java.lang.String key,
+        /* nullable */
+com.rtdp.proto.v1.TypedValue defaultValue) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder> map = internalGetMutableTimer().ensureBuilderMap();
+      return map.containsKey(key) ? timerConverter.build(map.get(key)) : defaultValue;
+    }
+    /**
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+     */
+    @java.lang.Override
+    public com.rtdp.proto.v1.TypedValue getTimerOrThrow(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder> map = internalGetMutableTimer().ensureBuilderMap();
+      if (!map.containsKey(key)) {
+        throw new java.lang.IllegalArgumentException();
+      }
+      return timerConverter.build(map.get(key));
+    }
+    public Builder clearTimer() {
+      bitField0_ = (bitField0_ & ~0x00000200);
+      internalGetMutableTimer().clear();
+      return this;
+    }
+    /**
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+     */
+    public Builder removeTimer(
+        java.lang.String key) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      internalGetMutableTimer().ensureBuilderMap()
+          .remove(key);
+      return this;
+    }
+    /**
+     * Use alternate mutation accessors instead.
+     */
+    @java.lang.Deprecated
+    public java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue>
+        getMutableTimer() {
+      bitField0_ |= 0x00000200;
+      return internalGetMutableTimer().ensureMessageMap();
+    }
+    /**
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+     */
+    public Builder putTimer(
+        java.lang.String key,
+        com.rtdp.proto.v1.TypedValue value) {
+      if (key == null) { throw new NullPointerException("map key"); }
+      if (value == null) { throw new NullPointerException("map value"); }
+      internalGetMutableTimer().ensureBuilderMap()
+          .put(key, value);
+      bitField0_ |= 0x00000200;
+      return this;
+    }
+    /**
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+     */
+    public Builder putAllTimer(
+        java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue> values) {
+      for (java.util.Map.Entry<java.lang.String, com.rtdp.proto.v1.TypedValue> e : values.entrySet()) {
+        if (e.getKey() == null || e.getValue() == null) {
+          throw new NullPointerException();
+        }
+      }
+      internalGetMutableTimer().ensureBuilderMap()
+          .putAll(values);
+      bitField0_ |= 0x00000200;
+      return this;
+    }
+    /**
+     * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+     */
+    public com.rtdp.proto.v1.TypedValue.Builder putTimerBuilderIfAbsent(
+        java.lang.String key) {
+      java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValueOrBuilder> builderMap = internalGetMutableTimer().ensureBuilderMap();
+      com.rtdp.proto.v1.TypedValueOrBuilder entry = builderMap.get(key);
+      if (entry == null) {
+        entry = com.rtdp.proto.v1.TypedValue.newBuilder();
+        builderMap.put(key, entry);
+      }
+      if (entry instanceof com.rtdp.proto.v1.TypedValue) {
+        entry = ((com.rtdp.proto.v1.TypedValue) entry).toBuilder();
+        builderMap.put(key, entry);
+      }
+      return (com.rtdp.proto.v1.TypedValue.Builder) entry;
     }
 
     // @@protoc_insertion_point(builder_scope:rtdp.v1.EvaluateRulesRequest)

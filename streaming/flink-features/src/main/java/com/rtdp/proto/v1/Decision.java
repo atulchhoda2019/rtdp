@@ -45,6 +45,14 @@ public enum Decision
    * <code>DECISION_DECLINE_UNAUTHORIZED = 5;</code>
    */
   DECISION_DECLINE_UNAUTHORIZED(5),
+  /**
+   * <pre>
+   * ADR-014: intents held for human approval — nothing dispatched.
+   * </pre>
+   *
+   * <code>DECISION_PENDING_APPROVAL = 6;</code>
+   */
+  DECISION_PENDING_APPROVAL(6),
   UNRECOGNIZED(-1),
   ;
 
@@ -87,6 +95,14 @@ public enum Decision
    * <code>DECISION_DECLINE_UNAUTHORIZED = 5;</code>
    */
   public static final int DECISION_DECLINE_UNAUTHORIZED_VALUE = 5;
+  /**
+   * <pre>
+   * ADR-014: intents held for human approval — nothing dispatched.
+   * </pre>
+   *
+   * <code>DECISION_PENDING_APPROVAL = 6;</code>
+   */
+  public static final int DECISION_PENDING_APPROVAL_VALUE = 6;
 
 
   public final int getNumber() {
@@ -119,6 +135,7 @@ public enum Decision
       case 3: return DECISION_REVIEW;
       case 4: return DECISION_NOT_APPLICABLE;
       case 5: return DECISION_DECLINE_UNAUTHORIZED;
+      case 6: return DECISION_PENDING_APPROVAL;
       default: return null;
     }
   }

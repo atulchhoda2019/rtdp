@@ -218,4 +218,102 @@ com.rtdp.proto.v1.TypedValue defaultValue);
    * @return The executionBudgetMs.
    */
   long getExecutionBudgetMs();
+
+  /**
+   * <pre>
+   * ADR-013/014: delegation-derived actor context and SLA timer vars
+   * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+   * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+   * </pre>
+   *
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+   */
+  int getActorCount();
+  /**
+   * <pre>
+   * ADR-013/014: delegation-derived actor context and SLA timer vars
+   * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+   * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+   * </pre>
+   *
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+   */
+  boolean containsActor(
+      java.lang.String key);
+  /**
+   * Use {@link #getActorMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue>
+  getActor();
+  /**
+   * <pre>
+   * ADR-013/014: delegation-derived actor context and SLA timer vars
+   * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+   * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+   * </pre>
+   *
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+   */
+  java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue>
+  getActorMap();
+  /**
+   * <pre>
+   * ADR-013/014: delegation-derived actor context and SLA timer vars
+   * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+   * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+   * </pre>
+   *
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+   */
+  /* nullable */
+com.rtdp.proto.v1.TypedValue getActorOrDefault(
+      java.lang.String key,
+      /* nullable */
+com.rtdp.proto.v1.TypedValue defaultValue);
+  /**
+   * <pre>
+   * ADR-013/014: delegation-derived actor context and SLA timer vars
+   * (actor.*, timer.approval_due_at). Flattened dotted keys, same as
+   * input — e.g. {"agent.id": "...", "chain_depth": 1}.
+   * </pre>
+   *
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; actor = 9 [json_name = "actor"];</code>
+   */
+  com.rtdp.proto.v1.TypedValue getActorOrThrow(
+      java.lang.String key);
+
+  /**
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+   */
+  int getTimerCount();
+  /**
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+   */
+  boolean containsTimer(
+      java.lang.String key);
+  /**
+   * Use {@link #getTimerMap()} instead.
+   */
+  @java.lang.Deprecated
+  java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue>
+  getTimer();
+  /**
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+   */
+  java.util.Map<java.lang.String, com.rtdp.proto.v1.TypedValue>
+  getTimerMap();
+  /**
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+   */
+  /* nullable */
+com.rtdp.proto.v1.TypedValue getTimerOrDefault(
+      java.lang.String key,
+      /* nullable */
+com.rtdp.proto.v1.TypedValue defaultValue);
+  /**
+   * <code>map&lt;string, .rtdp.v1.TypedValue&gt; timer = 10 [json_name = "timer"];</code>
+   */
+  com.rtdp.proto.v1.TypedValue getTimerOrThrow(
+      java.lang.String key);
 }

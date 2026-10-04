@@ -1,6 +1,9 @@
 action_policy_id: claim_actions
 version: 2
 owner_scope: platform
+owner:
+  role: "Claims Operations Director"
+  identity: "claim_actions.owner@rtdp-synthetic.test"
 allowed_actions: [CLAIM_RESPONSE, OPEN_SIU_CASE]
 adapters:
   CLAIM_RESPONSE: local_claim_simulator@1

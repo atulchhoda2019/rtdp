@@ -27,6 +27,8 @@ enum Decision {
   // insufficient scope). Edge rejections that never reach the
   // orchestrator still surface this outcome to the caller.
   DECISION_DECLINE_UNAUTHORIZED = 5;
+  // ADR-014: intents held for human approval — nothing dispatched.
+  DECISION_PENDING_APPROVAL = 6;
 }
 
 // Signal processing status; UNAVAILABLE/INVALID/TIMED_OUT are terminal

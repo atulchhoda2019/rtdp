@@ -1,6 +1,9 @@
 action_policy_id: quote_actions
 version: 1
 owner_scope: platform
+owner:
+  role: "Underwriting Director"
+  identity: "quote_actions.owner@rtdp-synthetic.test"
 allowed_actions: [QUOTE_RESPONSE, REFER_ACTUARY]
 adapters:
   QUOTE_RESPONSE: local_quote_simulator@1

@@ -112,6 +112,16 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_rtdp_v1_EvaluateRulesRequest_InputEntry_fieldAccessorTable;
   static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_rtdp_v1_EvaluateRulesRequest_ActorEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_rtdp_v1_EvaluateRulesRequest_ActorEntry_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_rtdp_v1_EvaluateRulesRequest_TimerEntry_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_rtdp_v1_EvaluateRulesRequest_TimerEntry_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
     internal_static_rtdp_v1_FiredRule_descriptor;
   static final 
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
@@ -231,7 +241,7 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
       "ok\030\003 \001(\010R\002ok\022\037\n\013reject_code\030\004 \001(\tR\nrejec" +
       "tCode\"K\n\026ResolveSignalsResponse\0221\n\007signa" +
       "ls\030\001 \003(\0132\027.rtdp.v1.ResolvedSignalR\007signa" +
-      "ls\"\225\006\n\024EvaluateRulesRequest\022%\n\016ruleset_d" +
+      "ls\"\263\010\n\024EvaluateRulesRequest\022%\n\016ruleset_d" +
       "igest\030\001 \001(\tR\rrulesetDigest\022*\n\021ruleset_sp" +
       "ec_json\030\002 \001(\014R\017rulesetSpecJson\022G\n\010featur" +
       "es\030\003 \003(\0132+.rtdp.v1.EvaluateRulesRequest." +
@@ -242,45 +252,52 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
       "2&.rtdp.v1.EvaluateRulesRequest.CfgEntry" +
       "R\003cfg\022>\n\005input\030\007 \003(\0132(.rtdp.v1.EvaluateR" +
       "ulesRequest.InputEntryR\005input\022.\n\023executi" +
-      "on_budget_ms\030\010 \001(\003R\021executionBudgetMs\032P\n" +
-      "\rFeaturesEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005valu" +
-      "e\030\002 \001(\0132\023.rtdp.v1.TypedValueR\005value:\0028\001\032" +
-      "M\n\014SignalsEntry\022\020\n\003key\030\001 \001(\tR\003key\022\'\n\005val" +
-      "ue\030\002 \001(\0132\021.rtdp.v1.ValueMapR\005value:\0028\001\032K" +
-      "\n\010CfgEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 " +
-      "\001(\0132\023.rtdp.v1.TypedValueR\005value:\0028\001\032M\n\nI" +
-      "nputEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001" +
-      "(\0132\023.rtdp.v1.TypedValueR\005value:\0028\001\"X\n\tFi" +
-      "redRule\022\027\n\007rule_id\030\001 \001(\tR\006ruleId\022\032\n\010deci" +
-      "sion\030\002 \001(\tR\010decision\022\026\n\006reason\030\003 \001(\tR\006re" +
-      "ason\"\310\001\n\025EvaluateRulesResponse\022(\n\005fired\030" +
-      "\001 \003(\0132\022.rtdp.v1.FiredRuleR\005fired\022(\n\020skip" +
-      "ped_rule_ids\030\002 \003(\tR\016skippedRuleIds\022\032\n\010de" +
-      "cision\030\003 \001(\tR\010decision\022!\n\014reason_codes\030\004" +
-      " \003(\tR\013reasonCodes\022\034\n\tdefaulted\030\005 \001(\010R\tde" +
-      "faulted\"V\n\030GetDecisionStatusRequest\022\033\n\tt" +
-      "enant_id\030\001 \001(\tR\010tenantId\022\035\n\nrequest_id\030\002" +
-      " \001(\tR\trequestId\"f\n\031GetDecisionStatusResp" +
-      "onse\0223\n\010decision\030\001 \001(\0132\027.rtdp.v1.Decisio" +
-      "nResultR\010decision\022\024\n\005found\030\002 \001(\010R\005found2" +
-      "\177\n\020InferenceService\0226\n\005Score\022\025.rtdp.v1.S" +
-      "coreRequest\032\026.rtdp.v1.ScoreResponse\0223\n\004W" +
-      "arm\022\024.rtdp.v1.WarmRequest\032\025.rtdp.v1.Warm" +
-      "Response2f\n\016FeatureService\022T\n\017ResolveFea" +
-      "tures\022\037.rtdp.v1.ResolveFeaturesRequest\032 " +
-      ".rtdp.v1.ResolveFeaturesResponse2c\n\016Sign" +
-      "alResolver\022Q\n\016ResolveSignals\022\036.rtdp.v1.R" +
-      "esolveSignalsRequest\032\037.rtdp.v1.ResolveSi" +
-      "gnalsResponse2^\n\014RulesService\022N\n\rEvaluat" +
-      "eRules\022\035.rtdp.v1.EvaluateRulesRequest\032\036." +
-      "rtdp.v1.EvaluateRulesResponse2\260\001\n\014Orches" +
-      "trator\022D\n\006Decide\022!.rtdp.v1.Authenticated" +
-      "Transaction\032\027.rtdp.v1.DecisionResult\022Z\n\021" +
-      "GetDecisionStatus\022!.rtdp.v1.GetDecisionS" +
-      "tatusRequest\032\".rtdp.v1.GetDecisionStatus" +
-      "ResponseBQ\n\021com.rtdp.proto.v1B\016ServicesP" +
-      "rotosP\001Z*github.com/rtdp/rtdp/gen/go/rtd" +
-      "p/v1;rtdpv1b\006proto3"
+      "on_budget_ms\030\010 \001(\003R\021executionBudgetMs\022>\n" +
+      "\005actor\030\t \003(\0132(.rtdp.v1.EvaluateRulesRequ" +
+      "est.ActorEntryR\005actor\022>\n\005timer\030\n \003(\0132(.r" +
+      "tdp.v1.EvaluateRulesRequest.TimerEntryR\005" +
+      "timer\032P\n\rFeaturesEntry\022\020\n\003key\030\001 \001(\tR\003key" +
+      "\022)\n\005value\030\002 \001(\0132\023.rtdp.v1.TypedValueR\005va" +
+      "lue:\0028\001\032M\n\014SignalsEntry\022\020\n\003key\030\001 \001(\tR\003ke" +
+      "y\022\'\n\005value\030\002 \001(\0132\021.rtdp.v1.ValueMapR\005val" +
+      "ue:\0028\001\032K\n\010CfgEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005" +
+      "value\030\002 \001(\0132\023.rtdp.v1.TypedValueR\005value:" +
+      "\0028\001\032M\n\nInputEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005v" +
+      "alue\030\002 \001(\0132\023.rtdp.v1.TypedValueR\005value:\002" +
+      "8\001\032M\n\nActorEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005va" +
+      "lue\030\002 \001(\0132\023.rtdp.v1.TypedValueR\005value:\0028" +
+      "\001\032M\n\nTimerEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005val" +
+      "ue\030\002 \001(\0132\023.rtdp.v1.TypedValueR\005value:\0028\001" +
+      "\"X\n\tFiredRule\022\027\n\007rule_id\030\001 \001(\tR\006ruleId\022\032" +
+      "\n\010decision\030\002 \001(\tR\010decision\022\026\n\006reason\030\003 \001" +
+      "(\tR\006reason\"\310\001\n\025EvaluateRulesResponse\022(\n\005" +
+      "fired\030\001 \003(\0132\022.rtdp.v1.FiredRuleR\005fired\022(" +
+      "\n\020skipped_rule_ids\030\002 \003(\tR\016skippedRuleIds" +
+      "\022\032\n\010decision\030\003 \001(\tR\010decision\022!\n\014reason_c" +
+      "odes\030\004 \003(\tR\013reasonCodes\022\034\n\tdefaulted\030\005 \001" +
+      "(\010R\tdefaulted\"V\n\030GetDecisionStatusReques" +
+      "t\022\033\n\ttenant_id\030\001 \001(\tR\010tenantId\022\035\n\nreques" +
+      "t_id\030\002 \001(\tR\trequestId\"f\n\031GetDecisionStat" +
+      "usResponse\0223\n\010decision\030\001 \001(\0132\027.rtdp.v1.D" +
+      "ecisionResultR\010decision\022\024\n\005found\030\002 \001(\010R\005" +
+      "found2\177\n\020InferenceService\0226\n\005Score\022\025.rtd" +
+      "p.v1.ScoreRequest\032\026.rtdp.v1.ScoreRespons" +
+      "e\0223\n\004Warm\022\024.rtdp.v1.WarmRequest\032\025.rtdp.v" +
+      "1.WarmResponse2f\n\016FeatureService\022T\n\017Reso" +
+      "lveFeatures\022\037.rtdp.v1.ResolveFeaturesReq" +
+      "uest\032 .rtdp.v1.ResolveFeaturesResponse2c" +
+      "\n\016SignalResolver\022Q\n\016ResolveSignals\022\036.rtd" +
+      "p.v1.ResolveSignalsRequest\032\037.rtdp.v1.Res" +
+      "olveSignalsResponse2^\n\014RulesService\022N\n\rE" +
+      "valuateRules\022\035.rtdp.v1.EvaluateRulesRequ" +
+      "est\032\036.rtdp.v1.EvaluateRulesResponse2\260\001\n\014" +
+      "Orchestrator\022D\n\006Decide\022!.rtdp.v1.Authent" +
+      "icatedTransaction\032\027.rtdp.v1.DecisionResu" +
+      "lt\022Z\n\021GetDecisionStatus\022!.rtdp.v1.GetDec" +
+      "isionStatusRequest\032\".rtdp.v1.GetDecision" +
+      "StatusResponseBQ\n\021com.rtdp.proto.v1B\016Ser" +
+      "vicesProtosP\001Z*github.com/rtdp/rtdp/gen/" +
+      "go/rtdp/v1;rtdpv1b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -366,7 +383,7 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
     internal_static_rtdp_v1_EvaluateRulesRequest_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_rtdp_v1_EvaluateRulesRequest_descriptor,
-        new java.lang.String[] { "RulesetDigest", "RulesetSpecJson", "Features", "Signals", "PresentSignalAliases", "Cfg", "Input", "ExecutionBudgetMs", });
+        new java.lang.String[] { "RulesetDigest", "RulesetSpecJson", "Features", "Signals", "PresentSignalAliases", "Cfg", "Input", "ExecutionBudgetMs", "Actor", "Timer", });
     internal_static_rtdp_v1_EvaluateRulesRequest_FeaturesEntry_descriptor =
       internal_static_rtdp_v1_EvaluateRulesRequest_descriptor.getNestedType(0);
     internal_static_rtdp_v1_EvaluateRulesRequest_FeaturesEntry_fieldAccessorTable = new
@@ -390,6 +407,18 @@ public final class ServicesProtos extends com.google.protobuf.GeneratedFile {
     internal_static_rtdp_v1_EvaluateRulesRequest_InputEntry_fieldAccessorTable = new
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_rtdp_v1_EvaluateRulesRequest_InputEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_rtdp_v1_EvaluateRulesRequest_ActorEntry_descriptor =
+      internal_static_rtdp_v1_EvaluateRulesRequest_descriptor.getNestedType(4);
+    internal_static_rtdp_v1_EvaluateRulesRequest_ActorEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_rtdp_v1_EvaluateRulesRequest_ActorEntry_descriptor,
+        new java.lang.String[] { "Key", "Value", });
+    internal_static_rtdp_v1_EvaluateRulesRequest_TimerEntry_descriptor =
+      internal_static_rtdp_v1_EvaluateRulesRequest_descriptor.getNestedType(5);
+    internal_static_rtdp_v1_EvaluateRulesRequest_TimerEntry_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_rtdp_v1_EvaluateRulesRequest_TimerEntry_descriptor,
         new java.lang.String[] { "Key", "Value", });
     internal_static_rtdp_v1_FiredRule_descriptor =
       getDescriptor().getMessageType(12);

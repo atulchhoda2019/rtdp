@@ -41,6 +41,7 @@ private static final long serialVersionUID = 0L;
     scopes_ =
         com.google.protobuf.LazyStringArrayList.emptyList();
     grantId_ = "";
+    maxAutonomy_ = "";
   }
 
   public static final com.google.protobuf.Descriptors.Descriptor
@@ -302,6 +303,59 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int MAX_AUTONOMY_FIELD_NUMBER = 8;
+  @SuppressWarnings("serial")
+  private volatile java.lang.Object maxAutonomy_ = "";
+  /**
+   * <pre>
+   * ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+   * denormalised into the link at mint — the signature covers it, so the
+   * orchestrator resolves tiers without a registry call on the request
+   * path. An agent at T1 can never complete a T2 action alone.
+   * </pre>
+   *
+   * <code>string max_autonomy = 8 [json_name = "maxAutonomy"];</code>
+   * @return The maxAutonomy.
+   */
+  @java.lang.Override
+  public java.lang.String getMaxAutonomy() {
+    java.lang.Object ref = maxAutonomy_;
+    if (ref instanceof java.lang.String) {
+      return (java.lang.String) ref;
+    } else {
+      com.google.protobuf.ByteString bs = 
+          (com.google.protobuf.ByteString) ref;
+      java.lang.String s = bs.toStringUtf8();
+      maxAutonomy_ = s;
+      return s;
+    }
+  }
+  /**
+   * <pre>
+   * ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+   * denormalised into the link at mint — the signature covers it, so the
+   * orchestrator resolves tiers without a registry call on the request
+   * path. An agent at T1 can never complete a T2 action alone.
+   * </pre>
+   *
+   * <code>string max_autonomy = 8 [json_name = "maxAutonomy"];</code>
+   * @return The bytes for maxAutonomy.
+   */
+  @java.lang.Override
+  public com.google.protobuf.ByteString
+      getMaxAutonomyBytes() {
+    java.lang.Object ref = maxAutonomy_;
+    if (ref instanceof java.lang.String) {
+      com.google.protobuf.ByteString b = 
+          com.google.protobuf.ByteString.copyFromUtf8(
+              (java.lang.String) ref);
+      maxAutonomy_ = b;
+      return b;
+    } else {
+      return (com.google.protobuf.ByteString) ref;
+    }
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -336,6 +390,9 @@ private static final long serialVersionUID = 0L;
     }
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(grantId_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 7, grantId_);
+    }
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(maxAutonomy_)) {
+      com.google.protobuf.GeneratedMessage.writeString(output, 8, maxAutonomy_);
     }
     getUnknownFields().writeTo(output);
   }
@@ -374,6 +431,9 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(grantId_)) {
       size += com.google.protobuf.GeneratedMessage.computeStringSize(7, grantId_);
     }
+    if (!com.google.protobuf.GeneratedMessage.isStringEmpty(maxAutonomy_)) {
+      size += com.google.protobuf.GeneratedMessage.computeStringSize(8, maxAutonomy_);
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -409,6 +469,8 @@ private static final long serialVersionUID = 0L;
     }
     if (!getGrantId()
         .equals(other.getGrantId())) return false;
+    if (!getMaxAutonomy()
+        .equals(other.getMaxAutonomy())) return false;
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -440,6 +502,8 @@ private static final long serialVersionUID = 0L;
     }
     hash = (37 * hash) + GRANT_ID_FIELD_NUMBER;
     hash = (53 * hash) + getGrantId().hashCode();
+    hash = (37 * hash) + MAX_AUTONOMY_FIELD_NUMBER;
+    hash = (53 * hash) + getMaxAutonomy().hashCode();
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -601,6 +665,7 @@ private static final long serialVersionUID = 0L;
         expiresAtBuilder_ = null;
       }
       grantId_ = "";
+      maxAutonomy_ = "";
       return this;
     }
 
@@ -663,6 +728,9 @@ private static final long serialVersionUID = 0L;
       if (((from_bitField0_ & 0x00000040) != 0)) {
         result.grantId_ = grantId_;
       }
+      if (((from_bitField0_ & 0x00000080) != 0)) {
+        result.maxAutonomy_ = maxAutonomy_;
+      }
       result.bitField0_ |= to_bitField0_;
     }
 
@@ -712,6 +780,11 @@ private static final long serialVersionUID = 0L;
       if (!other.getGrantId().isEmpty()) {
         grantId_ = other.grantId_;
         bitField0_ |= 0x00000040;
+        onChanged();
+      }
+      if (!other.getMaxAutonomy().isEmpty()) {
+        maxAutonomy_ = other.maxAutonomy_;
+        bitField0_ |= 0x00000080;
         onChanged();
       }
       this.mergeUnknownFields(other.getUnknownFields());
@@ -780,6 +853,11 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00000040;
               break;
             } // case 58
+            case 66: {
+              maxAutonomy_ = input.readStringRequireUtf8();
+              bitField0_ |= 0x00000080;
+              break;
+            } // case 66
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -1434,6 +1512,113 @@ private static final long serialVersionUID = 0L;
       checkByteStringIsUtf8(value);
       grantId_ = value;
       bitField0_ |= 0x00000040;
+      onChanged();
+      return this;
+    }
+
+    private java.lang.Object maxAutonomy_ = "";
+    /**
+     * <pre>
+     * ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+     * denormalised into the link at mint — the signature covers it, so the
+     * orchestrator resolves tiers without a registry call on the request
+     * path. An agent at T1 can never complete a T2 action alone.
+     * </pre>
+     *
+     * <code>string max_autonomy = 8 [json_name = "maxAutonomy"];</code>
+     * @return The maxAutonomy.
+     */
+    public java.lang.String getMaxAutonomy() {
+      java.lang.Object ref = maxAutonomy_;
+      if (!(ref instanceof java.lang.String)) {
+        com.google.protobuf.ByteString bs =
+            (com.google.protobuf.ByteString) ref;
+        java.lang.String s = bs.toStringUtf8();
+        maxAutonomy_ = s;
+        return s;
+      } else {
+        return (java.lang.String) ref;
+      }
+    }
+    /**
+     * <pre>
+     * ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+     * denormalised into the link at mint — the signature covers it, so the
+     * orchestrator resolves tiers without a registry call on the request
+     * path. An agent at T1 can never complete a T2 action alone.
+     * </pre>
+     *
+     * <code>string max_autonomy = 8 [json_name = "maxAutonomy"];</code>
+     * @return The bytes for maxAutonomy.
+     */
+    public com.google.protobuf.ByteString
+        getMaxAutonomyBytes() {
+      java.lang.Object ref = maxAutonomy_;
+      if (ref instanceof String) {
+        com.google.protobuf.ByteString b = 
+            com.google.protobuf.ByteString.copyFromUtf8(
+                (java.lang.String) ref);
+        maxAutonomy_ = b;
+        return b;
+      } else {
+        return (com.google.protobuf.ByteString) ref;
+      }
+    }
+    /**
+     * <pre>
+     * ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+     * denormalised into the link at mint — the signature covers it, so the
+     * orchestrator resolves tiers without a registry call on the request
+     * path. An agent at T1 can never complete a T2 action alone.
+     * </pre>
+     *
+     * <code>string max_autonomy = 8 [json_name = "maxAutonomy"];</code>
+     * @param value The maxAutonomy to set.
+     * @return This builder for chaining.
+     */
+    public Builder setMaxAutonomy(
+        java.lang.String value) {
+      if (value == null) { throw new NullPointerException(); }
+      maxAutonomy_ = value;
+      bitField0_ |= 0x00000080;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+     * denormalised into the link at mint — the signature covers it, so the
+     * orchestrator resolves tiers without a registry call on the request
+     * path. An agent at T1 can never complete a T2 action alone.
+     * </pre>
+     *
+     * <code>string max_autonomy = 8 [json_name = "maxAutonomy"];</code>
+     * @return This builder for chaining.
+     */
+    public Builder clearMaxAutonomy() {
+      maxAutonomy_ = getDefaultInstance().getMaxAutonomy();
+      bitField0_ = (bitField0_ & ~0x00000080);
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+     * denormalised into the link at mint — the signature covers it, so the
+     * orchestrator resolves tiers without a registry call on the request
+     * path. An agent at T1 can never complete a T2 action alone.
+     * </pre>
+     *
+     * <code>string max_autonomy = 8 [json_name = "maxAutonomy"];</code>
+     * @param value The bytes for maxAutonomy to set.
+     * @return This builder for chaining.
+     */
+    public Builder setMaxAutonomyBytes(
+        com.google.protobuf.ByteString value) {
+      if (value == null) { throw new NullPointerException(); }
+      checkByteStringIsUtf8(value);
+      maxAutonomy_ = value;
+      bitField0_ |= 0x00000080;
       onChanged();
       return this;
     }

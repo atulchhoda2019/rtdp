@@ -165,4 +165,149 @@ com.rtdp.proto.v1.TypedValue defaultValue);
    * <code>.google.protobuf.Timestamp created_at = 12 [json_name = "createdAt"];</code>
    */
   com.google.protobuf.TimestampOrBuilder getCreatedAtOrBuilder();
+
+  /**
+   * <pre>
+   * ADR-014: release state + approval metadata. AWAITING_APPROVAL is
+   * written in the decision commit — the dispatcher holds it until
+   * approval-service republishes READY (or CANCELLED/EXPIRED).
+   * </pre>
+   *
+   * <code>.rtdp.v1.IntentStatus status = 13 [json_name = "status"];</code>
+   * @return The enum numeric value on the wire for status.
+   */
+  int getStatusValue();
+  /**
+   * <pre>
+   * ADR-014: release state + approval metadata. AWAITING_APPROVAL is
+   * written in the decision commit — the dispatcher holds it until
+   * approval-service republishes READY (or CANCELLED/EXPIRED).
+   * </pre>
+   *
+   * <code>.rtdp.v1.IntentStatus status = 13 [json_name = "status"];</code>
+   * @return The status.
+   */
+  com.rtdp.proto.v1.IntentStatus getStatus();
+
+  /**
+   * <code>repeated string approvers = 14 [json_name = "approvers"];</code>
+   * @return A list containing the approvers.
+   */
+  java.util.List<java.lang.String>
+      getApproversList();
+  /**
+   * <code>repeated string approvers = 14 [json_name = "approvers"];</code>
+   * @return The count of approvers.
+   */
+  int getApproversCount();
+  /**
+   * <code>repeated string approvers = 14 [json_name = "approvers"];</code>
+   * @param index The index of the element to return.
+   * @return The approvers at the given index.
+   */
+  java.lang.String getApprovers(int index);
+  /**
+   * <code>repeated string approvers = 14 [json_name = "approvers"];</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the approvers at the given index.
+   */
+  com.google.protobuf.ByteString
+      getApproversBytes(int index);
+
+  /**
+   * <code>repeated string escalation_approvers = 15 [json_name = "escalationApprovers"];</code>
+   * @return A list containing the escalationApprovers.
+   */
+  java.util.List<java.lang.String>
+      getEscalationApproversList();
+  /**
+   * <code>repeated string escalation_approvers = 15 [json_name = "escalationApprovers"];</code>
+   * @return The count of escalationApprovers.
+   */
+  int getEscalationApproversCount();
+  /**
+   * <code>repeated string escalation_approvers = 15 [json_name = "escalationApprovers"];</code>
+   * @param index The index of the element to return.
+   * @return The escalationApprovers at the given index.
+   */
+  java.lang.String getEscalationApprovers(int index);
+  /**
+   * <code>repeated string escalation_approvers = 15 [json_name = "escalationApprovers"];</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the escalationApprovers at the given index.
+   */
+  com.google.protobuf.ByteString
+      getEscalationApproversBytes(int index);
+
+  /**
+   * <code>string sla_breach_action = 16 [json_name = "slaBreachAction"];</code>
+   * @return The slaBreachAction.
+   */
+  java.lang.String getSlaBreachAction();
+  /**
+   * <code>string sla_breach_action = 16 [json_name = "slaBreachAction"];</code>
+   * @return The bytes for slaBreachAction.
+   */
+  com.google.protobuf.ByteString
+      getSlaBreachActionBytes();
+
+  /**
+   * <code>.google.protobuf.Timestamp approval_due_at = 17 [json_name = "approvalDueAt"];</code>
+   * @return Whether the approvalDueAt field is set.
+   */
+  boolean hasApprovalDueAt();
+  /**
+   * <code>.google.protobuf.Timestamp approval_due_at = 17 [json_name = "approvalDueAt"];</code>
+   * @return The approvalDueAt.
+   */
+  com.google.protobuf.Timestamp getApprovalDueAt();
+  /**
+   * <code>.google.protobuf.Timestamp approval_due_at = 17 [json_name = "approvalDueAt"];</code>
+   */
+  com.google.protobuf.TimestampOrBuilder getApprovalDueAtOrBuilder();
+
+  /**
+   * <pre>
+   * Identity strings barred from approving this command (self-approval):
+   * every agent_id in the delegation chain plus the principal id.
+   * </pre>
+   *
+   * <code>repeated string requester_identities = 18 [json_name = "requesterIdentities"];</code>
+   * @return A list containing the requesterIdentities.
+   */
+  java.util.List<java.lang.String>
+      getRequesterIdentitiesList();
+  /**
+   * <pre>
+   * Identity strings barred from approving this command (self-approval):
+   * every agent_id in the delegation chain plus the principal id.
+   * </pre>
+   *
+   * <code>repeated string requester_identities = 18 [json_name = "requesterIdentities"];</code>
+   * @return The count of requesterIdentities.
+   */
+  int getRequesterIdentitiesCount();
+  /**
+   * <pre>
+   * Identity strings barred from approving this command (self-approval):
+   * every agent_id in the delegation chain plus the principal id.
+   * </pre>
+   *
+   * <code>repeated string requester_identities = 18 [json_name = "requesterIdentities"];</code>
+   * @param index The index of the element to return.
+   * @return The requesterIdentities at the given index.
+   */
+  java.lang.String getRequesterIdentities(int index);
+  /**
+   * <pre>
+   * Identity strings barred from approving this command (self-approval):
+   * every agent_id in the delegation chain plus the principal id.
+   * </pre>
+   *
+   * <code>repeated string requester_identities = 18 [json_name = "requesterIdentities"];</code>
+   * @param index The index of the value to return.
+   * @return The bytes of the requesterIdentities at the given index.
+   */
+  com.google.protobuf.ByteString
+      getRequesterIdentitiesBytes(int index);
 }

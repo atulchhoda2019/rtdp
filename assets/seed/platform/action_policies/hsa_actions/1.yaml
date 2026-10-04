@@ -1,6 +1,9 @@
 action_policy_id: hsa_actions
 version: 1
 owner_scope: platform
+owner:
+  role: "Benefits Operations Manager"
+  identity: "hsa_actions.owner@rtdp-synthetic.test"
 allowed_actions: [ISSUE_REIMBURSEMENT, ROUTE_TO_REVIEW_QUEUE]
 adapters:
   ISSUE_REIMBURSEMENT: local_claim_simulator@1

@@ -112,4 +112,30 @@ public interface DelegationLinkOrBuilder extends
    */
   com.google.protobuf.ByteString
       getGrantIdBytes();
+
+  /**
+   * <pre>
+   * ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+   * denormalised into the link at mint — the signature covers it, so the
+   * orchestrator resolves tiers without a registry call on the request
+   * path. An agent at T1 can never complete a T2 action alone.
+   * </pre>
+   *
+   * <code>string max_autonomy = 8 [json_name = "maxAutonomy"];</code>
+   * @return The maxAutonomy.
+   */
+  java.lang.String getMaxAutonomy();
+  /**
+   * <pre>
+   * ADR-014: the agent's registered autonomy ceiling (T0|T1|T2),
+   * denormalised into the link at mint — the signature covers it, so the
+   * orchestrator resolves tiers without a registry call on the request
+   * path. An agent at T1 can never complete a T2 action alone.
+   * </pre>
+   *
+   * <code>string max_autonomy = 8 [json_name = "maxAutonomy"];</code>
+   * @return The bytes for maxAutonomy.
+   */
+  com.google.protobuf.ByteString
+      getMaxAutonomyBytes();
 }

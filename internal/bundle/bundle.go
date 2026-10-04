@@ -155,6 +155,35 @@ type ActionPolicySpec struct {
 	} `json:"retries"`
 	OnUnknown          string `json:"on_unknown_outcome"`
 	LiveEffectsAllowed bool   `json:"live_effects_allowed"`
+
+	// ADR-014: accountable owner (required — compile fails without it)
+	// and per-action autonomy tiers with approval metadata.
+	Owner         Owner                     `json:"owner"`
+	AutonomyTiers map[string]AutonomyTier   `json:"autonomy_tiers"`
+	Actions       map[string]ActionAutonomy `json:"actions"`
+}
+
+// Owner is the accountable human for a policy version (ADR-014).
+type Owner struct {
+	Role     string `json:"role"`
+	Identity string `json:"identity"`
+}
+
+// AutonomyTier declares whether an action at this tier may complete
+// without human approval, and under what conditions.
+type AutonomyTier struct {
+	CompletesAlone bool     `json:"completes_alone"`
+	Conditions     []string `json:"conditions"` // CEL over input/cfg/actor
+}
+
+// ActionAutonomy is per-action approval metadata (ADR-014).
+type ActionAutonomy struct {
+	Tier                string   `json:"tier"` // T0|T1|T2 (default T2)
+	Approvers           []string `json:"approvers"`
+	EscalationApprovers []string `json:"escalation_approvers"`
+	SlaMinutes          int64    `json:"sla_minutes"`
+	SlaSeconds          int64    `json:"sla_seconds"`   // sub-minute SLAs
+	OnSlaBreach         string   `json:"on_sla_breach"` // ESCALATE|EXPIRE
 }
 
 // Activation is the tenant/env/cohort -> bundle assignment the orchestrator

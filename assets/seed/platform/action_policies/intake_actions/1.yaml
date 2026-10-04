@@ -1,6 +1,9 @@
 action_policy_id: intake_actions
 version: 1
 owner_scope: platform
+owner:
+  role: "Document Intake Lead"
+  identity: "intake_actions.owner@rtdp-synthetic.test"
 allowed_actions: [INTAKE_RESPONSE, OPEN_SIU_CASE]
 adapters:
   INTAKE_RESPONSE: local_intake_simulator@1

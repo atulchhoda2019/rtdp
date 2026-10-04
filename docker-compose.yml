@@ -280,6 +280,21 @@ services:
     ports:
       - "8090:8090"
 
+  approval-service:
+    build:
+      context: .
+      dockerfile: services/approval-service/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_APPROVAL_PORT: "8095"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+    ports:
+      - "8095:8095"
+
   ingress:
     build:
       context: .

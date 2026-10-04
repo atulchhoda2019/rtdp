@@ -1,18 +1,56 @@
 action_policy_id: contribution_actions
 version: 1
 owner_scope: platform
-allowed_actions: [APPLY_CONTRIBUTION_CHANGE, OPEN_FRAUD_CASE]
+owner:
+  role: "Director, Benefits Operations"
+  identity: "contribution_actions.owner@rtdp-synthetic.test"
+allowed_actions: [APPLY_CONTRIBUTION_CHANGE, OPEN_FRAUD_CASE,
+                  NOTIFY_PARTICIPANT, PLAN_AUDIT]
 adapters:
   # local_timeout_simulator always reports a provider timeout after a
   # possible apply -> UNKNOWN, never a blind retry (ADR-007 demo path).
   APPLY_CONTRIBUTION_CHANGE: local_timeout_simulator@1
   OPEN_FRAUD_CASE: local_siu_case_adapter@1
+  NOTIFY_PARTICIPANT: local_notify_sink@1
+  PLAN_AUDIT: local_notify_sink@1
 authoritative_decision_domain: contribution_change
 action_rules:
   APPLY_CONTRIBUTION_CHANGE: [APPROVE]
+  NOTIFY_PARTICIPANT: [APPROVE]
   OPEN_FRAUD_CASE: [REVIEW]
+  PLAN_AUDIT: [REVIEW]
+# ADR-014: autonomy tiers. T2 completes alone; T1 completes alone only
+# under its conditions (else PENDING_APPROVAL); T0 always needs a human.
+autonomy_tiers:
+  T0: { completes_alone: false }
+  T1: { completes_alone: true, conditions: ["input.amount <= cfg.t1_limit"] }
+  T2: { completes_alone: true }
+actions:
+  APPLY_CONTRIBUTION_CHANGE:
+    tier: T1
+    approvers: ["role:plan_admin"]
+    sla_minutes: 1440
+    on_sla_breach: EXPIRE
+  NOTIFY_PARTICIPANT:
+    tier: T2
+    # Approvers apply when a lower-cap autonomy ceiling (e.g. a T1
+    # agent) caps this T2 action down to an approval hold.
+    approvers: ["role:plan_admin"]
+    sla_minutes: 1440
+    on_sla_breach: EXPIRE
+  OPEN_FRAUD_CASE:
+    tier: T2
+  # T0 always needs a human; short SLA + ESCALATE exercises the
+  # escalation path in G9d and the ABC demo.
+  PLAN_AUDIT:
+    tier: T0
+    approvers: ["role:plan_admin"]
+    sla_seconds: 6
+    on_sla_breach: ESCALATE
+    escalation_approvers: ["role:ops_director"]
 intent_ttl_ms:
   APPLY_CONTRIBUTION_CHANGE: 300000
+  NOTIFY_PARTICIPANT: 300000
   OPEN_FRAUD_CASE: 300000
 retries:
   OPEN_FRAUD_CASE:

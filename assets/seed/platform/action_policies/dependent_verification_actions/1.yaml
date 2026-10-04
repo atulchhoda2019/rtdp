@@ -1,6 +1,9 @@
 action_policy_id: dependent_verification_actions
 version: 1
 owner_scope: platform
+owner:
+  role: "Benefits Operations Manager"
+  identity: "dependent_verification_actions.owner@rtdp-synthetic.test"
 allowed_actions: [ENROLL_DEPENDENT, ROUTE_TO_REVIEW_QUEUE]
 adapters:
   ENROLL_DEPENDENT: local_intake_simulator@1
