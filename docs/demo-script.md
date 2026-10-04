@@ -6,7 +6,7 @@ or localhost) and terminal commands.
 
 ## Setup (pick one)
 
-- **Public URL:** https://ancient-implemented-olympic-fancy.trycloudflare.com
+- **Public URL:** https://noon-utilization-figures-nav.trycloudflare.com
   — nothing to install. If it 502s, the tunnel pod restarted:
   `kubectl -n rtdp logs deploy/edge-tunnel | grep trycloudflare`
 - **Localhost:** `kubectl -n rtdp port-forward svc/ingress 8080:8080`

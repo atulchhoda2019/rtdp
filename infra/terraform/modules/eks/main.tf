@@ -33,6 +33,12 @@ resource "aws_eks_cluster" "this" {
   version  = var.kubernetes_version
   role_arn = aws_iam_role.cluster.arn
 
+  # STANDARD auto-upgrades at version EOL; EXTENDED silently bills
+  # $0.60/hr (6x) instead — that surprise cost us $38 in 2 days.
+  upgrade_policy {
+    support_type = "STANDARD"
+  }
+
   vpc_config {
     subnet_ids              = var.private_subnet_ids
     endpoint_private_access = true

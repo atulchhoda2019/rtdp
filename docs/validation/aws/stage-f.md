@@ -191,7 +191,9 @@ cloudflared quick tunnel in-cluster against `ingress:8080` — outbound
 QUIC only, no inbound holes, survives local sessions; URL rotates on
 pod restart (read `kubectl -n rtdp logs deploy/edge-tunnel`).
 
-Current URL: https://ancient-implemented-olympic-fancy.trycloudflare.com
+Current URL: https://noon-utilization-figures-nav.trycloudflare.com
+(rotated 2026-10-04 when edge-tunnel rescheduled during the 1.34 node
+roll — quick tunnels mint a new hostname per pod start)
 
 Embedded demo page at `GET /` (ingress `de2f3d48`). Known caveat: the
 edge masks upstream-502 bodies with branded HTML — dedup CONFLICT and

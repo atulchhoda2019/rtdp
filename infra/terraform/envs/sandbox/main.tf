@@ -110,6 +110,9 @@ module "eks" {
   private_subnet_ids      = module.network.private_subnet_ids
   permission_boundary_arn = var.permission_boundary_arn
   public_access_cidrs     = ["70.18.235.134/32"] # operator IP — sandbox kubectl
+  # EKS single-version upgrades only: hop 1.31 -> 1.32 -> 1.33 -> 1.34
+  # (1.31 fell into extended support Oct 2026 — $0.60/hr vs $0.10/hr).
+  kubernetes_version = "1.34"
 }
 module "iam_workloads" {
   source                  = "../../modules/iam-workloads"
