@@ -13,6 +13,7 @@ import (
 	"net"
 	"net/http"
 	"os"
+	"slices"
 	"sort"
 	"strconv"
 	"strings"
@@ -84,6 +85,10 @@ func tvi(x int64) *rtdpv1.TypedValue {
 	return &rtdpv1.TypedValue{Kind: &rtdpv1.TypedValue_IntValue{IntValue: x}}
 }
 
+func tvs(s string) *rtdpv1.TypedValue {
+	return &rtdpv1.TypedValue{Kind: &rtdpv1.TypedValue_StringValue{StringValue: s}}
+}
+
 func (s *server) Decide(ctx context.Context,
 	req *rtdpv1.AuthenticatedTransaction) (*rtdpv1.DecisionResult, error) {
 	started := time.Now()
@@ -117,8 +122,8 @@ func (s *server) Decide(ctx context.Context,
 	dedupKey := fmt.Sprintf("rtdp:dedup:{%s:%s}:%s:%d",
 		req.TenantId, mode, req.TransactionId, req.TransactionRevision)
 	payloadHash := fmt.Sprintf("%x", sha256.Sum256([]byte(fmt.Sprintf(
-		"%s|%s|%.6f|%s", req.TokenizedClaimant, req.ProviderId, req.Amount,
-		req.Currency))))
+		"%s|%s|%.6f|%s|%s", req.TokenizedClaimant, req.ProviderId, req.Amount,
+		req.Currency, req.GetDelegation().GetProof()))))
 	prior, _ := s.rdb.HGet(ctx, dedupKey, "payload").Result()
 	if prior != "" && prior != payloadHash {
 		return nil, fmt.Errorf("CONFLICT: same transaction id, different payload")
@@ -144,6 +149,10 @@ func (s *server) Decide(ctx context.Context,
 		ManifestEpoch:       act.Epoch,
 		DecidedAt:           timestamppb.Now(),
 		Traceparent:         req.Traceparent,
+		// ADR-013: the verified delegation chain travels with the
+		// decision fact so audit/replay can reconstruct who acted
+		// for whom (G8a).
+		Delegation: req.Delegation,
 	}
 	res.Products = []*rtdpv1.SelectedProduct{{
 		ProductId:             m.ProductID,
@@ -153,162 +162,199 @@ func (s *server) Decide(ctx context.Context,
 		SelectionReasons:      []string{"routing:event_type", "subscription:active"},
 	}}
 
-	// 3. Features: Tier 1 atomic update + Tier 2 reads.
-	frefs := make([]*rtdpv1.FeatureRef, 0, len(m.Features))
-	for _, f := range m.Features {
-		frefs = append(frefs, &rtdpv1.FeatureRef{
-			Name: f.Name, Version: int64(f.Version), Tier: f.Tier})
-	}
-	feat, err := s.features.ResolveFeatures(ctx, &rtdpv1.ResolveFeaturesRequest{
-		TenantId:            req.TenantId,
-		Environment:         req.Environment,
-		Mode:                req.Mode,
-		TransactionId:       req.TransactionId,
-		TransactionRevision: req.TransactionRevision,
-		TokenizedClaimant:   req.TokenizedClaimant,
-		ProviderId:          req.ProviderId,
-		Currency:            req.Currency,
-		Amount:              req.Amount,
-		EventTime:           req.EventTime,
-		RequiredFeatures:    frefs,
-	})
-	if err != nil {
-		decisions.WithLabelValues("feature_error").Inc()
-		return nil, fmt.Errorf("features: %w", err)
-	}
-
-	// 4. Shared feature universe for signal inputs. Each binding orders its
-	// own vector via input_features; "txn.*" names resolve from the request.
-	featNames := make([]string, 0, len(feat.Features)+1)
-	var featVals []*rtdpv1.TypedValue
-	for _, f := range m.Features {
-		featNames = append(featNames, f.Name)
-		v := feat.Features[f.Name]
-		if v == nil {
-			v = tvf(0)
-		}
-		featVals = append(featVals, v)
-	}
-	featNames = append(featNames, "txn.amount")
-	featVals = append(featVals, tvf(req.Amount))
-	// Caller-supplied attributes join the shared universe as "attr.<key>" —
-	// bindings name them in input_features and prompt templates reference
-	// {attr.<key>}. Sorted: map order is random and the snapshot digest must
-	// be identical across an idempotent retry.
-	attrKeys := make([]string, 0, len(req.Attributes))
-	for k := range req.Attributes {
-		attrKeys = append(attrKeys, k)
-	}
-	sort.Strings(attrKeys)
-	for _, k := range attrKeys {
-		featNames = append(featNames, "attr."+k)
-		featVals = append(featVals, req.Attributes[k])
-	}
-	inputSnap := fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(
-		fmt.Sprintf("%v", featVals))))
-
-	// 5. Signals via pinned bindings.
-	specs := make([]*rtdpv1.SignalSpec, 0, len(m.Signals))
-	for _, sig := range m.Signals {
-		specs = append(specs, &rtdpv1.SignalSpec{
-			Alias: sig.Alias, Contract: sig.Contract,
-			AcceptedContracts:   sig.AcceptedContracts,
-			ContractDigest:      sig.ContractDigest,
-			Binding:             sig.Binding,
-			BindingDigest:       sig.BindingDigest,
-			TimeoutMs:           int64(sig.TimeoutMs),
-			Required:            sig.Required,
-			Provider:            sig.Provider,
-			EndpointRef:         sig.EndpointRef,
-			Model:               sig.Model,
-			ModelDigest:         sig.ModelDigest,
-			InputSchemaDigest:   sig.InputSchemaDigest,
-			PreprocessingDigest: sig.PreprocDigest,
-			MaximumAgeMs:        int64(sig.MaxAgeMs),
-			InputFeatures:       sig.InputFeatures,
-			ValueSchemaJson:     mustJSON(sig.ValueSchema),
-		})
-	}
-	remaining := time.Until(deadline).Milliseconds()
-	sigs, err := s.resolver.ResolveSignals(ctx, &rtdpv1.ResolveSignalsRequest{
-		TenantId:            req.TenantId,
-		Environment:         req.Environment,
-		Mode:                req.Mode,
-		TransactionId:       req.TransactionId,
-		TransactionRevision: req.TransactionRevision,
-		DecisionContextId:   res.DecisionId,
-		EventTime:           req.EventTime,
-		DeadlineMs:          remaining,
-		Specs:               specs,
-		FeatureNames:        featNames,
-		FeatureValues:       featVals,
-		InputSnapshotDigest: inputSnap,
-		Traceparent:         req.Traceparent,
-	})
-	if err != nil {
-		decisions.WithLabelValues("signal_error").Inc()
-		return nil, fmt.Errorf("signals: %w", err)
-	}
-
-	present := map[string]bool{}
-	sigValues := map[string]*rtdpv1.ValueMap{}
-	for _, rs := range sigs.Signals {
-		if rs.Ok && rs.Envelope != nil {
-			present[rs.Alias] = true
-			sigValues[rs.Alias] = &rtdpv1.ValueMap{Values: rs.Envelope.Values}
-			res.Signals = append(res.Signals, rs.Envelope)
-		}
-	}
-
-	// 6. Rules + aggregation.
-	cfg := map[string]*rtdpv1.TypedValue{}
-	if th, ok := m.EffectiveConfig["thresholds"].(map[string]any); ok {
-		for k, v := range th {
-			if f, ok := v.(float64); ok {
-				cfg[k] = tvf(f)
+	// ADR-013: when the product declares required_scope, every link in
+	// the chain must cover it — delegation narrows, never widens. The
+	// decision fact is still written (spec); only the evaluation is
+	// skipped.
+	unauthorized := ""
+	if req.Delegation != nil {
+		if rs, ok := m.EffectiveConfig["required_scope"].(string); ok && rs != "" {
+			for _, l := range req.Delegation.Links {
+				if !slices.Contains(l.Scopes, rs) {
+					unauthorized = l.AgentId
+					break
+				}
 			}
 		}
 	}
-	// Rules see attributes under input["attr.<key>"]. The prefix keeps
-	// caller-supplied names from shadowing reserved input keys the rules
-	// service reads (e.g. missing_required_signal_outcome).
-	ruleInput := map[string]*rtdpv1.TypedValue{}
-	for _, k := range attrKeys {
-		ruleInput["attr."+k] = req.Attributes[k]
-	}
-	// Reserved platform keys: the claimed amount as submitted on the
-	// transaction, so rules never depend on a caller-duplicated attribute.
-	ruleInput["txn.amount"] = tvf(req.Amount)
-	eval, err := s.rules.EvaluateRules(ctx, &rtdpv1.EvaluateRulesRequest{
-		RulesetDigest:        m.Ruleset.Digest,
-		RulesetSpecJson:      m.Ruleset.SpecRaw,
-		Features:             feat.Features,
-		Signals:              sigValues,
-		PresentSignalAliases: keys(present),
-		Cfg:                  cfg,
-		Input:                ruleInput,
-		ExecutionBudgetMs:    time.Until(deadline).Milliseconds(),
-	})
-	if err != nil {
-		decisions.WithLabelValues("rules_error").Inc()
-		return nil, fmt.Errorf("rules: %w", err)
-	}
-	res.Outcome = parseDecision(eval.Decision)
-	res.ReasonCodes = eval.ReasonCodes
+	if unauthorized != "" {
+		res.Outcome = rtdpv1.Decision_DECISION_DECLINE_UNAUTHORIZED
+		res.ReasonCodes = []string{"DELEGATION_SCOPE_INSUFFICIENT:" + unauthorized}
+	} else {
 
-	// 7. Permitted action intents only.
-	if m.ActionPolicy != nil {
-		for _, at := range allowedFor(res.Outcome.String(), m.ActionPolicy.Spec) {
-			key := fmt.Sprintf("%s:%s:%s:%d:%s:%s", req.TenantId, req.Environment,
-				res.DecisionId, res.DecisionGeneration, at, req.ProviderId)
-			res.ActionIntents = append(res.ActionIntents, &rtdpv1.ActionIntent{
-				ActionType:     at,
-				IdempotencyKey: key,
-				AdapterRef:     m.ActionPolicy.Spec.Adapters[at],
-				TtlMs:          m.ActionPolicy.Spec.IntentTTLMs[at],
+		// 3. Features: Tier 1 atomic update + Tier 2 reads.
+		frefs := make([]*rtdpv1.FeatureRef, 0, len(m.Features))
+		for _, f := range m.Features {
+			frefs = append(frefs, &rtdpv1.FeatureRef{
+				Name: f.Name, Version: int64(f.Version), Tier: f.Tier})
+		}
+		feat, err := s.features.ResolveFeatures(ctx, &rtdpv1.ResolveFeaturesRequest{
+			TenantId:            req.TenantId,
+			Environment:         req.Environment,
+			Mode:                req.Mode,
+			TransactionId:       req.TransactionId,
+			TransactionRevision: req.TransactionRevision,
+			TokenizedClaimant:   req.TokenizedClaimant,
+			ProviderId:          req.ProviderId,
+			Currency:            req.Currency,
+			Amount:              req.Amount,
+			EventTime:           req.EventTime,
+			RequiredFeatures:    frefs,
+		})
+		if err != nil {
+			decisions.WithLabelValues("feature_error").Inc()
+			return nil, fmt.Errorf("features: %w", err)
+		}
+
+		// 4. Shared feature universe for signal inputs. Each binding orders its
+		// own vector via input_features; "txn.*" names resolve from the request.
+		featNames := make([]string, 0, len(feat.Features)+1)
+		var featVals []*rtdpv1.TypedValue
+		for _, f := range m.Features {
+			featNames = append(featNames, f.Name)
+			v := feat.Features[f.Name]
+			if v == nil {
+				v = tvf(0)
+			}
+			featVals = append(featVals, v)
+		}
+		featNames = append(featNames, "txn.amount")
+		featVals = append(featVals, tvf(req.Amount))
+		// Caller-supplied attributes join the shared universe as "attr.<key>" —
+		// bindings name them in input_features and prompt templates reference
+		// {attr.<key>}. Sorted: map order is random and the snapshot digest must
+		// be identical across an idempotent retry.
+		attrKeys := make([]string, 0, len(req.Attributes))
+		for k := range req.Attributes {
+			attrKeys = append(attrKeys, k)
+		}
+		sort.Strings(attrKeys)
+		for _, k := range attrKeys {
+			featNames = append(featNames, "attr."+k)
+			featVals = append(featVals, req.Attributes[k])
+		}
+		inputSnap := fmt.Sprintf("sha256:%x", sha256.Sum256([]byte(
+			fmt.Sprintf("%v", featVals))))
+
+		// 5. Signals via pinned bindings.
+		specs := make([]*rtdpv1.SignalSpec, 0, len(m.Signals))
+		for _, sig := range m.Signals {
+			specs = append(specs, &rtdpv1.SignalSpec{
+				Alias: sig.Alias, Contract: sig.Contract,
+				AcceptedContracts:   sig.AcceptedContracts,
+				ContractDigest:      sig.ContractDigest,
+				Binding:             sig.Binding,
+				BindingDigest:       sig.BindingDigest,
+				TimeoutMs:           int64(sig.TimeoutMs),
+				Required:            sig.Required,
+				Provider:            sig.Provider,
+				EndpointRef:         sig.EndpointRef,
+				Model:               sig.Model,
+				ModelDigest:         sig.ModelDigest,
+				InputSchemaDigest:   sig.InputSchemaDigest,
+				PreprocessingDigest: sig.PreprocDigest,
+				MaximumAgeMs:        int64(sig.MaxAgeMs),
+				InputFeatures:       sig.InputFeatures,
+				ValueSchemaJson:     mustJSON(sig.ValueSchema),
 			})
 		}
-	}
+		remaining := time.Until(deadline).Milliseconds()
+		sigs, err := s.resolver.ResolveSignals(ctx, &rtdpv1.ResolveSignalsRequest{
+			TenantId:            req.TenantId,
+			Environment:         req.Environment,
+			Mode:                req.Mode,
+			TransactionId:       req.TransactionId,
+			TransactionRevision: req.TransactionRevision,
+			DecisionContextId:   res.DecisionId,
+			EventTime:           req.EventTime,
+			DeadlineMs:          remaining,
+			Specs:               specs,
+			FeatureNames:        featNames,
+			FeatureValues:       featVals,
+			InputSnapshotDigest: inputSnap,
+			Traceparent:         req.Traceparent,
+		})
+		if err != nil {
+			decisions.WithLabelValues("signal_error").Inc()
+			return nil, fmt.Errorf("signals: %w", err)
+		}
+
+		present := map[string]bool{}
+		sigValues := map[string]*rtdpv1.ValueMap{}
+		for _, rs := range sigs.Signals {
+			if rs.Ok && rs.Envelope != nil {
+				present[rs.Alias] = true
+				sigValues[rs.Alias] = &rtdpv1.ValueMap{Values: rs.Envelope.Values}
+				res.Signals = append(res.Signals, rs.Envelope)
+			}
+		}
+
+		// 6. Rules + aggregation.
+		cfg := map[string]*rtdpv1.TypedValue{}
+		if th, ok := m.EffectiveConfig["thresholds"].(map[string]any); ok {
+			for k, v := range th {
+				if f, ok := v.(float64); ok {
+					cfg[k] = tvf(f)
+				}
+			}
+		}
+		// Rules see attributes under input["attr.<key>"]. The prefix keeps
+		// caller-supplied names from shadowing reserved input keys the rules
+		// service reads (e.g. missing_required_signal_outcome).
+		ruleInput := map[string]*rtdpv1.TypedValue{}
+		for _, k := range attrKeys {
+			ruleInput["attr."+k] = req.Attributes[k]
+		}
+		// Reserved platform keys: the claimed amount as submitted on the
+		// transaction, so rules never depend on a caller-duplicated attribute.
+		ruleInput["txn.amount"] = tvf(req.Amount)
+		// ADR-013: actor.* context for rules — principal and last-hop agent
+		// from the verified chain. Absent chain = legacy service caller, so
+		// actor.* keys simply don't exist (CEL sees null).
+		if req.Delegation != nil && req.Delegation.Principal != nil {
+			ruleInput["actor.principal.kind"] = tvs(req.Delegation.Principal.Kind.String())
+			ruleInput["actor.principal.id"] = tvs(req.Delegation.Principal.Id)
+			if n := len(req.Delegation.Links); n > 0 {
+				last := req.Delegation.Links[n-1]
+				ruleInput["actor.agent.id"] = tvs(last.AgentId)
+				ruleInput["actor.agent.kind"] = tvs(last.AgentKind)
+				ruleInput["actor.agent.scopes"] = &rtdpv1.TypedValue{
+					Kind: &rtdpv1.TypedValue_StringList{
+						StringList: &rtdpv1.StringList{Values: last.Scopes}}}
+				ruleInput["actor.chain_depth"] = tvi(int64(n))
+			}
+		}
+		eval, err := s.rules.EvaluateRules(ctx, &rtdpv1.EvaluateRulesRequest{
+			RulesetDigest:        m.Ruleset.Digest,
+			RulesetSpecJson:      m.Ruleset.SpecRaw,
+			Features:             feat.Features,
+			Signals:              sigValues,
+			PresentSignalAliases: keys(present),
+			Cfg:                  cfg,
+			Input:                ruleInput,
+			ExecutionBudgetMs:    time.Until(deadline).Milliseconds(),
+		})
+		if err != nil {
+			decisions.WithLabelValues("rules_error").Inc()
+			return nil, fmt.Errorf("rules: %w", err)
+		}
+		res.Outcome = parseDecision(eval.Decision)
+		res.ReasonCodes = eval.ReasonCodes
+
+		// 7. Permitted action intents only.
+		if m.ActionPolicy != nil {
+			for _, at := range allowedFor(res.Outcome.String(), m.ActionPolicy.Spec) {
+				key := fmt.Sprintf("%s:%s:%s:%d:%s:%s", req.TenantId, req.Environment,
+					res.DecisionId, res.DecisionGeneration, at, req.ProviderId)
+				res.ActionIntents = append(res.ActionIntents, &rtdpv1.ActionIntent{
+					ActionType:     at,
+					IdempotencyKey: key,
+					AdapterRef:     m.ActionPolicy.Spec.Adapters[at],
+					TtlMs:          m.ActionPolicy.Spec.IntentTTLMs[at],
+				})
+			}
+		}
+	} // end authorized evaluation branch
 
 	// 8. Durable commit: decision + contribution + action commands + egress
 	// in one Kafka transaction. Abort propagates — never assert early.

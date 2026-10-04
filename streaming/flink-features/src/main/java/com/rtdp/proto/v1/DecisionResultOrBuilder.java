@@ -245,4 +245,34 @@ public interface DecisionResultOrBuilder extends
    */
   com.google.protobuf.ByteString
       getTraceparentBytes();
+
+  /**
+   * <pre>
+   * ADR-013: the delegation chain the decision was made under — stored
+   * so replay and audit can reconstruct who acted for whom (G8a).
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+   * @return Whether the delegation field is set.
+   */
+  boolean hasDelegation();
+  /**
+   * <pre>
+   * ADR-013: the delegation chain the decision was made under — stored
+   * so replay and audit can reconstruct who acted for whom (G8a).
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+   * @return The delegation.
+   */
+  com.rtdp.proto.agent.v1.DelegationChain getDelegation();
+  /**
+   * <pre>
+   * ADR-013: the delegation chain the decision was made under — stored
+   * so replay and audit can reconstruct who acted for whom (G8a).
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+   */
+  com.rtdp.proto.agent.v1.DelegationChainOrBuilder getDelegationOrBuilder();
 }

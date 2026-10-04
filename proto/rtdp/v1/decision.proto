@@ -4,6 +4,7 @@ package rtdp.v1;
 
 import "google/protobuf/timestamp.proto";
 import "rtdp/v1/envelope.proto";
+import "rtdp/agent/v1/agent.proto";
 
 option go_package = "github.com/rtdp/rtdp/gen/go/rtdp/v1;rtdpv1";
 option java_multiple_files = true;
@@ -30,6 +31,10 @@ message AuthenticatedTransaction {
   google.protobuf.Timestamp event_time = 14;
   map<string, TypedValue> attributes = 15;
   string traceparent = 16;
+  // ADR-013: verified delegation chain, attached at ingress after
+  // signature/expiry/revocation/depth checks. Absent for legacy
+  // service callers, which continue to act as their own principal.
+  rtdp.agent.v1.DelegationChain delegation = 17;
 }
 
 // SelectedProduct is the product-selection fact for a request.
@@ -69,6 +74,9 @@ message DecisionResult {
   repeated ActionIntent action_intents = 15;
   google.protobuf.Timestamp decided_at = 16;
   string traceparent = 17;
+  // ADR-013: the delegation chain the decision was made under — stored
+  // so replay and audit can reconstruct who acted for whom (G8a).
+  rtdp.agent.v1.DelegationChain delegation = 18;
 }
 
 // ActionCommand is the durable form consumed by the action dispatcher.

@@ -265,6 +265,21 @@ services:
       rules-service:
         condition: service_started
 
+  agent-registry:
+    build:
+      context: .
+      dockerfile: services/agent-registry/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_AGENT_REGISTRY_PORT: "8090"
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "8090:8090"
+
   ingress:
     build:
       context: .
@@ -273,10 +288,13 @@ services:
       <<: *common-env
       RTDP_INGRESS_PORT: "8080"
       RTDP_ORCHESTRATOR_ADDR: orchestrator:50055
+      RTDP_AGENT_REGISTRY_ADDR: http://agent-registry:8090
       RTDP_DECIDE_TIMEOUT_MS: "35000" # bound only; product deadline governs
     depends_on:
       - orchestrator
       - kafka
+      - agent-registry
+      - redis
     ports:
       - "8080:8080"
 

@@ -124,17 +124,17 @@ public final class Envelope extends com.google.protobuf.GeneratedFile {
       "luesEntry\022\020\n\003key\030\001 \001(\tR\003key\022)\n\005value\030\002 \001" +
       "(\0132\023.rtdp.v1.TypedValueR\005value:\0028\001*M\n\004Mo" +
       "de\022\024\n\020MODE_UNSPECIFIED\020\000\022\r\n\tMODE_LIVE\020\001\022" +
-      "\017\n\013MODE_SHADOW\020\002\022\017\n\013MODE_REPLAY\020\003*\202\001\n\010De" +
+      "\017\n\013MODE_SHADOW\020\002\022\017\n\013MODE_REPLAY\020\003*\245\001\n\010De" +
       "cision\022\030\n\024DECISION_UNSPECIFIED\020\000\022\024\n\020DECI" +
       "SION_APPROVE\020\001\022\024\n\020DECISION_DECLINE\020\002\022\023\n\017" +
       "DECISION_REVIEW\020\003\022\033\n\027DECISION_NOT_APPLIC" +
-      "ABLE\020\004*\240\001\n\014SignalStatus\022\035\n\031SIGNAL_STATUS" +
-      "_UNSPECIFIED\020\000\022\024\n\020SIGNAL_STATUS_OK\020\001\022\035\n\031" +
-      "SIGNAL_STATUS_UNAVAILABLE\020\002\022\037\n\033SIGNAL_ST" +
-      "ATUS_INVALID_INPUT\020\003\022\033\n\027SIGNAL_STATUS_TI" +
-      "MED_OUT\020\004BA\n\021com.rtdp.proto.v1P\001Z*github" +
-      ".com/rtdp/rtdp/gen/go/rtdp/v1;rtdpv1b\006pr" +
-      "oto3"
+      "ABLE\020\004\022!\n\035DECISION_DECLINE_UNAUTHORIZED\020" +
+      "\005*\240\001\n\014SignalStatus\022\035\n\031SIGNAL_STATUS_UNSP" +
+      "ECIFIED\020\000\022\024\n\020SIGNAL_STATUS_OK\020\001\022\035\n\031SIGNA" +
+      "L_STATUS_UNAVAILABLE\020\002\022\037\n\033SIGNAL_STATUS_" +
+      "INVALID_INPUT\020\003\022\033\n\027SIGNAL_STATUS_TIMED_O" +
+      "UT\020\004BA\n\021com.rtdp.proto.v1P\001Z*github.com/" +
+      "rtdp/rtdp/gen/go/rtdp/v1;rtdpv1b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,

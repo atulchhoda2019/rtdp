@@ -22,6 +22,9 @@ thresholds:
   fraud_amount: 5000.0       # large change by a first-time participant
   plan_limit_24h: 25000.0
 action_policy: contribution_actions@1
+# ADR-013: delegated calls must carry the `benefits` scope in every
+# chain link; legacy service callers (no delegation chain) are unaffected.
+required_scope: benefits
 rollout:
   mode: LIVE
   cohort: champion

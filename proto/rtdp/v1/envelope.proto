@@ -23,6 +23,10 @@ enum Decision {
   DECISION_DECLINE = 2;
   DECISION_REVIEW = 3;
   DECISION_NOT_APPLICABLE = 4;
+  // ADR-013: delegation chain failed authorisation (revoked grant,
+  // insufficient scope). Edge rejections that never reach the
+  // orchestrator still surface this outcome to the caller.
+  DECISION_DECLINE_UNAUTHORIZED = 5;
 }
 
 // Signal processing status; UNAVAILABLE/INVALID/TIMED_OUT are terminal

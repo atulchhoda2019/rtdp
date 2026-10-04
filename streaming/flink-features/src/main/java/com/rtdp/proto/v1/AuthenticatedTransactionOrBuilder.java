@@ -253,4 +253,37 @@ com.rtdp.proto.v1.TypedValue defaultValue);
    */
   com.google.protobuf.ByteString
       getTraceparentBytes();
+
+  /**
+   * <pre>
+   * ADR-013: verified delegation chain, attached at ingress after
+   * signature/expiry/revocation/depth checks. Absent for legacy
+   * service callers, which continue to act as their own principal.
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+   * @return Whether the delegation field is set.
+   */
+  boolean hasDelegation();
+  /**
+   * <pre>
+   * ADR-013: verified delegation chain, attached at ingress after
+   * signature/expiry/revocation/depth checks. Absent for legacy
+   * service callers, which continue to act as their own principal.
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+   * @return The delegation.
+   */
+  com.rtdp.proto.agent.v1.DelegationChain getDelegation();
+  /**
+   * <pre>
+   * ADR-013: verified delegation chain, attached at ingress after
+   * signature/expiry/revocation/depth checks. Absent for legacy
+   * service callers, which continue to act as their own principal.
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+   */
+  com.rtdp.proto.agent.v1.DelegationChainOrBuilder getDelegationOrBuilder();
 }

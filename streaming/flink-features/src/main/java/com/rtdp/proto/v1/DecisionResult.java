@@ -590,6 +590,47 @@ private static final long serialVersionUID = 0L;
     }
   }
 
+  public static final int DELEGATION_FIELD_NUMBER = 18;
+  private com.rtdp.proto.agent.v1.DelegationChain delegation_;
+  /**
+   * <pre>
+   * ADR-013: the delegation chain the decision was made under — stored
+   * so replay and audit can reconstruct who acted for whom (G8a).
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+   * @return Whether the delegation field is set.
+   */
+  @java.lang.Override
+  public boolean hasDelegation() {
+    return ((bitField0_ & 0x00000002) != 0);
+  }
+  /**
+   * <pre>
+   * ADR-013: the delegation chain the decision was made under — stored
+   * so replay and audit can reconstruct who acted for whom (G8a).
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+   * @return The delegation.
+   */
+  @java.lang.Override
+  public com.rtdp.proto.agent.v1.DelegationChain getDelegation() {
+    return delegation_ == null ? com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance() : delegation_;
+  }
+  /**
+   * <pre>
+   * ADR-013: the delegation chain the decision was made under — stored
+   * so replay and audit can reconstruct who acted for whom (G8a).
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+   */
+  @java.lang.Override
+  public com.rtdp.proto.agent.v1.DelegationChainOrBuilder getDelegationOrBuilder() {
+    return delegation_ == null ? com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance() : delegation_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -654,6 +695,9 @@ private static final long serialVersionUID = 0L;
     }
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(traceparent_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 17, traceparent_);
+    }
+    if (((bitField0_ & 0x00000002) != 0)) {
+      output.writeMessage(18, getDelegation());
     }
     getUnknownFields().writeTo(output);
   }
@@ -729,6 +773,10 @@ private static final long serialVersionUID = 0L;
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(traceparent_)) {
       size += com.google.protobuf.GeneratedMessage.computeStringSize(17, traceparent_);
     }
+    if (((bitField0_ & 0x00000002) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(18, getDelegation());
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -779,6 +827,11 @@ private static final long serialVersionUID = 0L;
     }
     if (!getTraceparent()
         .equals(other.getTraceparent())) return false;
+    if (hasDelegation() != other.hasDelegation()) return false;
+    if (hasDelegation()) {
+      if (!getDelegation()
+          .equals(other.getDelegation())) return false;
+    }
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -837,6 +890,10 @@ private static final long serialVersionUID = 0L;
     }
     hash = (37 * hash) + TRACEPARENT_FIELD_NUMBER;
     hash = (53 * hash) + getTraceparent().hashCode();
+    if (hasDelegation()) {
+      hash = (37 * hash) + DELEGATION_FIELD_NUMBER;
+      hash = (53 * hash) + getDelegation().hashCode();
+    }
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -975,6 +1032,7 @@ private static final long serialVersionUID = 0L;
         internalGetSignalsFieldBuilder();
         internalGetActionIntentsFieldBuilder();
         internalGetDecidedAtFieldBuilder();
+        internalGetDelegationFieldBuilder();
       }
     }
     @java.lang.Override
@@ -1021,6 +1079,11 @@ private static final long serialVersionUID = 0L;
         decidedAtBuilder_ = null;
       }
       traceparent_ = "";
+      delegation_ = null;
+      if (delegationBuilder_ != null) {
+        delegationBuilder_.dispose();
+        delegationBuilder_ = null;
+      }
       return this;
     }
 
@@ -1131,6 +1194,12 @@ private static final long serialVersionUID = 0L;
       }
       if (((from_bitField0_ & 0x00010000) != 0)) {
         result.traceparent_ = traceparent_;
+      }
+      if (((from_bitField0_ & 0x00020000) != 0)) {
+        result.delegation_ = delegationBuilder_ == null
+            ? delegation_
+            : delegationBuilder_.build();
+        to_bitField0_ |= 0x00000002;
       }
       result.bitField0_ |= to_bitField0_;
     }
@@ -1288,6 +1357,9 @@ private static final long serialVersionUID = 0L;
         bitField0_ |= 0x00010000;
         onChanged();
       }
+      if (other.hasDelegation()) {
+        mergeDelegation(other.getDelegation());
+      }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
       return this;
@@ -1426,6 +1498,13 @@ private static final long serialVersionUID = 0L;
               bitField0_ |= 0x00010000;
               break;
             } // case 138
+            case 146: {
+              input.readMessage(
+                  internalGetDelegationFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              bitField0_ |= 0x00020000;
+              break;
+            } // case 146
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -3095,6 +3174,172 @@ private static final long serialVersionUID = 0L;
       bitField0_ |= 0x00010000;
       onChanged();
       return this;
+    }
+
+    private com.rtdp.proto.agent.v1.DelegationChain delegation_;
+    private com.google.protobuf.SingleFieldBuilder<
+        com.rtdp.proto.agent.v1.DelegationChain, com.rtdp.proto.agent.v1.DelegationChain.Builder, com.rtdp.proto.agent.v1.DelegationChainOrBuilder> delegationBuilder_;
+    /**
+     * <pre>
+     * ADR-013: the delegation chain the decision was made under — stored
+     * so replay and audit can reconstruct who acted for whom (G8a).
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+     * @return Whether the delegation field is set.
+     */
+    public boolean hasDelegation() {
+      return ((bitField0_ & 0x00020000) != 0);
+    }
+    /**
+     * <pre>
+     * ADR-013: the delegation chain the decision was made under — stored
+     * so replay and audit can reconstruct who acted for whom (G8a).
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+     * @return The delegation.
+     */
+    public com.rtdp.proto.agent.v1.DelegationChain getDelegation() {
+      if (delegationBuilder_ == null) {
+        return delegation_ == null ? com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance() : delegation_;
+      } else {
+        return delegationBuilder_.getMessage();
+      }
+    }
+    /**
+     * <pre>
+     * ADR-013: the delegation chain the decision was made under — stored
+     * so replay and audit can reconstruct who acted for whom (G8a).
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+     */
+    public Builder setDelegation(com.rtdp.proto.agent.v1.DelegationChain value) {
+      if (delegationBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        delegation_ = value;
+      } else {
+        delegationBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00020000;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013: the delegation chain the decision was made under — stored
+     * so replay and audit can reconstruct who acted for whom (G8a).
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+     */
+    public Builder setDelegation(
+        com.rtdp.proto.agent.v1.DelegationChain.Builder builderForValue) {
+      if (delegationBuilder_ == null) {
+        delegation_ = builderForValue.build();
+      } else {
+        delegationBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00020000;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013: the delegation chain the decision was made under — stored
+     * so replay and audit can reconstruct who acted for whom (G8a).
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+     */
+    public Builder mergeDelegation(com.rtdp.proto.agent.v1.DelegationChain value) {
+      if (delegationBuilder_ == null) {
+        if (((bitField0_ & 0x00020000) != 0) &&
+          delegation_ != null &&
+          delegation_ != com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance()) {
+          getDelegationBuilder().mergeFrom(value);
+        } else {
+          delegation_ = value;
+        }
+      } else {
+        delegationBuilder_.mergeFrom(value);
+      }
+      if (delegation_ != null) {
+        bitField0_ |= 0x00020000;
+        onChanged();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013: the delegation chain the decision was made under — stored
+     * so replay and audit can reconstruct who acted for whom (G8a).
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+     */
+    public Builder clearDelegation() {
+      bitField0_ = (bitField0_ & ~0x00020000);
+      delegation_ = null;
+      if (delegationBuilder_ != null) {
+        delegationBuilder_.dispose();
+        delegationBuilder_ = null;
+      }
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013: the delegation chain the decision was made under — stored
+     * so replay and audit can reconstruct who acted for whom (G8a).
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+     */
+    public com.rtdp.proto.agent.v1.DelegationChain.Builder getDelegationBuilder() {
+      bitField0_ |= 0x00020000;
+      onChanged();
+      return internalGetDelegationFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * ADR-013: the delegation chain the decision was made under — stored
+     * so replay and audit can reconstruct who acted for whom (G8a).
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+     */
+    public com.rtdp.proto.agent.v1.DelegationChainOrBuilder getDelegationOrBuilder() {
+      if (delegationBuilder_ != null) {
+        return delegationBuilder_.getMessageOrBuilder();
+      } else {
+        return delegation_ == null ?
+            com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance() : delegation_;
+      }
+    }
+    /**
+     * <pre>
+     * ADR-013: the delegation chain the decision was made under — stored
+     * so replay and audit can reconstruct who acted for whom (G8a).
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 18 [json_name = "delegation"];</code>
+     */
+    private com.google.protobuf.SingleFieldBuilder<
+        com.rtdp.proto.agent.v1.DelegationChain, com.rtdp.proto.agent.v1.DelegationChain.Builder, com.rtdp.proto.agent.v1.DelegationChainOrBuilder> 
+        internalGetDelegationFieldBuilder() {
+      if (delegationBuilder_ == null) {
+        delegationBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+            com.rtdp.proto.agent.v1.DelegationChain, com.rtdp.proto.agent.v1.DelegationChain.Builder, com.rtdp.proto.agent.v1.DelegationChainOrBuilder>(
+                getDelegation(),
+                getParentForChildren(),
+                isClean());
+        delegation_ = null;
+      }
+      return delegationBuilder_;
     }
 
     // @@protoc_insertion_point(builder_scope:rtdp.v1.DecisionResult)

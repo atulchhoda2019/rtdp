@@ -1,0 +1,51 @@
+syntax = "proto3";
+
+package rtdp.agent.v1;
+
+import "google/protobuf/timestamp.proto";
+
+option go_package = "github.com/rtdp/rtdp/gen/go/rtdp/agent/v1;agentv1";
+option java_multiple_files = true;
+option java_package = "com.rtdp.proto.agent.v1";
+
+// ADR-013: an actor is a delegation chain, not a single identity. The chain
+// is minted and signed by agent-registry; ingress verifies the proof,
+// expiry, revocation and depth before the envelope reaches the
+// orchestrator. Links narrow as delegation deepens: every link must carry
+// the scopes the product requires.
+
+message Principal {
+  enum Kind {
+    KIND_UNSPECIFIED = 0;
+    PERSON = 1;
+    ORG = 2;
+    SERVICE = 3;
+  }
+  Kind kind = 1;
+  string id = 2;
+  string tenant_id = 3;
+}
+
+// DelegationLink is one hop in the chain. agent_kind is denormalised into
+// the link at mint time so CEL arbitration (ADR-017 precedence) and the
+// decision fact can reason about the caller's kind without a runtime
+// registry lookup — the signature covers it.
+message DelegationLink {
+  string agent_id = 1;
+  string agent_version = 2;
+  string agent_kind = 3;
+  repeated string scopes = 4;
+  google.protobuf.Timestamp issued_at = 5;
+  google.protobuf.Timestamp expires_at = 6;
+  string grant_id = 7;
+}
+
+// DelegationChain: principal + ordered links + the registry's JWS proof.
+// proof_kid selects the verifying key; proof is the compact EdDSA JWS over
+// the canonical chain encoding.
+message DelegationChain {
+  Principal principal = 1;
+  repeated DelegationLink links = 2;
+  string proof = 3;
+  string proof_kid = 4;
+}

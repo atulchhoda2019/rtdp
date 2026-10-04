@@ -688,6 +688,50 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
   }
 
+  public static final int DELEGATION_FIELD_NUMBER = 17;
+  private com.rtdp.proto.agent.v1.DelegationChain delegation_;
+  /**
+   * <pre>
+   * ADR-013: verified delegation chain, attached at ingress after
+   * signature/expiry/revocation/depth checks. Absent for legacy
+   * service callers, which continue to act as their own principal.
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+   * @return Whether the delegation field is set.
+   */
+  @java.lang.Override
+  public boolean hasDelegation() {
+    return ((bitField0_ & 0x00000002) != 0);
+  }
+  /**
+   * <pre>
+   * ADR-013: verified delegation chain, attached at ingress after
+   * signature/expiry/revocation/depth checks. Absent for legacy
+   * service callers, which continue to act as their own principal.
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+   * @return The delegation.
+   */
+  @java.lang.Override
+  public com.rtdp.proto.agent.v1.DelegationChain getDelegation() {
+    return delegation_ == null ? com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance() : delegation_;
+  }
+  /**
+   * <pre>
+   * ADR-013: verified delegation chain, attached at ingress after
+   * signature/expiry/revocation/depth checks. Absent for legacy
+   * service callers, which continue to act as their own principal.
+   * </pre>
+   *
+   * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+   */
+  @java.lang.Override
+  public com.rtdp.proto.agent.v1.DelegationChainOrBuilder getDelegationOrBuilder() {
+    return delegation_ == null ? com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance() : delegation_;
+  }
+
   private byte memoizedIsInitialized = -1;
   @java.lang.Override
   public final boolean isInitialized() {
@@ -752,6 +796,9 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
         15);
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(traceparent_)) {
       com.google.protobuf.GeneratedMessage.writeString(output, 16, traceparent_);
+    }
+    if (((bitField0_ & 0x00000002) != 0)) {
+      output.writeMessage(17, getDelegation());
     }
     getUnknownFields().writeTo(output);
   }
@@ -821,6 +868,10 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     if (!com.google.protobuf.GeneratedMessage.isStringEmpty(traceparent_)) {
       size += com.google.protobuf.GeneratedMessage.computeStringSize(16, traceparent_);
     }
+    if (((bitField0_ & 0x00000002) != 0)) {
+      size += com.google.protobuf.CodedOutputStream
+        .computeMessageSize(17, getDelegation());
+    }
     size += getUnknownFields().getSerializedSize();
     memoizedSize = size;
     return size;
@@ -871,6 +922,11 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
         other.internalGetAttributes())) return false;
     if (!getTraceparent()
         .equals(other.getTraceparent())) return false;
+    if (hasDelegation() != other.hasDelegation()) return false;
+    if (hasDelegation()) {
+      if (!getDelegation()
+          .equals(other.getDelegation())) return false;
+    }
     if (!getUnknownFields().equals(other.getUnknownFields())) return false;
     return true;
   }
@@ -920,6 +976,10 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
     }
     hash = (37 * hash) + TRACEPARENT_FIELD_NUMBER;
     hash = (53 * hash) + getTraceparent().hashCode();
+    if (hasDelegation()) {
+      hash = (37 * hash) + DELEGATION_FIELD_NUMBER;
+      hash = (53 * hash) + getDelegation().hashCode();
+    }
     hash = (29 * hash) + getUnknownFields().hashCode();
     memoizedHashCode = hash;
     return hash;
@@ -1079,6 +1139,7 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       if (com.google.protobuf.GeneratedMessage
               .alwaysUseFieldBuilders) {
         internalGetEventTimeFieldBuilder();
+        internalGetDelegationFieldBuilder();
       }
     }
     @java.lang.Override
@@ -1105,6 +1166,11 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       }
       internalGetMutableAttributes().clear();
       traceparent_ = "";
+      delegation_ = null;
+      if (delegationBuilder_ != null) {
+        delegationBuilder_.dispose();
+        delegationBuilder_ = null;
+      }
       return this;
     }
 
@@ -1190,6 +1256,12 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       if (((from_bitField0_ & 0x00008000) != 0)) {
         result.traceparent_ = traceparent_;
       }
+      if (((from_bitField0_ & 0x00010000) != 0)) {
+        result.delegation_ = delegationBuilder_ == null
+            ? delegation_
+            : delegationBuilder_.build();
+        to_bitField0_ |= 0x00000002;
+      }
       result.bitField0_ |= to_bitField0_;
     }
 
@@ -1274,6 +1346,9 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
         traceparent_ = other.traceparent_;
         bitField0_ |= 0x00008000;
         onChanged();
+      }
+      if (other.hasDelegation()) {
+        mergeDelegation(other.getDelegation());
       }
       this.mergeUnknownFields(other.getUnknownFields());
       onChanged();
@@ -1387,6 +1462,13 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
               bitField0_ |= 0x00008000;
               break;
             } // case 130
+            case 138: {
+              input.readMessage(
+                  internalGetDelegationFieldBuilder().getBuilder(),
+                  extensionRegistry);
+              bitField0_ |= 0x00010000;
+              break;
+            } // case 138
             default: {
               if (!super.parseUnknownField(input, extensionRegistry, tag)) {
                 done = true; // was an endgroup tag
@@ -2685,6 +2767,181 @@ com.rtdp.proto.v1.TypedValue defaultValue) {
       bitField0_ |= 0x00008000;
       onChanged();
       return this;
+    }
+
+    private com.rtdp.proto.agent.v1.DelegationChain delegation_;
+    private com.google.protobuf.SingleFieldBuilder<
+        com.rtdp.proto.agent.v1.DelegationChain, com.rtdp.proto.agent.v1.DelegationChain.Builder, com.rtdp.proto.agent.v1.DelegationChainOrBuilder> delegationBuilder_;
+    /**
+     * <pre>
+     * ADR-013: verified delegation chain, attached at ingress after
+     * signature/expiry/revocation/depth checks. Absent for legacy
+     * service callers, which continue to act as their own principal.
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+     * @return Whether the delegation field is set.
+     */
+    public boolean hasDelegation() {
+      return ((bitField0_ & 0x00010000) != 0);
+    }
+    /**
+     * <pre>
+     * ADR-013: verified delegation chain, attached at ingress after
+     * signature/expiry/revocation/depth checks. Absent for legacy
+     * service callers, which continue to act as their own principal.
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+     * @return The delegation.
+     */
+    public com.rtdp.proto.agent.v1.DelegationChain getDelegation() {
+      if (delegationBuilder_ == null) {
+        return delegation_ == null ? com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance() : delegation_;
+      } else {
+        return delegationBuilder_.getMessage();
+      }
+    }
+    /**
+     * <pre>
+     * ADR-013: verified delegation chain, attached at ingress after
+     * signature/expiry/revocation/depth checks. Absent for legacy
+     * service callers, which continue to act as their own principal.
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+     */
+    public Builder setDelegation(com.rtdp.proto.agent.v1.DelegationChain value) {
+      if (delegationBuilder_ == null) {
+        if (value == null) {
+          throw new NullPointerException();
+        }
+        delegation_ = value;
+      } else {
+        delegationBuilder_.setMessage(value);
+      }
+      bitField0_ |= 0x00010000;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013: verified delegation chain, attached at ingress after
+     * signature/expiry/revocation/depth checks. Absent for legacy
+     * service callers, which continue to act as their own principal.
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+     */
+    public Builder setDelegation(
+        com.rtdp.proto.agent.v1.DelegationChain.Builder builderForValue) {
+      if (delegationBuilder_ == null) {
+        delegation_ = builderForValue.build();
+      } else {
+        delegationBuilder_.setMessage(builderForValue.build());
+      }
+      bitField0_ |= 0x00010000;
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013: verified delegation chain, attached at ingress after
+     * signature/expiry/revocation/depth checks. Absent for legacy
+     * service callers, which continue to act as their own principal.
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+     */
+    public Builder mergeDelegation(com.rtdp.proto.agent.v1.DelegationChain value) {
+      if (delegationBuilder_ == null) {
+        if (((bitField0_ & 0x00010000) != 0) &&
+          delegation_ != null &&
+          delegation_ != com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance()) {
+          getDelegationBuilder().mergeFrom(value);
+        } else {
+          delegation_ = value;
+        }
+      } else {
+        delegationBuilder_.mergeFrom(value);
+      }
+      if (delegation_ != null) {
+        bitField0_ |= 0x00010000;
+        onChanged();
+      }
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013: verified delegation chain, attached at ingress after
+     * signature/expiry/revocation/depth checks. Absent for legacy
+     * service callers, which continue to act as their own principal.
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+     */
+    public Builder clearDelegation() {
+      bitField0_ = (bitField0_ & ~0x00010000);
+      delegation_ = null;
+      if (delegationBuilder_ != null) {
+        delegationBuilder_.dispose();
+        delegationBuilder_ = null;
+      }
+      onChanged();
+      return this;
+    }
+    /**
+     * <pre>
+     * ADR-013: verified delegation chain, attached at ingress after
+     * signature/expiry/revocation/depth checks. Absent for legacy
+     * service callers, which continue to act as their own principal.
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+     */
+    public com.rtdp.proto.agent.v1.DelegationChain.Builder getDelegationBuilder() {
+      bitField0_ |= 0x00010000;
+      onChanged();
+      return internalGetDelegationFieldBuilder().getBuilder();
+    }
+    /**
+     * <pre>
+     * ADR-013: verified delegation chain, attached at ingress after
+     * signature/expiry/revocation/depth checks. Absent for legacy
+     * service callers, which continue to act as their own principal.
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+     */
+    public com.rtdp.proto.agent.v1.DelegationChainOrBuilder getDelegationOrBuilder() {
+      if (delegationBuilder_ != null) {
+        return delegationBuilder_.getMessageOrBuilder();
+      } else {
+        return delegation_ == null ?
+            com.rtdp.proto.agent.v1.DelegationChain.getDefaultInstance() : delegation_;
+      }
+    }
+    /**
+     * <pre>
+     * ADR-013: verified delegation chain, attached at ingress after
+     * signature/expiry/revocation/depth checks. Absent for legacy
+     * service callers, which continue to act as their own principal.
+     * </pre>
+     *
+     * <code>.rtdp.agent.v1.DelegationChain delegation = 17 [json_name = "delegation"];</code>
+     */
+    private com.google.protobuf.SingleFieldBuilder<
+        com.rtdp.proto.agent.v1.DelegationChain, com.rtdp.proto.agent.v1.DelegationChain.Builder, com.rtdp.proto.agent.v1.DelegationChainOrBuilder> 
+        internalGetDelegationFieldBuilder() {
+      if (delegationBuilder_ == null) {
+        delegationBuilder_ = new com.google.protobuf.SingleFieldBuilder<
+            com.rtdp.proto.agent.v1.DelegationChain, com.rtdp.proto.agent.v1.DelegationChain.Builder, com.rtdp.proto.agent.v1.DelegationChainOrBuilder>(
+                getDelegation(),
+                getParentForChildren(),
+                isClean());
+        delegation_ = null;
+      }
+      return delegationBuilder_;
     }
 
     // @@protoc_insertion_point(builder_scope:rtdp.v1.AuthenticatedTransaction)

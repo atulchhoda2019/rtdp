@@ -35,6 +35,16 @@ public enum Decision
    * <code>DECISION_NOT_APPLICABLE = 4;</code>
    */
   DECISION_NOT_APPLICABLE(4),
+  /**
+   * <pre>
+   * ADR-013: delegation chain failed authorisation (revoked grant,
+   * insufficient scope). Edge rejections that never reach the
+   * orchestrator still surface this outcome to the caller.
+   * </pre>
+   *
+   * <code>DECISION_DECLINE_UNAUTHORIZED = 5;</code>
+   */
+  DECISION_DECLINE_UNAUTHORIZED(5),
   UNRECOGNIZED(-1),
   ;
 
@@ -67,6 +77,16 @@ public enum Decision
    * <code>DECISION_NOT_APPLICABLE = 4;</code>
    */
   public static final int DECISION_NOT_APPLICABLE_VALUE = 4;
+  /**
+   * <pre>
+   * ADR-013: delegation chain failed authorisation (revoked grant,
+   * insufficient scope). Edge rejections that never reach the
+   * orchestrator still surface this outcome to the caller.
+   * </pre>
+   *
+   * <code>DECISION_DECLINE_UNAUTHORIZED = 5;</code>
+   */
+  public static final int DECISION_DECLINE_UNAUTHORIZED_VALUE = 5;
 
 
   public final int getNumber() {
@@ -98,6 +118,7 @@ public enum Decision
       case 2: return DECISION_DECLINE;
       case 3: return DECISION_REVIEW;
       case 4: return DECISION_NOT_APPLICABLE;
+      case 5: return DECISION_DECLINE_UNAUTHORIZED;
       default: return null;
     }
   }

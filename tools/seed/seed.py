@@ -393,6 +393,101 @@ def warm_inference(model_id: str, meta: dict):
     print(f"inference warm: {model_id} {resp.model_digest}")
 
 
+REGISTRY = os.environ.get("RTDP_AGENT_REGISTRY", "http://localhost:8090")
+
+# ADR-013 seed: demo agents + grants. Agents registered under both demo
+# tenants; scopes are the union the chain must carry. `benefits-agent-1`
+# is the participant's agent for the ABC product (agentic benefits
+# change); `guest-agent-g` + `hotel-ops-dot` seed AHS (hotel stay);
+# `sub-agent-a/b` exist so tests can mint depth>2 chains without extra
+# fixtures.
+AGENTS = [
+    {"tenant_id": "tenant_a", "agent_id": "guest-agent-g",
+     "kind": "CUSTOMER", "display_name": "Guest G's travel agent",
+     "version": "1.0.0", "allowed_scopes": ["decide", "reservations"]},
+    {"tenant_id": "tenant_a", "agent_id": "hotel-ops-dot",
+     "kind": "PLATFORM", "display_name": "Hotel property ops agent",
+     "version": "1.0.0", "allowed_scopes": ["decide", "reservations", "pms"]},
+    {"tenant_id": "tenant_a", "agent_id": "benefits-agent-1",
+     "kind": "CUSTOMER", "display_name": "Participant's benefits agent",
+     "version": "1.0.0", "allowed_scopes": ["decide", "benefits"]},
+    {"tenant_id": "tenant_a", "agent_id": "sub-agent-a",
+     "kind": "PLATFORM", "display_name": "Guest agent sub-agent A",
+     "version": "1.0.0", "allowed_scopes": ["decide", "reservations"]},
+    {"tenant_id": "tenant_a", "agent_id": "sub-agent-b",
+     "kind": "PLATFORM", "display_name": "Sub-agent B (depth fixture)",
+     "version": "1.0.0", "allowed_scopes": ["decide", "reservations"]},
+]
+
+# (principal_kind, principal_id, agent_id, scopes). The participant agent
+# gets `benefits` scope — enough for contribution_change once
+# required_scope lands on the product; the hotel agents get
+# `reservations`/`pms` for AHS.
+GRANTS = [
+    ("PERSON", "guest-g", "guest-agent-g", ["decide", "reservations"]),
+    ("PERSON", "guest-g", "sub-agent-a", ["decide", "reservations"]),
+    ("PERSON", "guest-g", "sub-agent-b", ["decide", "reservations"]),
+    ("ORG", "hotel-h", "hotel-ops-dot",
+     ["decide", "reservations", "pms"]),
+    ("PERSON", "participant-p", "benefits-agent-1",
+     ["decide", "benefits"]),
+]
+
+
+def _post(path: str, body: dict):
+    req = urllib.request.Request(
+        REGISTRY + path, data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"}, method="POST")
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return json.loads(r.read())
+
+
+def _put(path: str, body: dict):
+    req = urllib.request.Request(
+        REGISTRY + path, data=json.dumps(body).encode(),
+        headers={"Content-Type": "application/json"}, method="PUT")
+    with urllib.request.urlopen(req, timeout=10) as r:
+        return json.loads(r.read())
+
+
+def seed_agents():
+    """ADR-013: apply the agent schema and register demo agents/grants.
+    The registry is a runtime component (not part of the pinned bundle)
+    so seeding is additive and safe to re-run."""
+    # initdb.d only runs on a fresh volume — apply idempotently so seed
+    # works on an existing stack too.
+    mig = ROOT / "services/control-plane/migrations/002_agent.sql"
+    if AWS_MODE:
+        # AWS applies schema via the rtdp-migrate PostSync job on every
+        # ArgoCD sync; by seed time 002_agent is already in place.
+        pass
+    else:
+        sh(["docker", "compose", "exec", "-T", "postgres", "psql", "-U",
+            "rtdp", "-d", "rtdp"], input=mig.read_text())
+    # wait for the registry to come up (first boot: image build)
+    for attempt in range(60):
+        try:
+            with urllib.request.urlopen(REGISTRY + "/healthz",
+                                        timeout=2):
+                break
+        except Exception:
+            if attempt == 59:
+                raise
+            time.sleep(2)
+    for tenant in ("tenant_a", "tenant_b"):
+        _put(f"/v1/tenants/{tenant}/config",
+             {"max_chain_depth": 2})
+    for a in AGENTS:
+        _post("/v1/agents", a)
+    for pk, pid, agent, scopes in GRANTS:
+        g = _post("/v1/grants", {
+            "principal_id": pid,
+            "agent_id": agent, "scopes": scopes,
+            "purpose": "demo", "ttl_hours": 30 * 24})
+        print(f"agent grant: {pid} -> {agent} = {g['grant_id'][:8]}…")
+    print("agents seeded")
+
+
 def warm_pipeline():
     """Warm the decision path per tenant: gRPC pools, Redis connections, and
     the CEL engine cache are all cold on a fresh stack and would otherwise
@@ -449,6 +544,7 @@ def main():
     activations = compile_tenants()
     sync_bundles()
     submit_flink()
+    seed_agents()
     for model_id, meta in metas.items():
         warm_inference(model_id, meta)
     for slm_meta in slm_metas:

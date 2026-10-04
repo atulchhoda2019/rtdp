@@ -25,7 +25,7 @@ spec:
         - name: migrate
           image: {{ .Values.bootstrap.toolsImage | quote }}
           imagePullPolicy: IfNotPresent
-          command: ["sh", "-c", "psql \"$RTDP_POSTGRES_DSN\" -v ON_ERROR_STOP=1 -f /app/migrations/001_init.sql"]
+          command: ["sh", "-c", "for f in /app/migrations/*.sql; do echo \"applying $f\"; psql \"$RTDP_POSTGRES_DSN\" -v ON_ERROR_STOP=1 -f \"$f\"; done"]
           envFrom:
             - secretRef: { name: rtdp-db }
           resources:
