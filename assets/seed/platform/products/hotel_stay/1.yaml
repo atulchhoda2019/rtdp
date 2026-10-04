@@ -1,0 +1,29 @@
+# Platform-owned product definition. Synthetic demo configuration only.
+# Agentic hotel stay (RTDP v2.2 AHS demo) — rules-only product: room
+# assignment, environment and housekeeping actions behind the agent
+# gateway's mutating tools (ADR-015).
+product_id: hotel_stay
+version: 1
+owner_scope: platform
+runtime_profile: decisioning
+routing:
+  event_types: [RESERVATION_CREATED, ROOM_PREP]
+  channels: [PORTAL, BROKER]
+execution:
+  total_deadline_ms: 100
+  required_features:
+    - claimant_claim_count_1h@1
+    - claimant_amount_sum_24h@1
+  ruleset: hotel_policy@1
+  missing_required_signal: APPROVE
+  aggregation: decision_precedence@1
+thresholds:
+  vip_floor: 10            # floors above this need elevated review
+  auto_assign_floor: 8     # T1: ASSIGN_ROOM completes alone at/below
+# ADR-013: delegated hotel calls carry the `reservations` scope.
+required_scope: reservations
+action_policy: hotel_actions@1
+rollout:
+  mode: LIVE
+  cohort: champion
+ruleset_id: hotel_policy

@@ -1,0 +1,89 @@
+# Agent-gateway tool surface (ADR-015). Every entry is config — adding or
+# reshaping a tool never rebuilds the service. kind: read = synthetic
+# read-only backend; decide = routed through /v1/decide (mutating tools
+# have no other path); proxy = forwarded to a governed internal service.
+version: 1
+defaults:
+  calls_per_minute: 30
+  concurrent: 4
+  deadline_ms: 20000
+tools:
+  decide:
+    kind: decide
+    backend: rtdp
+    required_scope: decide
+    description: Submit a decision request through the governed door.
+  reservations.lookup:
+    kind: read
+    backend: reservations
+    required_scope: reservations
+    data_class: INTERNAL
+    # scope -> visibility: `own` filters rows to the caller principal,
+    # `all` returns the full synthetic set.
+    scope_visibility:
+      reservations: own
+      reservations_admin: all
+    fields_employee: [reservation_id, guest_id, room_type, floor,
+                      status, rate_code]
+    fields_customer: [reservation_id, room_type, status]
+  reservations.create:
+    kind: decide
+    backend: rtdp
+    required_scope: reservations
+    event_type: RESERVATION_CREATED
+    product_action: CREATE_RESERVATION
+  crm.profile.read:
+    kind: read
+    backend: crm
+    required_scope: profile_read
+    data_class: PII
+    purpose: PREPARE_STAY
+    # profile_read is an employee capability — holders may read any
+    # guest profile; without it the tool isn't even listed.
+    scope_visibility:
+      profile_read: all
+    # ADR-016 read grant preview: only these fields ever leave the door.
+    fields: [preferences, tier]
+  pms.room.assign:
+    kind: decide
+    backend: rtdp
+    required_scope: pms
+    event_type: ROOM_PREP
+    product_action: ASSIGN_ROOM
+  bms.hvac.set:
+    kind: decide
+    backend: rtdp
+    required_scope: building_ops
+    event_type: ROOM_PREP
+    product_action: SET_ROOM_HVAC
+  housekeeping.task.add:
+    kind: decide
+    backend: rtdp
+    required_scope: housekeeping
+    event_type: ROOM_PREP
+    product_action: HOUSEKEEPING_ADD
+  benefits.participant.read:
+    kind: read
+    backend: benefits
+    required_scope: benefits
+    data_class: PII
+    purpose: MANAGE_MY_BENEFITS
+    fields: [plan_id, coverage_tier, hsa_balance]   # PHI never listed
+  benefits.contribution.change:
+    kind: decide
+    backend: rtdp
+    required_scope: benefits
+    event_type: CONTRIBUTION_CHANGE
+    product_action: APPLY_CONTRIBUTION_CHANGE
+  approvals.list:
+    kind: proxy
+    backend: approvals
+    required_scope: approve
+    proxy_endpoint: GET /v1/approvals/pending
+    human_only: true
+  approvals.decide:
+    kind: proxy
+    backend: approvals
+    required_scope: approve
+    proxy_endpoint: POST /v1/approvals/{decision_id}
+    human_only: true

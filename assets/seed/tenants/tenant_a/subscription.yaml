@@ -35,4 +35,9 @@ subscriptions:
     product: receipt_claim@1
     revision: 1
     status: ACTIVE
+  # Agentic hotel stay (RTDP v2.2 AHS demo) — config only.
+  - subscription_id: sub_a_hotel
+    product: hotel_stay@1
+    revision: 1
+    status: ACTIVE
 overlays: []

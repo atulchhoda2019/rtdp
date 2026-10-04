@@ -313,6 +313,16 @@ func main() {
 			g.TTLHours = 24 * 30
 		}
 		gid := "gr-" + uuid.NewString()
+		// One live grant per principal→agent: superseding a grant
+		// revokes the old ones so minted links stay deterministically
+		// bound to a single grant id for revocation.
+		if _, err := db.Exec(r.Context(),
+			`UPDATE agent_grant SET revoked_at=now()
+			 WHERE principal_id=$1 AND agent_id=$2 AND revoked_at IS NULL`,
+			g.PrincipalID, g.AgentID); err != nil {
+			errJSON(w, 500, err.Error())
+			return
+		}
 		_, err := db.Exec(r.Context(),
 			`INSERT INTO agent_grant (grant_id, principal_id, agent_id,
 			   scopes, purpose, not_after)

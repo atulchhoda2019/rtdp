@@ -295,6 +295,32 @@ services:
     ports:
       - "8095:8095"
 
+  agent-gateway:
+    build:
+      context: .
+      dockerfile: services/agent-gateway/Dockerfile
+    environment:
+      <<: *common-env
+      RTDP_GATEWAY_PORT: "8096"
+      RTDP_INGRESS_ADDR: http://ingress:8080
+      RTDP_AGENT_REGISTRY_ADDR: http://agent-registry:8090
+      RTDP_APPROVAL_ADDR: http://approval-service:8095
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      kafka:
+        condition: service_healthy
+      agent-registry:
+        condition: service_started
+      ingress:
+        condition: service_started
+      approval-service:
+        condition: service_started
+    ports:
+      - "8096:8096"
+
   ingress:
     build:
       context: .

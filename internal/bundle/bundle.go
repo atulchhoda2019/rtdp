@@ -178,7 +178,11 @@ type AutonomyTier struct {
 
 // ActionAutonomy is per-action approval metadata (ADR-014).
 type ActionAutonomy struct {
-	Tier                string   `json:"tier"` // T0|T1|T2 (default T2)
+	Tier string `json:"tier"` // T0|T1|T2 (default T2)
+	// When is an optional CEL over input/cfg/actor — the intent is
+	// emitted only when it evaluates true (ADR-015: several tools
+	// share an outcome; the policy picks the right action).
+	When                string   `json:"when"`
 	Approvers           []string `json:"approvers"`
 	EscalationApprovers []string `json:"escalation_approvers"`
 	SlaMinutes          int64    `json:"sla_minutes"`

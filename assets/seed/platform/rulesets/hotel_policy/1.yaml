@@ -1,0 +1,20 @@
+# Platform-owned ruleset. Synthetic demo configuration only.
+# Agentic hotel-stay rules (RTDP v2.2 AHS demo) — attribute-driven, no
+# model signals. Caller attributes arrive under input["attr.<key>"].
+ruleset_id: hotel_policy
+version: 1
+owner_scope: platform
+requires: []
+evaluation: all_match
+rules:
+  # Top-floor requests from non-GOLD guests route to a person.
+  - id: top_floor_vip_only
+    when: '"attr.preferred_floor" in input && double(input["attr.preferred_floor"]) > cfg.vip_floor && (!("attr.guest_tier" in input) || input["attr.guest_tier"] != "GOLD")'
+    outcome: {decision: REVIEW, reason: TOP_FLOOR_REQUIRES_VIP}
+    requires_signals: []
+  # Reservation creation tool call — human review path.
+  - id: create_reservation
+    when: '"attr.requested_action" in input && input["attr.requested_action"] == "CREATE_RESERVATION"'
+    outcome: {decision: REVIEW, reason: RESERVATION_CREATE_REVIEW}
+    requires_signals: []
+default_outcome: APPROVE

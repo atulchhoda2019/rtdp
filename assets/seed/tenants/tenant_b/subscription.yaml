@@ -35,6 +35,10 @@ subscriptions:
     product: receipt_claim@1
     revision: 1
     status: ACTIVE
+  - subscription_id: sub_b_hotel
+    product: hotel_stay@1
+    revision: 1
+    status: ACTIVE
 overlays:
   - overlay_id: ovl_b_decline
     version: 1

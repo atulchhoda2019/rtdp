@@ -54,3 +54,29 @@ message DelegationChain {
   string proof = 3;
   string proof_kid = 4;
 }
+
+// AgentCall is the ledger fact for every governed-door tool call
+// (ADR-015/019). Produced on rtdp.agent.calls.v1 by the gateway and
+// projected to Postgres; the call graph is built from these alone —
+// agents that bypass the gateway are invisible by construction.
+message AgentCall {
+  string call_id = 1;
+  google.protobuf.Timestamp at = 2;
+  string tenant_id = 3;
+  string environment = 4;
+  string task_id = 5;           // gateway task context (ADR-016)
+  string purpose = 6;           // declared task purpose
+  string principal_id = 7;
+  string agent_id = 8;          // terminal chain link
+  string agent_version = 9;
+  int32 chain_depth = 10;
+  string tool = 11;
+  string backend = 12;          // simulated system or "rtdp"
+  // OK | DENIED | THROTTLED | ERROR | PROPOSED | PENDING_APPROVAL
+  string outcome = 13;
+  string decision_id = 14;      // set when routed through /v1/decide
+  int64 latency_ms = 15;
+  int64 cost_units = 16;
+  repeated string classes_read = 17;
+  string detail = 18;           // denial reason / error text (bounded)
+}

@@ -41,6 +41,11 @@ public final class Agent extends com.google.protobuf.GeneratedFile {
   static final 
     com.google.protobuf.GeneratedMessage.FieldAccessorTable
       internal_static_rtdp_agent_v1_DelegationChain_fieldAccessorTable;
+  static final com.google.protobuf.Descriptors.Descriptor
+    internal_static_rtdp_agent_v1_AgentCall_descriptor;
+  static final 
+    com.google.protobuf.GeneratedMessage.FieldAccessorTable
+      internal_static_rtdp_agent_v1_AgentCall_fieldAccessorTable;
 
   public static com.google.protobuf.Descriptors.FileDescriptor
       getDescriptor() {
@@ -68,9 +73,23 @@ public final class Agent extends com.google.protobuf.GeneratedFile {
       " \001(\0132\030.rtdp.agent.v1.PrincipalR\tprincipa" +
       "l\0223\n\005links\030\002 \003(\0132\035.rtdp.agent.v1.Delegat" +
       "ionLinkR\005links\022\024\n\005proof\030\003 \001(\tR\005proof\022\033\n\t" +
-      "proof_kid\030\004 \001(\tR\010proofKidBN\n\027com.rtdp.pr" +
-      "oto.agent.v1P\001Z1github.com/rtdp/rtdp/gen" +
-      "/go/rtdp/agent/v1;agentv1b\006proto3"
+      "proof_kid\030\004 \001(\tR\010proofKid\"\250\004\n\tAgentCall\022" +
+      "\027\n\007call_id\030\001 \001(\tR\006callId\022*\n\002at\030\002 \001(\0132\032.g" +
+      "oogle.protobuf.TimestampR\002at\022\033\n\ttenant_i" +
+      "d\030\003 \001(\tR\010tenantId\022 \n\013environment\030\004 \001(\tR\013" +
+      "environment\022\027\n\007task_id\030\005 \001(\tR\006taskId\022\030\n\007" +
+      "purpose\030\006 \001(\tR\007purpose\022!\n\014principal_id\030\007" +
+      " \001(\tR\013principalId\022\031\n\010agent_id\030\010 \001(\tR\007age" +
+      "ntId\022#\n\ragent_version\030\t \001(\tR\014agentVersio" +
+      "n\022\037\n\013chain_depth\030\n \001(\005R\nchainDepth\022\022\n\004to" +
+      "ol\030\013 \001(\tR\004tool\022\030\n\007backend\030\014 \001(\tR\007backend" +
+      "\022\030\n\007outcome\030\r \001(\tR\007outcome\022\037\n\013decision_i" +
+      "d\030\016 \001(\tR\ndecisionId\022\035\n\nlatency_ms\030\017 \001(\003R" +
+      "\tlatencyMs\022\035\n\ncost_units\030\020 \001(\003R\tcostUnit" +
+      "s\022!\n\014classes_read\030\021 \003(\tR\013classesRead\022\026\n\006" +
+      "detail\030\022 \001(\tR\006detailBN\n\027com.rtdp.proto.a" +
+      "gent.v1P\001Z1github.com/rtdp/rtdp/gen/go/r" +
+      "tdp/agent/v1;agentv1b\006proto3"
     };
     descriptor = com.google.protobuf.Descriptors.FileDescriptor
       .internalBuildGeneratedFileFrom(descriptorData,
@@ -95,6 +114,12 @@ public final class Agent extends com.google.protobuf.GeneratedFile {
       com.google.protobuf.GeneratedMessage.FieldAccessorTable(
         internal_static_rtdp_agent_v1_DelegationChain_descriptor,
         new java.lang.String[] { "Principal", "Links", "Proof", "ProofKid", });
+    internal_static_rtdp_agent_v1_AgentCall_descriptor =
+      getDescriptor().getMessageType(3);
+    internal_static_rtdp_agent_v1_AgentCall_fieldAccessorTable = new
+      com.google.protobuf.GeneratedMessage.FieldAccessorTable(
+        internal_static_rtdp_agent_v1_AgentCall_descriptor,
+        new java.lang.String[] { "CallId", "At", "TenantId", "Environment", "TaskId", "Purpose", "PrincipalId", "AgentId", "AgentVersion", "ChainDepth", "Tool", "Backend", "Outcome", "DecisionId", "LatencyMs", "CostUnits", "ClassesRead", "Detail", });
     descriptor.resolveAllFeaturesImmutable();
     com.google.protobuf.TimestampProto.getDescriptor();
   }

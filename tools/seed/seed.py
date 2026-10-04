@@ -96,6 +96,8 @@ PRODUCTS = {
     "hsa_reimbursement": ROOT / "assets/seed/platform/products/hsa_reimbursement/1.yaml",
     "contribution_change": ROOT / "assets/seed/platform/products/contribution_change/1.yaml",
     "receipt_claim": ROOT / "assets/seed/platform/products/receipt_claim/1.yaml",
+    # Agentic hotel stay — agentic gateway demo product (ADR-015).
+    "hotel_stay": ROOT / "assets/seed/platform/products/hotel_stay/1.yaml",
 }
 # Challenger product revision — compiled and activated under cohort
 # "shadow" for tenant_a (BUC-5). Runtime activation lookup matches on
@@ -407,7 +409,10 @@ AGENTS = [
      "version": "1.0.0", "allowed_scopes": ["decide", "reservations"]},
     {"tenant_id": "tenant_a", "agent_id": "hotel-ops-dot",
      "kind": "PLATFORM", "display_name": "Hotel property ops agent",
-     "version": "1.0.0", "allowed_scopes": ["decide", "reservations", "pms"]},
+     "version": "1.0.0",
+     "allowed_scopes": ["decide", "reservations", "reservations_admin",
+                       "pms", "building_ops", "housekeeping",
+                       "profile_read", "approve"]},
     {"tenant_id": "tenant_a", "agent_id": "benefits-agent-1",
      "kind": "CUSTOMER", "display_name": "Participant's benefits agent",
      "version": "1.0.0", "max_autonomy": "T1",
@@ -434,7 +439,8 @@ GRANTS = [
     ("PERSON", "guest-g", "sub-agent-a", ["decide", "reservations"]),
     ("PERSON", "guest-g", "sub-agent-b", ["decide", "reservations"]),
     ("ORG", "hotel-h", "hotel-ops-dot",
-     ["decide", "reservations", "pms"]),
+     ["decide", "reservations", "reservations_admin", "pms",
+      "building_ops", "housekeeping", "profile_read", "approve"]),
     ("PERSON", "participant-p", "benefits-agent-1",
      ["decide", "benefits"]),
     ("PERSON", "participant-p", "benefits-admin-2",

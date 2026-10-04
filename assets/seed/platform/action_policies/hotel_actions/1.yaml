@@ -1,0 +1,60 @@
+action_policy_id: hotel_actions
+version: 1
+owner_scope: platform
+# ADR-014: accountable human for this policy version.
+owner:
+  role: "Director of Hotel Operations"
+  identity: hotel_actions.owner@rtdp-synthetic.test
+allowed_actions: [CREATE_RESERVATION, ASSIGN_ROOM, SET_ROOM_HVAC,
+                  HOUSEKEEPING_ADD, RELEASE_ROOM]
+adapters:
+  # Synthetic hotel systems-of-record; the sink acknowledges and logs.
+  CREATE_RESERVATION: local_notify_sink@1
+  ASSIGN_ROOM: local_notify_sink@1
+  SET_ROOM_HVAC: local_notify_sink@1
+  HOUSEKEEPING_ADD: local_notify_sink@1
+  RELEASE_ROOM: local_notify_sink@1
+authoritative_decision_domain: hotel_stay
+action_rules:
+  CREATE_RESERVATION: [APPROVE]
+  ASSIGN_ROOM: [APPROVE]
+  SET_ROOM_HVAC: [APPROVE]
+  HOUSEKEEPING_ADD: [APPROVE]
+  RELEASE_ROOM: [REVIEW]
+# ADR-014 autonomy: room assignment is conditional T1 — it may complete
+# alone only at/below the auto-assign floor; environment and task adds
+# are T2; releasing a held room is T0 once arbitration lands (ADR-017).
+autonomy_tiers:
+  T0:
+    completes_alone: false
+  T1:
+    completes_alone: true
+    conditions:
+      - "double(input.attr.preferred_floor) <= cfg.auto_assign_floor"
+  T2:
+    completes_alone: true
+actions:
+  # `when` selects which intent an outcome emits — several gateway
+  # tools share APPROVE/REVIEW outcomes (ADR-015). The gateway injects
+  # attr.requested_action; an absent key fails closed (no intent).
+  CREATE_RESERVATION:
+    tier: T2
+    when: "input.attr.requested_action == 'CREATE_RESERVATION'"
+  ASSIGN_ROOM:
+    tier: T1
+    when: "input.attr.requested_action == 'ASSIGN_ROOM'"
+    approvers: ["role:front_desk_manager"]
+    sla_minutes: 30
+    on_sla_breach: EXPIRE
+  SET_ROOM_HVAC:
+    tier: T2
+    when: "input.attr.requested_action == 'SET_ROOM_HVAC'"
+  HOUSEKEEPING_ADD:
+    tier: T2
+    when: "input.attr.requested_action == 'HOUSEKEEPING_ADD'"
+  RELEASE_ROOM:
+    tier: T0
+    when: "input.attr.requested_action == 'RELEASE_ROOM'"
+    approvers: ["role:front_desk_manager"]
+    sla_minutes: 60
+    on_sla_breach: EXPIRE

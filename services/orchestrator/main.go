@@ -386,6 +386,12 @@ func (s *server) Decide(ctx context.Context,
 		if m.ActionPolicy != nil {
 			pol := m.ActionPolicy.Spec
 			for _, at := range allowedFor(res.Outcome.String(), pol) {
+				// ADR-015: several gateway tools share an outcome —
+				// the action's `when` selector picks the right intent.
+				if !actionApplies(at, pol, req.Amount, cfg,
+					ruleInput, actorMap) {
+					continue
+				}
 				key := fmt.Sprintf("%s:%s:%s:%d:%s:%s", req.TenantId, req.Environment,
 					res.DecisionId, res.DecisionGeneration, at, req.ProviderId)
 				ai := &rtdpv1.ActionIntent{
@@ -585,21 +591,53 @@ func completesAlone(actionType string, chain *agentv1.DelegationChain,
 	if !tier.CompletesAlone {
 		return false
 	}
-	vars := map[string]any{
-		"features": map[string]any{},
-		"signals":  map[string]any{},
-		"cfg":      nestFlat(anyMap(cfg)),
-		"input":    map[string]any{"amount": amount, "attrs": anyMap(input)},
-		"actor":    nestFlat(anyMap(actor)),
-		"timer":    map[string]any{},
-	}
 	for _, cond := range tier.Conditions {
-		ok, err := ruleseng.EvalCondition(cond, vars)
+		ok, err := ruleseng.EvalCondition(cond,
+			condVars(amount, cfg, input, actor))
 		if err != nil || !ok {
 			return false // fail closed: a broken condition holds for review
 		}
 	}
 	return true
+}
+
+// condVars builds the shared CEL scope for policy conditions —
+// input.attr.* / input.txn.* resolve through the nested rule-input
+// map, same names rules see.
+func condVars(amount float64, cfg, input,
+	actor map[string]*rtdpv1.TypedValue) map[string]any {
+	nestedIn := nestFlat(anyMap(input))
+	inVars := map[string]any{"amount": amount}
+	if a, ok := nestedIn["attr"]; ok {
+		inVars["attr"] = a
+	}
+	if t, ok := nestedIn["txn"]; ok {
+		inVars["txn"] = t
+	}
+	return map[string]any{
+		"features": map[string]any{},
+		"signals":  map[string]any{},
+		"cfg":      nestFlat(anyMap(cfg)),
+		"input":    inVars,
+		"actor":    nestFlat(anyMap(actor)),
+		"timer":    map[string]any{},
+	}
+}
+
+// actionApplies evaluates the action's optional `when` selector — the
+// intent is emitted only when it is absent or evaluates true. An
+// unevaluable selector fails closed (no intent) so a misconfigured
+// policy cannot emit the wrong action.
+func actionApplies(actionType string, pol bundle.ActionPolicySpec,
+	amount float64, cfg, input,
+	actor map[string]*rtdpv1.TypedValue) bool {
+	aa, ok := pol.Actions[actionType]
+	if !ok || aa.When == "" {
+		return true
+	}
+	ok, err := ruleseng.EvalCondition(aa.When,
+		condVars(amount, cfg, input, actor))
+	return err == nil && ok
 }
 
 // slaFor resolves an action's approval window: sla_minutes +

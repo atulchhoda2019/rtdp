@@ -69,13 +69,15 @@ const (
 	TopicDLQ            = "rtdp.dlq.v1"
 	// ADR-014: held-intent releases and the approval ledger.
 	TopicApprovalEvents = "rtdp.approval.events.v1"
+	// ADR-015/019: governed-door call facts.
+	TopicAgentCalls = "rtdp.agent.calls.v1"
 )
 
 var AllTopics = []string{
 	TopicIngress, TopicEgress, TopicFeatureContrib, TopicFeatureUpdates,
 	TopicFeatureLate, TopicDecisionFacts, TopicActionCommands,
 	TopicActionStatus, TopicControlActiv, TopicTelemetry, TopicDLQ,
-	TopicApprovalEvents,
+	TopicApprovalEvents, TopicAgentCalls,
 }
 
 // NewTransacter returns a client configured for the orchestrator's durable
