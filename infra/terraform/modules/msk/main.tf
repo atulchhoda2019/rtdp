@@ -8,7 +8,7 @@ variable "cluster_name" {
 }
 variable "kafka_version" {
   type    = string
-  default = "3.7.x"
+  default = "3.9.x"
 }
 variable "vpc_id" { type = string }
 variable "subnet_ids" { type = list(string) } # data subnets
@@ -83,7 +83,10 @@ resource "aws_msk_cluster" "this" {
 }
 
 resource "aws_msk_configuration" "this" {
-  name              = "rtdp-sandbox-cfg"
+  # Version in the name + create_before_destroy: MSK refuses to delete a
+  # configuration that a cluster still references, so the new revision-set
+  # must exist before the old one is detached and destroyed.
+  name              = "rtdp-sandbox-cfg-${replace(var.kafka_version, ".", "-")}"
   kafka_versions    = [var.kafka_version]
   server_properties = <<-EOF
     auto.create.topics.enable=false
@@ -92,6 +95,10 @@ resource "aws_msk_configuration" "this" {
     transactional.id.expiration.ms=604800000
     log.retention.hours=168
   EOF
+
+  lifecycle {
+    create_before_destroy = true
+  }
 }
 
 resource "aws_cloudwatch_log_group" "msk" {
