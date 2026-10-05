@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: ingress
+  name: approval-service
   namespace: argocd
 spec:
   project: rtdp
@@ -14,19 +14,14 @@ spec:
           - $values/deploy/argocd/values/sandbox.yaml
         values: |
           image:
-            repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/ingress
-            digest: "sha256:6359a4898868e1b6a53aa8977eaf3481c6c9d65c51a9949ded88686baa083700"
+            repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/approval-service
+            digest: "sha256:24270f53bc15815244f39b4a0bf17f395a8b6030ab5e4603d46c93a3a90e8505"
           service:
-            port: 8080
-            # service.public (NLB) is intentionally unset: the permission
-            # boundary denies iam:CreateServiceLinkedRole, so no ELB can be
-            # provisioned in this account. Demo access = port-forward or a
-            # local tunnel (cloudflared/ngrok) on top of it.
+            port: 8095
           probe:
             httpPath: /healthz
-          env:
-            RTDP_ORCHESTRATOR_ADDR: orchestrator.rtdp.svc.cluster.local:50055
-            RTDP_DECIDE_TIMEOUT_MS: "35000" # bound only; product deadline governs
+          envFromSecrets:
+            - name: rtdp-db
 
     - repoURL: https://github.com/atulchhoda2019/rtdp.git
       targetRevision: main

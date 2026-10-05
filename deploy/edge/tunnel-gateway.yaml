@@ -1,0 +1,49 @@
+# Second quick tunnel for the governed agent gateway (ADR-015) so demos can
+# drive MCP/REST tool calls from outside the cluster. Same ephemeral-URL
+# caveat as edge-tunnel: read the URL from pod logs.
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway-tunnel
+  namespace: rtdp
+  labels:
+    app.kubernetes.io/name: gateway-tunnel
+    app.kubernetes.io/part-of: rtdp
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: gateway-tunnel
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: gateway-tunnel
+        app.kubernetes.io/part-of: rtdp
+    spec:
+      nodeSelector:
+        rtdp.io/pool: cpu-inference
+      tolerations:
+        - key: rtdp.io/inference
+          operator: Equal
+          value: cpu
+          effect: NoSchedule
+      containers:
+        - name: cloudflared
+          image: docker.io/cloudflare/cloudflared@sha256:072c067d25ccbe61d46e18f0d0723255f2bb5304f7317caa95b27031520ff92c # 2026.9.3
+          args:
+            - tunnel
+            - --no-autoupdate
+            - --metrics
+            - 0.0.0.0:2000
+            - --url
+            - http://agent-gateway.rtdp.svc.cluster.local:8096
+          ports:
+            - name: metrics
+              containerPort: 2000
+          readinessProbe:
+            tcpSocket: { port: metrics }
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          resources:
+            requests: { cpu: 50m, memory: 64Mi }
+            limits: { cpu: 250m, memory: 128Mi }

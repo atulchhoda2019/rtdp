@@ -51,6 +51,12 @@ locals {
     action-dispatcher    = ["kafka-txn", "pg-connect"]
     projector            = ["kafka-read-decisions", "pg-connect"]
     slm-service          = ["s3-artifacts-read"] # ADR-011: read-only, nothing else
+    # ADR-013/014/015 agentic layer: registry signs JWS + stores grants in
+    # Aurora; approval consumes commands + writes the approval ledger;
+    # gateway records every governed call. None hold s3/activation writes.
+    agent-registry   = ["pg-connect", "valkey"]
+    approval-service = ["kafka-read-decisions", "kafka-write-events", "pg-connect"]
+    agent-gateway    = ["kafka-write-events", "pg-connect", "valkey"]
     # Bootstrap Job identity: topic admin + seed uploads (models, bundles).
     rtdp-bootstrap = ["kafka-admin", "s3-artifacts-write", "s3-bundles-write", "pg-connect"]
     # event-api: no implementation yet — add back when the service exists.

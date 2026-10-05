@@ -12,6 +12,7 @@ variable "repos" {
     "ingress", "orchestrator", "feature-service", "signal-resolver",
     "rules-service", "inference-service", "slm-service",
     "feature-materializer", "action-dispatcher", "projector", "tools",
+    "agent-registry", "approval-service", "agent-gateway",
   ]
 }
 

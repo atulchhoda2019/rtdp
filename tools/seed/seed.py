@@ -132,6 +132,7 @@ TOPICS = [
     "rtdp.decision.facts.v1", "rtdp.action.commands.v1",
     "rtdp.action.status.v1", "rtdp.control.activation.v1",
     "rtdp.telemetry.v1", "rtdp.dlq.v1", "rtdp.approval.events.v1",
+    "rtdp.agent.calls.v1",
 ]
 
 

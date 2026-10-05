@@ -18,7 +18,7 @@ bootstrap:
   auroraSecretArn: "arn:aws:secretsmanager:us-east-1:079457921611:secret:rds!cluster-70877f54-46ff-40c8-83e2-836d391a3557-HVj71f"
   auroraEndpoint: "rtdp-sandbox.cluster-cc7sccyi262s.us-east-1.rds.amazonaws.com"
   databaseName: rtdp
-  toolsImage: "079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/tools@sha256:4f2d826254e1d7ed40501e0e6c537bd3d455e2b3f152e7dfd17569c9cee0dade"                # rtdp-tools image digest (push-images.sh)                # rtdp-tools image digest (push-images.sh)
+  toolsImage: "079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/tools@sha256:dbc1c1875b8c938aa476ed70390cd4172d9421d6eb442666db1cbb074314af7a"                # rtdp-tools image digest (push-images.sh)                # rtdp-tools image digest (push-images.sh)
   kafkaBrokers: "b-1.rtdpsandbox.p0mtht.c19.kafka.us-east-1.amazonaws.com:9098,b-2.rtdpsandbox.p0mtht.c19.kafka.us-east-1.amazonaws.com:9098,b-3.rtdpsandbox.p0mtht.c19.kafka.us-east-1.amazonaws.com:9098"
   bundlesBucket: "rtdp-bundles-079457921611"
   artifactsBucket: "rtdp-artifacts-079457921611"

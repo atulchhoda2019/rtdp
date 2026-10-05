@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/signal-resolver
-            digest: "sha256:4ea6e2101c956b811cf6f21f6f8cafc1b4dee296becef6a27d5ebcada8d3e072"
+            digest: "sha256:2ea29f3dca24eaa18138c98cbeee085abb601a2c2bc89595ce6e5e817c058248"
           service:
             port: 50054
           env:

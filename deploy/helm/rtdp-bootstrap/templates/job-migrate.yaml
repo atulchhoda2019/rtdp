@@ -11,6 +11,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/hook-weight: "-1" # schema before seed
 spec:
   backoffLimit: 3
   ttlSecondsAfterFinished: 3600

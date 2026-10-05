@@ -18,7 +18,7 @@ TAG="git-$(git rev-parse --short HEAD)"
 # name -> dockerfile (bash 3.2 compatible: no assoc arrays)
 SERVICES="ingress orchestrator feature-service signal-resolver rules-service \
 inference-service slm-service feature-materializer action-dispatcher projector \
-tools"
+agent-registry approval-service agent-gateway tools"
 
 dockerfile_for() {
   case "$1" in

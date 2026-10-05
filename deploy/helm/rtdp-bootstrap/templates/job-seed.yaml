@@ -11,6 +11,7 @@ metadata:
   annotations:
     argocd.argoproj.io/hook: PostSync
     argocd.argoproj.io/hook-delete-policy: BeforeHookCreation
+    argocd.argoproj.io/hook-weight: "0" # runs after migrate (-1)
 spec:
   backoffLimit: 2
   ttlSecondsAfterFinished: 3600
@@ -38,6 +39,7 @@ spec:
             - { name: RTDP_OLLAMA_ADDR, value: {{ .Values.bootstrap.ollamaAddr | quote }} }
             - { name: RTDP_INFERENCE_ADDR, value: {{ .Values.bootstrap.inferenceAddr | quote }} }
             - { name: RTDP_SLM_ADDR, value: {{ .Values.bootstrap.slmAddr | quote }} }
+            - { name: RTDP_AGENT_REGISTRY, value: "http://agent-registry.rtdp.svc.cluster.local:8090" }
             - { name: RTDP_INGRESS, value: {{ .Values.bootstrap.ingressAddr | quote }} }
             - { name: AWS_REGION, value: "us-east-1" }
           envFrom:
