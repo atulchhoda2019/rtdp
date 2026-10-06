@@ -150,6 +150,26 @@ A guest token minted for `guest-g`/`guest-agent-g` shows the other side:
 `tools/list` returns only `decide`, `reservations.lookup`,
 `reservations.create` — the ops toolset isn't even visible.
 
+### Act 5c — a real LLM drives the door (the money shot)
+
+```bash
+export ANTHROPIC_API_KEY=...   # or OPENAI_API_KEY, keys stay local
+.venv/bin/python tools/demo/agent_client.py \
+    --provider anthropic --persona ops --mode scenario
+# swap --provider openai to run the same door with a different brain
+# --mode repl for free-form Q&A, --persona guest for the scoped view
+```
+
+A scripted prompt sends the model through the same door: it mints its own
+delegation, lists only what its scopes expose, calls `reservations.lookup`
++ `crm.profile.read`, then attempts `pms.room.assign` — which lands
+`PENDING_APPROVAL`. The wire traffic prints under each call.
+
+> "That was a real model deciding to call tools — not a script. It never
+> sees a credential, only a scoped delegation. Its mutation didn't write
+> anything; it produced a decision that policy holds until a human
+> releases it. Swap Claude for GPT and nothing about the gate changes."
+
 ## Act 6 — it is all tested
 
 ```bash
