@@ -57,10 +57,11 @@ PERSONAS = {
 
 SCENARIOS = {
     "ops": (
-        "Guest guest-g is arriving tonight on reservation res-9001 and "
-        "asked for a high floor — room r-1204 on floor 10 is open. Check "
-        "their reservation, look at their profile preferences, then "
-        "prepare that room assignment. Tell me what happened at each step."
+        "Do these steps, calling the right tool for each: (1) call "
+        "reservations.lookup to confirm guest-g's reservation res-9001; "
+        "(2) call crm.profile.read with guest_id guest-g; (3) call "
+        "pms.room.assign with attributes reservation_id=res-9001, "
+        "room_id=r-1204, preferred_floor=10. Report each result."
     ),
     "guest": (
         "Show me my hotel reservations, then try to read my full guest "
@@ -89,9 +90,13 @@ How the door works:
   verbatim.
 
 Rules for you:
+- ALWAYS act by calling tools — never describe an action as done unless
+  a tools/call returned success for it. Narrating an assignment without
+  calling pms.room.assign accomplishes nothing.
 - Be brief and concrete. After each call, say what the door returned.
 - If a call is held for approval or denied, explain WHY from the
   response and stop — do not retry to route around the gate.
+- Do not make extra tool calls beyond what the task needs.
 - Everything here is synthetic demo data."""
 
 C_BOLD, C_DIM, C_CYAN, C_GREEN, C_YEL, C_RED, C_OFF = (
@@ -215,9 +220,15 @@ def run_anthropic_msgs(client, model, system, api_tools, msgs, do_call):
         msgs.append({"role": "user", "content": tool_results})
 
 
-def run_openai(model, system, tools, first_msg, do_call, repl):
+def run_openai(model, system, tools, first_msg, do_call, repl,
+               base_url=None):
     import openai
-    client = openai.OpenAI()
+    # base_url lets the same loop run against any OpenAI-compatible
+    # endpoint — e.g. the in-cluster Ollama (port-forward :11434/v1)
+    # when provider credits aren't available for the demo.
+    client = openai.OpenAI(base_url=base_url,
+                           api_key=os.environ.get("OPENAI_API_KEY",
+                                                  "ollama"))
     api_tools = [{"type": "function", "function": {
         "name": t["name"].replace(".", "_"),
         "description": t["description"],
@@ -230,7 +241,7 @@ def run_openai(model, system, tools, first_msg, do_call, repl):
     def step():
         resp = client.chat.completions.create(
             model=model, messages=msgs, tools=api_tools,
-            tool_choice="auto")
+            tool_choice="auto", temperature=0.2)
         m = resp.choices[0].message
         msgs.append(m)
         if m.content:
@@ -287,14 +298,17 @@ def main():
                     default="scenario")
     ap.add_argument("--gateway", default=os.environ.get(
         "RTDP_GATEWAY", DEFAULT_GATEWAY))
+    ap.add_argument("--base-url", default=None,
+                    help="OpenAI-compatible endpoint override "
+                         "(e.g. http://localhost:11434/v1 for Ollama)")
     a = ap.parse_args()
 
     persona = PERSONAS[a.persona]
     model = a.model or ("claude-sonnet-4-5" if a.provider == "anthropic"
-                        else "gpt-4o")
+                        else "qwen2.5:1.5b" if a.base_url else "gpt-4o")
     key_var = ("ANTHROPIC_API_KEY" if a.provider == "anthropic"
                else "OPENAI_API_KEY")
-    if not os.environ.get(key_var):
+    if not os.environ.get(key_var) and not a.base_url:
         sys.exit(f"{key_var} not set — export it first (keys stay local)")
 
     print(f"{C_BOLD}agent-client{C_OFF}  provider={a.provider} "
@@ -339,7 +353,8 @@ def main():
     if a.provider == "anthropic":
         run_anthropic(model, system, tools, first, do_call, repl)
     else:
-        run_openai(model, system, tools, first, do_call, repl)
+        run_openai(model, system, tools, first, do_call, repl,
+                   base_url=a.base_url)
 
 
 if __name__ == "__main__":
