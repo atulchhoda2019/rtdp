@@ -15,7 +15,7 @@ spec:
         values: |
           image:
             repository: 079457921611.dkr.ecr.us-east-1.amazonaws.com/rtdp/agent-gateway
-            digest: "sha256:d707729050a8af0528bdb0f561b04360a1d089c12c8add9f7a9032ecf239d231"
+            digest: "sha256:1c1a8b7288813d13de01dbecdf184fe9ba43ed7c5d265a8af017f974f24a65f3"
           service:
             port: 8096
           probe:

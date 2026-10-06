@@ -14,6 +14,7 @@ tools:
     required_scope: decide
     description: Submit a decision request through the governed door.
   reservations.lookup:
+    description: List hotel reservations. No args required. Customer callers see only their own rows; employees see all rows including rate codes.
     kind: read
     backend: reservations
     required_scope: reservations
@@ -27,12 +28,14 @@ tools:
                       status, rate_code]
     fields_customer: [reservation_id, room_type, status]
   reservations.create:
+    description: Create a hotel reservation. Routed through policy; may be held for human review. Pass reservation details in attributes.
     kind: decide
     backend: rtdp
     required_scope: reservations
     event_type: RESERVATION_CREATED
     product_action: CREATE_RESERVATION
   crm.profile.read:
+    description: Read a guest CRM profile (preferences, tier). Employee capability; pass guest_id in arguments.
     kind: read
     backend: crm
     required_scope: profile_read
@@ -45,24 +48,28 @@ tools:
     # ADR-016 read grant preview: only these fields ever leave the door.
     fields: [preferences, tier]
   pms.room.assign:
+    description: Assign a room to a reservation. Mutating - routed through the decision pipeline. Pass reservation_id, room_id, and optional preferred_floor inside attributes.
     kind: decide
     backend: rtdp
     required_scope: pms
     event_type: ROOM_PREP
     product_action: ASSIGN_ROOM
   bms.hvac.set:
+    description: Set room HVAC setpoint. Mutating - routed through the decision pipeline. Pass room_id and setpoint inside attributes.
     kind: decide
     backend: rtdp
     required_scope: building_ops
     event_type: ROOM_PREP
     product_action: SET_ROOM_HVAC
   housekeeping.task.add:
+    description: Add a housekeeping task for a room. Mutating - routed through the decision pipeline. Pass room_id and task inside attributes.
     kind: decide
     backend: rtdp
     required_scope: housekeeping
     event_type: ROOM_PREP
     product_action: HOUSEKEEPING_ADD
   benefits.participant.read:
+    description: Read a benefits participant record (plan_id, coverage_tier, hsa_balance). Participant scope.
     kind: read
     backend: benefits
     required_scope: benefits
@@ -70,18 +77,21 @@ tools:
     purpose: MANAGE_MY_BENEFITS
     fields: [plan_id, coverage_tier, hsa_balance]   # PHI never listed
   benefits.contribution.change:
+    description: Apply a benefits contribution change. Mutating - routed through the decision pipeline. Pass election details inside attributes.
     kind: decide
     backend: rtdp
     required_scope: benefits
     event_type: CONTRIBUTION_CHANGE
     product_action: APPLY_CONTRIBUTION_CHANGE
   approvals.list:
+    description: List pending human approvals. Human identities only.
     kind: proxy
     backend: approvals
     required_scope: approve
     proxy_endpoint: GET /v1/approvals/pending
     human_only: true
   approvals.decide:
+    description: Approve or deny a held decision. Human identities only; pass decision_id and verdict.
     kind: proxy
     backend: approvals
     required_scope: approve
