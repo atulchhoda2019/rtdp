@@ -292,6 +292,10 @@ def main():
     persona = PERSONAS[a.persona]
     model = a.model or ("claude-sonnet-4-5" if a.provider == "anthropic"
                         else "gpt-4o")
+    key_var = ("ANTHROPIC_API_KEY" if a.provider == "anthropic"
+               else "OPENAI_API_KEY")
+    if not os.environ.get(key_var):
+        sys.exit(f"{key_var} not set — export it first (keys stay local)")
 
     print(f"{C_BOLD}agent-client{C_OFF}  provider={a.provider} "
           f"model={model} persona={a.persona}")
