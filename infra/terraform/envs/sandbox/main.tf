@@ -113,6 +113,9 @@ module "eks" {
   # EKS single-version upgrades only: hop 1.31 -> 1.32 -> 1.33 -> 1.34
   # (1.31 fell into extended support Oct 2026 — $0.60/hr vs $0.10/hr).
   kubernetes_version = "1.34"
+  # The aws-login (console session) operator identity is account root;
+  # aws-auth only maps the cluster-creator role and root cannot assume it.
+  admin_principal_arns = ["arn:aws:iam::079457921611:root"]
 }
 module "iam_workloads" {
   source                  = "../../modules/iam-workloads"
