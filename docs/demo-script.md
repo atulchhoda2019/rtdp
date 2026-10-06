@@ -9,6 +9,10 @@ or localhost) and terminal commands.
 - **Public URL:** https://noon-utilization-figures-nav.trycloudflare.com
   — nothing to install. If it 502s, the tunnel pod restarted:
   `kubectl -n rtdp logs deploy/edge-tunnel | grep trycloudflare`
+- **Agent gateway (MCP):**
+  https://timer-invitation-rebates-surveys.trycloudflare.com — separate
+  tunnel; if it dies:
+  `kubectl -n rtdp logs deploy/gateway-tunnel | grep trycloudflare`
 - **Localhost:** `kubectl -n rtdp port-forward svc/ingress 8080:8080`
   → `http://localhost:8080` (AWS), or `make up && make seed` for the
   fully local stack.
@@ -100,6 +104,52 @@ python tools/demo/benefits_live_change.py
 
 Evidence written to `docs/validation/phase3-config-only.json`.
 
+## Act 5b — governed agents (MCP)
+
+Gateway: `https://timer-invitation-rebates-surveys.trycloudflare.com`
+
+```bash
+GW=https://timer-invitation-rebates-surveys.trycloudflare.com
+
+# 1. Mint a delegation — the caller never holds a key
+TOK=$(curl -s $GW/v1/session -X POST -H 'Content-Type: application/json' -d '{
+  "principal_kind":"ORG","principal_id":"hotel-h","tenant_id":"tenant_a",
+  "agent_ids":["hotel-ops-dot"]}' | python3 -c 'import json,sys;print(json.load(sys.stdin)["delegation_token"])')
+
+# 2. MCP: initialize + scope-filtered tools/list
+curl -s $GW/mcp -X POST -H "Authorization: Bearer $TOK" -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":1,"method":"initialize"}'
+curl -s $GW/mcp -X POST -H "Authorization: Bearer $TOK" -H 'Content-Type: application/json' \
+  -d '{"jsonrpc":"2.0","id":2,"method":"tools/list"}' | python3 -m json.tool
+
+# 3. A mutating tool routes through the governed decide path
+curl -s $GW/v1/tools/pms.room.assign -X POST -H "Authorization: Bearer $TOK" \
+  -H 'Content-Type: application/json' -d '{"task_id":"demo-1","purpose":"PREPARE_STAY",
+  "input":{"attributes":{"reservation_id":"res-9001","room_id":"r-1204","preferred_floor":10}}}'
+#  -> DECISION_PENDING_APPROVAL: floor 10 exceeds the VIP auto-assign floor.
+```
+
+> "The agent authenticates with a delegation chain — signature, tenant,
+> depth, revocation — not a bearer API key. Its tool list is its scope
+> list. A mutating call can't touch a backend: it becomes a decision
+> request, pinned to the same bundle digest as everything else, and this
+> one held for a human because the policy says so. Every call is a
+> fact in `agent_call` — OK, DENIED, THROTTLED, PENDING — replayable."
+
+Approval release (in-cluster — the human approver path):
+
+```bash
+kubectl -n rtdp port-forward svc/approval-service 8095:8095 &
+curl -s localhost:8095/v1/approvals/<decision_id> -X POST \
+  -H 'Content-Type: application/json' \
+  -d '{"tenant_id":"tenant_a","approver_identity":"role:front_desk_manager","verdict":"APPROVE"}'
+#  -> {"verdict":"RELEASED","intents":["…:ASSIGN_ROOM:gw"]}
+```
+
+A guest token minted for `guest-g`/`guest-agent-g` shows the other side:
+`tools/list` returns only `decide`, `reservations.lookup`,
+`reservations.create` — the ops toolset isn't even visible.
+
 ## Act 6 — it is all tested
 
 ```bash
@@ -120,6 +170,7 @@ make e2e-benefits   # 15/15 benefits checks
 ## Troubleshooting
 
 - Tunnel dead → `kubectl -n rtdp logs deploy/edge-tunnel | grep trycloudflare`
+- Gateway tunnel dead → `kubectl -n rtdp logs deploy/gateway-tunnel | grep trycloudflare`
 - AWS ingress → `kubectl -n rtdp port-forward svc/ingress 8080:8080`
 - Local stack → `make up && make seed`
 - Scenario details → `docs/demo-use-cases.md`, `docs/demo-benefits.md`

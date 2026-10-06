@@ -28,6 +28,11 @@ variable "public_access_cidrs" {
 variable "private_subnet_ids" {
   type = list(string)
 }
+variable "admin_principal_arns" {
+  type        = list(string)
+  default     = []
+  description = "IAM principals granted cluster-admin via EKS access entries (API_AND_CONFIG_MAP). The account-root console-login session needs this — aws-auth only maps the cluster creator role, and root cannot sts:AssumeRole it."
+}
 resource "aws_eks_cluster" "this" {
   name     = var.cluster_name
   version  = var.kubernetes_version
@@ -45,8 +50,28 @@ resource "aws_eks_cluster" "this" {
     endpoint_public_access  = length(var.public_access_cidrs) > 0
     public_access_cidrs     = var.public_access_cidrs
   }
+  access_config {
+    authentication_mode                         = "API_AND_CONFIG_MAP"
+    # Must stay true — omitting it reads null in state and forces a
+    # full cluster replacement.
+    bootstrap_cluster_creator_admin_permissions = true
+  }
   enabled_cluster_log_types = ["api", "audit", "authenticator", "controllerManager", "scheduler"]
   tags                      = var.tags
+}
+resource "aws_eks_access_entry" "admin" {
+  for_each      = toset(var.admin_principal_arns)
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = each.value
+}
+resource "aws_eks_access_policy_association" "admin" {
+  for_each      = toset(var.admin_principal_arns)
+  cluster_name  = aws_eks_cluster.this.name
+  principal_arn = each.value
+  policy_arn    = "arn:aws:eks::aws:cluster-access-policy/AmazonEKSClusterAdminPolicy"
+  access_scope {
+    type = "cluster"
+  }
 }
 resource "aws_iam_role" "cluster" {
   name                 = "rtdp-eks-cluster"
