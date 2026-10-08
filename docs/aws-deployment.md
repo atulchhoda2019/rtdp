@@ -87,7 +87,16 @@ rtdp/
     argocd/               # app-of-apps pointing at deploy/helm
   docs/
     aws-deployment.md     # this file
-    validation/aws/       # evidence
+    adr/                  # ADR-013..015 implemented; 016-020 spec'd in the v2.2 agent spec
+    demo-script.md        # demo runbook incl. the four-pane end-to-end agent act
+    validation/aws/       # evidence (incl. adr-015-agentic-rollout.md)
+  services/
+    agent-gateway/        # ADR-015 governed MCP/REST tool door
+    approval-service/     # ADR-014 human approval holds
+  assets/seed/agent/      # gateway_tools.yaml, scoped tool set
+  tools/demo/             # agent_client.py (LLM tool-calling client), effect_watch.py
+  tools/agent_ft/         # governed-agent LoRA fine-tuning (traces, eval, adapters)
+  tools/agent_box/        # Strands Box config + Dogwood policy for the demo agent
 ```
 
 Pin Terraform and provider versions. Keep modules small, each with a README listing inputs, outputs, and cost drivers.

@@ -1,6 +1,6 @@
 # RTDP: Configurable Insurance Claim Decisioning
 Detailed system design • Version 2.1 • September 27, 2026 • Implementation target: Devin
-Version 2.1 adds declarative state flows and bounded language-model roles (ADR-011, ADR-012). All other v2.0 content is unchanged.
+Version 2.1 adds declarative state flows and bounded language-model roles (ADR-011, ADR-012). All other v2.0 content is unchanged. The agent control plane extension — agents as governed callers via signed delegation, autonomy tiers, and a managed MCP/REST tool gateway — is specified in `RTDP_v2.2_Agent_Control_Plane_Spec.md` and implemented under ADR-013–015.
 RTDP is a configurable, multi-tenant platform for turning insurance claim transactions and model-generated risk signals into explainable decisions and authorized real-time actions. Its governing requirement is independent evolution: routine model, ruleset, threshold, and product-binding changes must deploy through validated configuration without changing application code or datastore schemas.
 This document supersedes design.md v1.1. It retains real Flink streaming and separate AI inference in the MVP, introduces a stable signal boundary, and specifies tenant-aware catalog, product selection, governance, and action execution. rtdp-architecture.excalidraw contains the corresponding views; root AGENTS.md is the coding-agent contract.
 All examples use synthetic tenants, transactions, models, and thresholds. This is a proposed reference implementation, not a description of an existing production deployment, an assertion of compliance, or a measured performance result. Do not upload the original source PDF or business-specific material to a third party without authorization.
@@ -929,6 +929,23 @@ Until these are supplied, implement the marked synthetic defaults, not invented 
 | ADR-010 | Replay/shadow cannot perform live effects |
 | ADR-011 | Language models act only as contracted signal providers or advisory, draft-only assistants; they never decide outcomes, transition state, or dispatch actions |
 | ADR-012 | Multi-step state is modeled as declarative, versioned state-flow assets executed by a deterministic, pinned flow engine |
+| ADR-013 | Agent identity and delegation: callers may be agents acting for principals via signed delegation chains ([adr](adr/013-agent-identity-and-delegation.md)) |
+| ADR-014 | Autonomy tiers and human approvals: per-action tiers, PENDING_APPROVAL, accountable policy owners ([adr](adr/014-autonomy-tiers-and-approvals.md)) |
+| ADR-015 | Governed agent gateway: MCP + REST tool surface, scope-filtered visibility, quotas, agent_call facts, no direct writes ([adr](adr/015-agent-gateway.md)) |
+
+ADRs 016–020 (read grants, arbitration, compensation, call-graph pane,
+metering) are specified in [RTDP_v2.2_Agent_Control_Plane_Spec.md](RTDP_v2.2_Agent_Control_Plane_Spec.md)
+and pending implementation.
+
+## Related documents
+
+- [RTDP_v2.2_Agent_Control_Plane_Spec.md](RTDP_v2.2_Agent_Control_Plane_Spec.md) — the agent control plane extension (ADRs 013–020)
+- [docs/aws-deployment.md](aws-deployment.md) — AWS service mapping and cloud guardrails
+- [docs/demo-script.md](demo-script.md) — presenter runbook, including the four-pane end-to-end agent demo (decision → intent → effect)
+- [docs/validation/](validation/) — gate evidence; AWS evidence under [validation/aws/](validation/aws/), including the [agentic rollout](validation/aws/adr-015-agentic-rollout.md) and the [EKS 1.34 upgrade](validation/aws/eks-1-34-upgrade.md)
+- `tools/agent_ft/` — synthetic-trace generation, MLX LoRA fine-tuning, and eval harness for a disciplined governed-agent model (Qwen2.5-1.5B)
+- `tools/agent_box/` — Strands Box sandbox config + Dogwood policy wrapping the demo agent (egress limited to the governed gateway and model endpoint)
+- `tools/demo/agent_client.py`, `tools/demo/effect_watch.py` — LLM-driven gateway client and live effect-ledger watcher
 
 ## Devin starter prompt
 Read docs/design.md version 2.1, root AGENTS.md, and docs/rtdp-architecture.excalidraw. Implement Phases 0 and 1 in order. The governing requirement is independent configuration deployment: routine model, ruleset, threshold, and product-binding changes must not require application rebuilds or database migrations. Build tenant-aware catalog/selection using two synthetic tenants, a stable typed signal envelope and semantic contract registry, real Flink feature computation, real ONNX inference, declarative CEL rules, immutable effective bundles, and simulated real-time actions with durable idempotency and acknowledgment tracking. Use the proposed synthetic defaults where explicitly marked; do not assume real business entitlements or action authority. Keep synchronous scoring behind the SignalProvider interface; external score transports are Phase 3 unless requested. Enable real streaming and scoring by default in Docker Compose. Run every Phase 1 acceptance gate, including configuration-only threshold/model changes, tenant isolation, semantic incompatibility rejection, streaming recovery, model parity, action ambiguity, and 500 TPS for five minutes. Save honest evidence in docs/validation/; do not weaken tests or substitute stubs. Stop before using real customer data, real action providers, or unresolved production authority. Declarative state flows are Phase 2 and language-model assistants are Phase 4; in Phases 0 and 1, grant no model service identity write, activation, or dispatch authority (ADR-011).
