@@ -53,3 +53,10 @@ coverage/
 .venv-docling/
 # Generated receipt corpus — reproducible via tools/demo/receipt_corpus.py
 tests/fixtures/receipts/
+
+# fine-tuned model artifacts (large binaries — not for git)
+tools/agent_ft/fused/
+tools/agent_ft/adapters/
+tools/agent_ft/*.gguf
+tools/agent_ft/*.log
+tools/agent_box/.strands-box/

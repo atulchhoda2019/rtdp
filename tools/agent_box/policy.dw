@@ -1,0 +1,40 @@
+// RTDP governed-agent box policy.
+// The workload may reach exactly two destinations: local Ollama (the model)
+// and the RTDP agent gateway tunnel (the governed MCP door). Everything else
+// is refused by default. This is the outer sandbox layer; the gateway still
+// enforces delegation, scopes, quotas, and approvals on every tool call.
+
+// Local model endpoint, reached via a cloudflared quick tunnel because a
+// contained workload cannot dial loopback — only the gateway can.
+@id("ollama_connect")
+permit (principal, action == Box::Action::"net:connect", resource)
+when { context.input.host == "proposition-wing-adaptation-crew.trycloudflare.com" && context.input.port == 443 };
+
+@id("ollama_request")
+permit (principal, action == Box::Action::"http:request", resource)
+when { context.input.host == "proposition-wing-adaptation-crew.trycloudflare.com" && context.input.port == 443 };
+
+// RTDP governed agent gateway — the only remote host this box can reach.
+@id("gateway_connect")
+permit (principal, action == Box::Action::"net:connect", resource)
+when { context.input.host == "timer-invitation-rebates-surveys.trycloudflare.com" && context.input.port == 443 };
+
+@id("gateway_request")
+permit (principal, action == Box::Action::"http:request", resource)
+when { context.input.host == "timer-invitation-rebates-surveys.trycloudflare.com" && context.input.port == 443 };
+
+// History-dependent cap: at most 30 completed requests to the gateway per
+// 10 minutes from this box, independent of the gateway's own quota.
+@id("gateway_budget")
+@description("This box allows at most 30 requests to the governed gateway per 10 minutes. Wait, or ask the operator to raise the cap in policy.dw.")
+forbid (principal, action == Box::Action::"http:request", resource)
+when temporal {
+    exists (total: Long). (
+        (count for (t: Timepoint). where (
+            formerly within 10m (
+                Box::Action::"http:request"::response{ input.host: "timer-invitation-rebates-surveys.trycloudflare.com" } && tp(t)
+            )
+        )) == total
+        && total >= 30
+    )
+};

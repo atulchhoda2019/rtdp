@@ -1,0 +1,32 @@
+# Strands Box config for the RTDP governed-agent demo client.
+# Runs tools/demo/agent_client.py inside an OS sandbox where Dogwood
+# policy (policy.dw) decides every outbound connection and HTTP request.
+# Binaries live outside the repo: https://github.com/strands-agents/box
+name = "rtdp-agent"
+box_dir = "/Users/chhodas/box-state/rtdp-agent"
+policy = "policy.dw"
+
+[agent]
+command = [
+  "/Users/chhodas/box-state/rtdp-agent-venv/bin/python",
+  "-c", "import urllib.request,json; r=urllib.request.urlopen(urllib.request.Request('https://proposition-wing-adaptation-crew.trycloudflare.com/v1/chat/completions',data=json.dumps({'model':'qwen2.5:1.5b','messages':[{'role':'user','content':'Reply exactly: WORKING'}],'max_tokens':10}).encode(),headers={'Content-Type':'application/json'}),timeout=60); print(r.status, r.read()[:300])",
+]
+workspace = "/Users/chhodas/code/rtdp"
+env = { PATH = "/usr/bin:/bin", TERM = "xterm-256color" }
+
+# Direct reach for the workload's own syscalls. fs:* policy actions still
+# decide anything the box's shell/Python interpreters do, but agent_client
+# only needs to read itself and the interpreter's install.
+[agent.filesystem]
+read = [
+  "~/code/rtdp",
+  "~/box-state/rtdp-agent-venv",
+  "/opt/homebrew/Cellar/python@3.11",
+  "/opt/homebrew/Cellar/openssl@3",
+  "/opt/homebrew/opt",
+  "/opt/homebrew/Cellar/ca-certificates",
+]
+list = ["~/code/rtdp", "~/box-state/rtdp-agent-venv"]
+metadata = ["~/box-state/rtdp-agent-venv", "/opt/homebrew/Cellar/python@3.11"]
+# venv stubs on macOS re-exec the framework's Python.app binary.
+exec = ["/opt/homebrew/Cellar/python@3.11/3.11.16/Frameworks/Python.framework/Versions/3.11/Resources/Python.app/Contents/MacOS/Python"]

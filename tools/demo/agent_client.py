@@ -237,35 +237,53 @@ def run_openai(model, system, tools, first_msg, do_call, repl,
     real_names = {t["name"].replace(".", "_"): t["name"] for t in tools}
     msgs = [{"role": "system", "content": system},
             {"role": "user", "content": first_msg}]
+    repeats = {}
 
     def step():
         resp = client.chat.completions.create(
             model=model, messages=msgs, tools=api_tools,
-            tool_choice="auto", temperature=0.2)
+            tool_choice="auto", temperature=0.2, max_tokens=1024)
         m = resp.choices[0].message
         msgs.append(m)
         if m.content:
             print(f"\n{C_GREEN}{m.content}{C_OFF}\n")
+        elif not m.tool_calls:
+            print(f"{C_DIM}(model returned an empty response){C_OFF}")
         for tc in (m.tool_calls or []):
             try:
                 args = json.loads(tc.function.arguments or "{}")
+                if isinstance(args, str):  # double-encoded JSON
+                    args = json.loads(args)
             except Exception:
                 args = {}
-            err, out = do_call(real_names[tc.function.name], args)
+            if not isinstance(args, dict):
+                args = {}
+            name = real_names.get(
+                tc.function.name,
+                tc.function.name.replace("_", "."))
+            sig = name + json.dumps(args, sort_keys=True)
+            repeats[sig] = repeats.get(sig, 0) + 1
+            if repeats[sig] > 2:
+                print(f"{C_DIM}(identical call repeated "
+                      f"— stopping loop){C_OFF}")
+                return False
+            err, out = do_call(name, args)
             msgs.append({"role": "tool", "tool_call_id": tc.id,
                          "content": out})
         return bool(m.tool_calls)
 
-    while step():
-        pass
+    for _ in range(12):
+        if not step():
+            break
     if repl:
         repl_loop(msgs, lambda m: step_loop(step))
     return msgs
 
 
-def step_loop(step):
-    while step():
-        pass
+def step_loop(step, max_steps=12):
+    for _ in range(max_steps):
+        if not step():
+            return
 
 
 def repl_loop(msgs, advance):
