@@ -170,6 +170,117 @@ delegation, lists only what its scopes expose, calls `reservations.lookup`
 > anything; it produced a decision that policy holds until a human
 > releases it. Swap Claude for GPT and nothing about the gate changes."
 
+### Act 5d — end to end on four screens (decision → intent → effect)
+
+The decision is not the finish line. This act runs the whole arc live:
+the agent proposes, a human releases, the dispatcher executes, and the
+world actually changes.
+
+**Screen layout (4 panes):**
+
+```
+┌─────────────────────────────┬─────────────────────────────┐
+│ 1. AGENT  (LLM + tools)     │ 2. EFFECT LEDGER (watcher)  │
+│    agent_client.py          │    effect_watch.py          │
+├─────────────────────────────┼─────────────────────────────┤
+│ 3. HUMAN APPROVAL DESK      │ 4. WORLD (re-query)         │
+│    approvals pending/release│    agent_client --mode repl │
+└─────────────────────────────┴─────────────────────────────┘
+```
+
+**Setup:**
+
+```bash
+aws sso login --profile rtdp-sso          # kubectl legs need it once
+
+# pane 3 — the human approver channel (in-cluster service)
+kubectl -n rtdp port-forward svc/approval-service 8095:8095 &
+
+# pane 2 — psql wrapper through a throwaway pod (once)
+kubectl -n rtdp run rtdp-psql --restart=Never --image=postgres:16 -i \
+  --env-from=secret/rtdp-db -- sleep 3600
+cat > /tmp/rtdp-psql.sh <<'EOF'
+#!/bin/sh
+kubectl -n rtdp exec -i rtdp-psql -- \
+  sh -lc 'psql "$RTDP_POSTGRES_DSN" -tAc "$0"' "$1"
+EOF
+chmod +x /tmp/rtdp-psql.sh
+```
+
+**The run:**
+
+```bash
+# pane 2 — start watching before the agent acts
+RTDP_PSQL=/tmp/rtdp-psql.sh \
+  .venv/bin/python tools/demo/effect_watch.py --latest
+
+# pane 1 — the tuned local model drives (base qwen works too, weaker)
+nohup .venv/bin/mlx_lm.server --model tools/agent_ft/fused --port 8088 &
+.venv/bin/python tools/demo/agent_client.py \
+    --provider openai --base-url http://localhost:8088/v1 \
+    --model "$PWD/tools/agent_ft/fused" --persona ops --mode scenario
+```
+
+Pane 1 shows: `reservations.lookup` → `crm.profile.read` →
+`pms.room.assign` → `PENDING_APPROVAL` (floor 10 > auto-assign floor 8).
+Pane 2 shows the hold land: `approval_held … ASSIGN_ROOM HELD`.
+
+```bash
+# pane 3 — the human sees the queue and releases
+curl -s 'localhost:8095/v1/approvals/pending?tenant_id=tenant_a' | python3 -m json.tool
+curl -s localhost:8095/v1/approvals/<decision_id> -X POST \
+  -H 'Content-Type: application/json' \
+  -d '{"approver_identity":"role:front_desk_manager","verdict":"APPROVE"}'
+```
+
+Pane 2 then shows the release and execution live:
+`approval_held → RELEASED`, `action_execution → DISPATCHING →
+ACKNOWLEDGED ref=notify:…`.
+
+```bash
+# pane 4 — the payoff: ask the agent to look again
+#   (REPL mode: "check res-9001 again")
+# -> reservations.lookup now returns room_id=r-1204, status=ROOM_ASSIGNED
+```
+
+> "Three facts, not one: the decision, the intent, and the effect —
+> committed separately. A human released the hold through a different
+> service on a different identity, the dispatcher executed through its
+> declared adapter with lease fencing and inbox dedup, and the world
+> changed: ask the agent to look again and the reservation is assigned.
+> That last lookup isn't a cache — it reads the action ledger."
+
+### Act 5e — the sandbox around the agent (Strands Box)
+
+Same run, contained. `tools/agent_box/` runs the agent client in an OS
+sandbox where a Dogwood policy decides every connection: the workload
+reaches exactly the governed gateway and the model endpoint — nothing
+else. A temporal rule also caps gateway requests at 30/10min,
+independent of the gateway's own quota.
+
+```bash
+~/box-core/box-core/box run --config tools/agent_box/box.toml
+# try any other destination from inside: refused, deny-by-default
+```
+
+> "Three independent layers: the model decides what to do, the sandbox
+> decides where the process can go, the gateway decides what the agent
+> is allowed to do. A stolen token inside this box can't even dial out."
+
+### Act 5f — we trained the discipline
+
+```bash
+.venv/bin/python tools/agent_ft/eval.py
+# BASE    Qwen2.5-1.5B-Instruct: 2/12   — narrates, never calls tools
+# ADAPTER iter-300:             10/12  — correct first call, refuses
+#                                        to bypass holds
+```
+
+> "The agent's brain is also an artifact: a LoRA adapter trained on
+> synthetic governed-agent traces, evaluated against held-out scenarios,
+> digest-pinnable like everything else. Base model narrates an action it
+> never performed; the tuned one calls the tool and reports the hold."
+
 ## Act 6 — it is all tested
 
 ```bash

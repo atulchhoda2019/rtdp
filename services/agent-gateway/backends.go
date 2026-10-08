@@ -10,6 +10,7 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 )
@@ -108,12 +109,42 @@ func allVisible(t *Tool, c *caller) bool {
 	return false
 }
 
+// acknowledgedAssignments reads the action ledger for released
+// ASSIGN_ROOM effects and maps reservation_id -> room_id.
+func acknowledgedAssignments(ctx context.Context, tenant string) map[string]string {
+	out := map[string]string{}
+	rows, err := db.Query(ctx, `
+		SELECT intent FROM action_execution
+		WHERE tenant_id=$1 AND action_type='ASSIGN_ROOM'
+		  AND state='ACKNOWLEDGED'`, tenant)
+	if err != nil {
+		return out
+	}
+	defer rows.Close()
+	for rows.Next() {
+		var intent []byte
+		if err := rows.Scan(&intent); err != nil {
+			continue
+		}
+		var m map[string]any
+		if err := json.Unmarshal(intent, &m); err != nil {
+			continue
+		}
+		rid, _ := m["reservation_id"].(string)
+		room, _ := m["room_id"].(string)
+		if rid != "" && room != "" {
+			out[rid] = room
+		}
+	}
+	return out
+}
+
 // ---------------- dispatch ----------------
 
 // readBackend serves read tools from the synthetic datasets above and
 // returns (rows, data-classes-read, error). Errors are DENIED-class —
 // they become DENIED agent_call outcomes.
-func readBackend(_ context.Context, t *Tool, c *caller,
+func readBackend(ctx context.Context, t *Tool, c *caller,
 	in map[string]any) ([]row, []string, error) {
 	fields := pickFields(t, c)
 	switch t.Backend {
@@ -134,6 +165,16 @@ func readBackend(_ context.Context, t *Tool, c *caller,
 				continue
 			}
 			out = append(out, filterFields(r, fields, "reservation_id"))
+		}
+		// World feedback: overlay acknowledged ASSIGN_ROOM effects from
+		// the action ledger, so a released assignment is visible on the
+		// next lookup — the ledger, not the fixture, is the truth.
+		for rid, room := range acknowledgedAssignments(ctx, c.tenant) {
+			for _, r := range out {
+				if r["reservation_id"] == rid {
+					r["room_id"], r["status"] = room, "ROOM_ASSIGNED"
+				}
+			}
 		}
 		return out, []string{t.DataClass}, nil
 

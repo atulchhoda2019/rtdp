@@ -25,8 +25,8 @@ tools:
       reservations: own
       reservations_admin: all
     fields_employee: [reservation_id, guest_id, room_type, floor,
-                      status, rate_code]
-    fields_customer: [reservation_id, room_type, status]
+                      status, rate_code, room_id]
+    fields_customer: [reservation_id, room_type, status, room_id]
   reservations.create:
     description: Create a hotel reservation. Routed through policy; may be held for human review. Pass reservation details in attributes.
     kind: decide

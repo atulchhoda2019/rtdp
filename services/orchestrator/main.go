@@ -400,6 +400,9 @@ func (s *server) Decide(ctx context.Context,
 					AdapterRef:     pol.Adapters[at],
 					TtlMs:          pol.IntentTTLMs[at],
 					Status:         rtdpv1.IntentStatus_INTENT_READY,
+					// The intent carries the caller's attributes so the
+					// dispatcher's ledger records what was asked for.
+					Payload: req.Attributes,
 				}
 				// ADR-014 tier resolution: held intents get approval
 				// metadata so approval-service stays bundle-free.
